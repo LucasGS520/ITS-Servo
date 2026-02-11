@@ -1,13 +1,179 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { BookOpen, Globe, Users, GraduationCap, Heart, ChevronRight, Quote } from "lucide-react";
+import Layout from "@/components/Layout";
+
+const disciplinas = [
+  { title: "Teologia Sistemática", desc: "Estudo organizado das doutrinas fundamentais da fé cristã." },
+  { title: "Hermenêutica Bíblica", desc: "Princípios e métodos para interpretação correta das Escrituras." },
+  { title: "Homilética", desc: "Arte e técnica da pregação bíblica eficaz." },
+  { title: "História da Igreja", desc: "Panorama da trajetória do Cristianismo ao longo dos séculos." },
+  { title: "Aconselhamento Pastoral", desc: "Fundamentos bíblicos para o cuidado e orientação pastoral." },
+  { title: "Missões e Evangelismo", desc: "Estratégias e princípios para a expansão do Evangelho." },
+];
+
+const diferenciais = [
+  { icon: BookOpen, title: "Ensino Bíblico Sólido", desc: "Fundamentado nas Escrituras Sagradas, com rigor teológico e fidelidade doutrinária." },
+  { icon: Users, title: "Acessível a Todos", desc: "Formação teológica aberta a líderes, obreiros e membros da igreja local." },
+  { icon: Heart, title: "Compromisso Missionário", desc: "Visão global com atuação local e internacional, incluindo Moçambique." },
+];
+
+const depoimentos = [
+  { name: "Pr. Carlos Mendes", role: "Líder eclesiástico", text: "O ITS transformou meu ministério. A profundidade do ensino e o carinho dos professores fazem toda a diferença." },
+  { name: "Maria Fernanda Silva", role: "Aluna do núcleo de SP", text: "Encontrei no ITS a formação bíblica que tanto buscava: acessível, séria e comprometida com a Palavra de Deus." },
+  { name: "Dc. José Mutimba", role: "Aluno em Moçambique", text: "Mesmo à distância, sinto o cuidado e a dedicação do instituto. O curso tem transformado vidas na nossa comunidade." },
+];
 
 const Index = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
+    <Layout>
+      {/* Hero */}
+      <section className="relative overflow-hidden bg-primary py-20 text-primary-foreground md:py-32">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,hsl(25_95%_55%/0.15),transparent_70%)]" />
+        <div className="container relative z-10 text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-foreground/10 mb-6">
+            <GraduationCap className="h-8 w-8" />
+          </div>
+          <h1 className="mx-auto max-w-3xl text-3xl font-bold leading-tight md:text-5xl lg:text-6xl">
+            Instituto Teológico Servo
+          </h1>
+          <p className="mx-auto mt-4 max-w-xl text-lg text-primary-foreground/80 md:text-xl">
+            Formando servos fiéis para o Reino de Deus — com ensino bíblico sólido, acessível e comprometido com a missão.
+          </p>
+          <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+            <Button asChild size="lg" className="bg-secondary text-secondary-foreground hover:bg-secondary/90 text-base px-8">
+              <Link to="/inscricao">Inscreva-se Agora</Link>
+            </Button>
+            <Button asChild variant="outline" size="lg" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 text-base">
+              <Link to="/quem-somos">Conheça o ITS <ChevronRight className="ml-1 h-4 w-4" /></Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Apresentação */}
+      <section className="py-16 md:py-24">
+        <div className="container">
+          <div className="mx-auto max-w-3xl text-center">
+            <h2 className="text-2xl font-bold text-foreground md:text-3xl">Sobre o Instituto</h2>
+            <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
+              O Instituto Teológico Servo nasceu do desejo de oferecer formação teológica acessível e de qualidade,
+              vinculado à Assembleia de Deus — Ministério Família. Nossa missão é capacitar homens e mulheres para um
+              serviço cristão mais profundo, fundamentado na Palavra de Deus e comprometido com a expansão do Reino.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Disciplinas */}
+      <section className="bg-muted/50 py-16 md:py-24">
+        <div className="container">
+          <h2 className="text-center text-2xl font-bold text-foreground md:text-3xl">Disciplinas Disponíveis</h2>
+          <p className="mx-auto mt-2 max-w-lg text-center text-muted-foreground">
+            Conheça algumas das disciplinas oferecidas pelo ITS
+          </p>
+          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {disciplinas.map((d) => (
+              <Card key={d.title} className="transition-shadow hover:shadow-md">
+                <CardContent className="p-6">
+                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-accent">
+                    <BookOpen className="h-5 w-5 text-accent-foreground" />
+                  </div>
+                  <h3 className="font-serif text-lg font-bold text-foreground">{d.title}</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">{d.desc}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <div className="mt-8 text-center">
+            <Button asChild variant="outline">
+              <Link to="/cursos">Ver Todos os Cursos <ChevronRight className="ml-1 h-4 w-4" /></Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Núcleo Moçambique */}
+      <section className="py-16 md:py-24">
+        <div className="container">
+          <div className="flex flex-col items-center gap-8 md:flex-row">
+            <div className="flex-1">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-secondary/10">
+                <Globe className="h-6 w-6 text-secondary" />
+              </div>
+              <h2 className="text-2xl font-bold text-foreground md:text-3xl">Atuação em Moçambique</h2>
+              <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
+                O ITS expandiu sua missão para além das fronteiras brasileiras. Em Moçambique, o instituto mantém um núcleo
+                ativo, levando formação teológica de qualidade a líderes e obreiros locais, fortalecendo a igreja e
+                impactando comunidades inteiras com o Evangelho.
+              </p>
+              <Button asChild className="mt-6 bg-secondary text-secondary-foreground hover:bg-secondary/90">
+                <Link to="/quem-somos">Saiba Mais</Link>
+              </Button>
+            </div>
+            <div className="flex h-64 w-full max-w-sm items-center justify-center rounded-2xl bg-accent md:h-80">
+              <div className="text-center">
+                <Globe className="mx-auto h-16 w-16 text-accent-foreground/40" />
+                <p className="mt-2 text-sm text-accent-foreground/60">Núcleo Moçambique</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Diferenciais */}
+      <section className="bg-muted/50 py-16 md:py-24">
+        <div className="container">
+          <h2 className="text-center text-2xl font-bold text-foreground md:text-3xl">Por que escolher o ITS?</h2>
+          <div className="mt-10 grid gap-8 md:grid-cols-3">
+            {diferenciais.map((d) => (
+              <div key={d.title} className="text-center">
+                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary">
+                  <d.icon className="h-7 w-7 text-primary-foreground" />
+                </div>
+                <h3 className="font-serif text-lg font-bold text-foreground">{d.title}</h3>
+                <p className="mt-2 text-muted-foreground">{d.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Depoimentos */}
+      <section className="py-16 md:py-24">
+        <div className="container">
+          <h2 className="text-center text-2xl font-bold text-foreground md:text-3xl">O que dizem nossos alunos</h2>
+          <div className="mt-10 grid gap-6 md:grid-cols-3">
+            {depoimentos.map((d) => (
+              <Card key={d.name} className="relative">
+                <CardContent className="p-6">
+                  <Quote className="mb-3 h-8 w-8 text-secondary/40" />
+                  <p className="text-sm italic leading-relaxed text-muted-foreground">"{d.text}"</p>
+                  <div className="mt-4 border-t pt-4">
+                    <p className="font-serif text-sm font-bold text-foreground">{d.name}</p>
+                    <p className="text-xs text-muted-foreground">{d.role}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Final */}
+      <section className="bg-primary py-16 text-primary-foreground md:py-24">
+        <div className="container text-center">
+          <h2 className="text-2xl font-bold md:text-3xl">Pronto para iniciar sua jornada teológica?</h2>
+          <p className="mx-auto mt-4 max-w-lg text-primary-foreground/80">
+            Inscreva-se no Instituto Teológico Servo e aprofunde seu conhecimento bíblico para servir com excelência.
+          </p>
+          <Button asChild size="lg" className="mt-8 bg-secondary text-secondary-foreground hover:bg-secondary/90 text-base px-8">
+            <Link to="/inscricao">Inscreva-se Agora</Link>
+          </Button>
+        </div>
+      </section>
+    </Layout>
   );
 };
 
