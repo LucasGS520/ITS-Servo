@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, BookOpen } from "lucide-react";
+import { Menu, X } from "lucide-react";
+import logoIts from "@/assets/logo-its.jpeg";
 
 const navItems = [
   { label: "Início", path: "/" },
   { label: "Quem Somos", path: "/quem-somos" },
   { label: "Cursos", path: "/cursos" },
+  { label: "Núcleos", path: "/nucleos" },
   { label: "Metodologia", path: "/metodologia" },
 ];
 
@@ -18,9 +20,7 @@ const Header = () => {
     <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-            <BookOpen className="h-5 w-5 text-primary-foreground" />
-          </div>
+          <img src={logoIts} alt="Logo ITS" className="h-10 w-10 rounded-lg object-contain" />
           <div className="flex flex-col">
             <span className="font-serif text-lg font-bold leading-tight text-primary">ITS</span>
             <span className="text-[10px] leading-tight text-muted-foreground">Instituto Teológico Servo</span>
