@@ -6,7 +6,7 @@ import { BookOpen, Clock, FileText, CheckCircle } from "lucide-react";
 
 const estrutura = [
   { icon: BookOpen, title: "Módulos Temáticos", desc: "O conteúdo é organizado em módulos progressivos, permitindo que o aluno avance gradualmente no aprendizado teológico." },
-  { icon: Clock, title: "Carga Horária", desc: "Cada disciplina possui entre 30 e 60 horas/aula, distribuídas ao longo do semestre letivo, com encontros semanais ou quinzenais." },
+  { icon: Clock, title: "Carga Horária", desc: "Cada disciplina tem duração média de 30 dias, com aulas uma vez por semana — totalizando aproximadamente 4 horas/aula por disciplina." },
   { icon: FileText, title: "Material Didático", desc: "Apostilas próprias, textos bíblicos selecionados e material complementar preparado por professores especializados." },
   { icon: CheckCircle, title: "Avaliações", desc: "Avaliações contínuas incluindo trabalhos escritos, participação em sala e provas ao final de cada módulo." },
 ];
@@ -26,24 +26,26 @@ const Metodologia = () => {
       <section className="py-16 md:py-24">
         <div className="container">
           <div className="mx-auto max-w-3xl">
-            <h2 className="text-2xl font-bold text-foreground md:text-3xl">Nossa Abordagem Pedagógica</h2>
+            <h2 className="text-2xl font-bold text-foreground md:text-3xl">Metodologia de Ensino</h2>
             <div className="mt-6 space-y-4 text-lg leading-relaxed text-muted-foreground">
               <p>
-              O ITS adota uma <strong className="text-foreground">metodologia de ensino cíclica</strong>, que combina exposição teórica com aplicação prática, sempre fundamentada
-                nas Escrituras Sagradas. Nesse modelo, os conteúdos são revisitados e aprofundados a cada ciclo, permitindo que
-                o aluno consolide o aprendizado de forma progressiva e natural.
+                O Instituto Teológico Servo (ITS) adota uma <strong className="text-foreground">metodologia de ensino cíclica</strong>, que permite ao aluno ingressar no curso no início de qualquer disciplina, independentemente do grau escolhido (Fundamental, Básico ou Médio). Essa estrutura oferece flexibilidade sem comprometer a progressão pedagógica.
               </p>
               <p>
-                Acreditamos que a teologia deve ser vivida, e não apenas estudada. A abordagem cíclica garante que os
-                fundamentos sejam constantemente reforçados à medida que novos temas são introduzidos.
+                Nosso modelo integra <strong className="text-foreground">fundamentação teórica consistente</strong> com <strong className="text-foreground">aplicação prática ministerial</strong>, sempre alicerçada nas Escrituras Sagradas. Cada conteúdo é desenvolvido com foco na formação bíblica sólida e na capacitação para o serviço cristão.
               </p>
               <p>
-                Nossos professores são líderes e teólogos com experiência pastoral e acadêmica, garantindo um ensino
-                contextualizado e relevante para a realidade da igreja local.
+                A abordagem cíclica assegura que os principais fundamentos da fé sejam continuamente revisitados e aprofundados à medida que novos temas são introduzidos, promovendo consolidação do conhecimento e maturidade teológica.
               </p>
+
+              <h3 className="text-xl font-bold text-foreground pt-4">Corpo Docente</h3>
               <p>
-                O acompanhamento dos alunos é personalizado, com tutoria individual e atividades em grupo que promovem
-                o crescimento mútuo e a edificação da comunidade de aprendizado.
+                O ITS conta com professores que atuam como <strong className="text-foreground">líderes e teólogos com experiência pastoral e formação acadêmica</strong>, garantindo um ensino contextualizado, relevante e alinhado à realidade da igreja local.
+              </p>
+
+              <h3 className="text-xl font-bold text-foreground pt-4">Acompanhamento e Desenvolvimento do Aluno</h3>
+              <p>
+                O processo formativo inclui <strong className="text-foreground">acompanhamento personalizado</strong>, com tutoria individual e atividades em grupo. Essa dinâmica favorece o desenvolvimento espiritual, o crescimento acadêmico e a edificação mútua dentro da comunidade de aprendizado.
               </p>
             </div>
           </div>
