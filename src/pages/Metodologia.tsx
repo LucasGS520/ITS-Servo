@@ -6,7 +6,7 @@ import { BookOpen, Clock, FileText, CheckCircle } from "lucide-react";
 
 const estrutura = [
   { icon: BookOpen, title: "Módulos Temáticos", desc: "O conteúdo é organizado em módulos progressivos, permitindo que o aluno avance gradualmente no aprendizado teológico." },
-  { icon: Clock, title: "Carga Horária", desc: "Cada disciplina tem duração média de 30 dias, com aulas uma vez por semana — totalizando aproximadamente 4 horas/aula por disciplina." },
+  { icon: Clock, title: "Carga Horária", desc: "Cada disciplina tem duração de aproximadamente 1 mês, com aulas semanais de 1h30 — totalizando cerca de 6 horas/aula por disciplina." },
   { icon: FileText, title: "Material Didático", desc: "Apostilas próprias, textos bíblicos selecionados e material complementar preparado por professores especializados." },
   { icon: CheckCircle, title: "Avaliações", desc: "Avaliações contínuas incluindo trabalhos escritos, participação em sala e provas ao final de cada módulo." },
 ];
