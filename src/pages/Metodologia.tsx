@@ -29,8 +29,13 @@ const Metodologia = () => {
             <h2 className="text-2xl font-bold text-foreground md:text-3xl">Nossa Abordagem Pedagógica</h2>
             <div className="mt-6 space-y-4 text-lg leading-relaxed text-muted-foreground">
               <p>
-                O ITS adota uma metodologia que combina exposição teórica com aplicação prática, sempre fundamentada
-                nas Escrituras Sagradas. Acreditamos que a teologia deve ser vivida, e não apenas estudada.
+              O ITS adota uma <strong className="text-foreground">metodologia de ensino cíclica</strong>, que combina exposição teórica com aplicação prática, sempre fundamentada
+                nas Escrituras Sagradas. Nesse modelo, os conteúdos são revisitados e aprofundados a cada ciclo, permitindo que
+                o aluno consolide o aprendizado de forma progressiva e natural.
+              </p>
+              <p>
+                Acreditamos que a teologia deve ser vivida, e não apenas estudada. A abordagem cíclica garante que os
+                fundamentos sejam constantemente reforçados à medida que novos temas são introduzidos.
               </p>
               <p>
                 Nossos professores são líderes e teólogos com experiência pastoral e acadêmica, garantindo um ensino

@@ -1,16 +1,17 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { BookOpen, Globe, Users, GraduationCap, Heart, ChevronRight, Quote } from "lucide-react";
+import { BookOpen, Globe, Users, Heart, ChevronRight, Quote } from "lucide-react";
 import Layout from "@/components/Layout";
+import logoIts from "@/assets/logo-its.jpeg";
 
 const disciplinas = [
-  { title: "Teologia Sistemática", desc: "Estudo organizado das doutrinas fundamentais da fé cristã." },
-  { title: "Hermenêutica Bíblica", desc: "Princípios e métodos para interpretação correta das Escrituras." },
+  { title: "Bibliologia", desc: "Estudo sobre a Bíblia, sua inspiração, formação e autoridade." },
   { title: "Homilética", desc: "Arte e técnica da pregação bíblica eficaz." },
-  { title: "História da Igreja", desc: "Panorama da trajetória do Cristianismo ao longo dos séculos." },
-  { title: "Aconselhamento Pastoral", desc: "Fundamentos bíblicos para o cuidado e orientação pastoral." },
-  { title: "Missões e Evangelismo", desc: "Estratégias e princípios para a expansão do Evangelho." },
+  { title: "Cristologia", desc: "Estudo sobre a pessoa e a obra de Jesus Cristo." },
+  { title: "Hermenêutica", desc: "Princípios e métodos para interpretação correta das Escrituras." },
+  { title: "Escatologia", desc: "Estudo das profecias e dos eventos finais segundo as Escrituras." },
+  { title: "Missiologia", desc: "Estratégias e princípios para a expansão do Evangelho." },
 ];
 
 const diferenciais = [
@@ -32,9 +33,7 @@ const Index = () => {
       <section className="relative overflow-hidden bg-primary py-20 text-primary-foreground md:py-32">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,hsl(25_95%_55%/0.15),transparent_70%)]" />
         <div className="container relative z-10 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-foreground/10 mb-6">
-            <GraduationCap className="h-8 w-8" />
-          </div>
+          <img src={logoIts} alt="Logo ITS" className="mx-auto h-20 w-20 rounded-2xl object-contain mb-6" />
           <h1 className="mx-auto max-w-3xl text-3xl font-bold leading-tight md:text-5xl lg:text-6xl">
             Instituto Teológico Servo
           </h1>
@@ -45,7 +44,7 @@ const Index = () => {
             <Button asChild size="lg" className="bg-secondary text-secondary-foreground hover:bg-secondary/90 text-base px-8">
               <Link to="/inscricao">Inscreva-se Agora</Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 text-base">
+            <Button asChild variant="outline" size="lg" className="border-primary-foreground/50 text-primary-foreground bg-primary-foreground/10 hover:bg-primary-foreground/20 text-base">
               <Link to="/quem-somos">Conheça o ITS <ChevronRight className="ml-1 h-4 w-4" /></Link>
             </Button>
           </div>

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { BookOpen } from "lucide-react";
+import logoIts from "@/assets/logo-its.jpeg";
 
 const Footer = () => {
   return (
@@ -9,9 +9,7 @@ const Footer = () => {
           {/* Institutional */}
           <div>
             <div className="mb-4 flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-foreground/20">
-                <BookOpen className="h-5 w-5 text-primary-foreground" />
-              </div>
+              <img src={logoIts} alt="Logo ITS" className="h-9 w-9 rounded-lg object-contain bg-primary-foreground/20" />
               <span className="font-serif text-lg font-bold">ITS</span>
             </div>
             <p className="text-sm leading-relaxed text-primary-foreground/80">
@@ -29,7 +27,8 @@ const Footer = () => {
               {[
                 { label: "Início", path: "/" },
                 { label: "Quem Somos", path: "/quem-somos" },
-                { label: "Cursos e Disciplinas", path: "/cursos" },
+                { label: "Cursos", path: "/cursos" },
+                { label: "Núcleos", path: "/nucleos" },
                 { label: "Metodologia", path: "/metodologia" },
                 { label: "Inscrição", path: "/inscricao" },
               ].map((link) => (

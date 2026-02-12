@@ -2,28 +2,73 @@ import Layout from "@/components/Layout";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { BookOpen, Users, MapPin } from "lucide-react";
+import { BookOpen, GraduationCap, ChevronRight } from "lucide-react";
 
-const cursos = [
+const gradeFundamental = [
+  "Bibliologia",
+  "Administração Eclesiástica",
+  "Doutrina de Deus",
+  "Família Cristã",
+  "Hamartiologia",
+  "Homilética",
+  "Antropologia",
+  "Ministério Pastoral",
+  "O Pentateuco",
+  "Missiologia",
+  "Paracletologia",
+  "Liderança Cristã",
+];
+
+const gradeBasico = [
+  ...gradeFundamental,
+  "Soteriologia",
+  "Tipologia",
+  "Evangelismo",
+  "Livros Históricos 1",
+  "Os Evangelhos",
+  "Evangelismo, Integração e Discipulado",
+  "Cristologia",
+  "Eclesiologia",
+  "Atos dos Apóstolos",
+  "Ética Cristã",
+  "Epístolas Paulinas",
+  "Mordomia Cristã",
+];
+
+const gradeMedio = [
+  ...gradeBasico,
+  "Hermenêutica",
+  "Livros Poéticos",
+  "Livros Proféticos 1",
+  "Livros Proféticos 2",
+  "Batalha Espiritual",
+  "Livros Históricos 2",
+  "Epístolas Gerais",
+  "Geografia Bíblica",
+  "Escatologia",
+  "Angelologia",
+  "Doutrinas Bíblicas",
+  "Soteriologia",
+];
+
+const niveis = [
   {
-    nucleo: "Núcleo São Paulo",
-    formato: "Presencial",
-    disciplinas: [
-      { title: "Teologia Sistemática", desc: "Estudo das doutrinas cristãs de forma organizada e aprofundada.", publico: "Líderes e obreiros" },
-      { title: "Hermenêutica Bíblica", desc: "Métodos e princípios para interpretação fiel das Escrituras.", publico: "Todos os interessados" },
-      { title: "Homilética", desc: "Técnicas de pregação e comunicação do Evangelho.", publico: "Pregadores e líderes" },
-      { title: "História da Igreja", desc: "A trajetória do Cristianismo desde os primeiros séculos.", publico: "Todos os interessados" },
-      { title: "Aconselhamento Pastoral", desc: "Fundamentos bíblicos para cuidado e orientação pastoral.", publico: "Líderes e pastores" },
-    ],
+    titulo: "Fundamental",
+    descricao: "Base sólida na fé cristã com 12 matérias essenciais para o início da formação teológica.",
+    materias: gradeFundamental,
+    cor: "bg-accent",
   },
   {
-    nucleo: "Núcleo Moçambique",
-    formato: "Presencial / Híbrido",
-    disciplinas: [
-      { title: "Fundamentos da Fé Cristã", desc: "Introdução às bases da fé e da vida cristã.", publico: "Membros e novos convertidos" },
-      { title: "Liderança Bíblica", desc: "Princípios de liderança segundo o modelo bíblico.", publico: "Líderes locais" },
-      { title: "Missões e Evangelismo", desc: "Estratégias e chamado para a expansão do Evangelho.", publico: "Missionários e obreiros" },
-    ],
+    titulo: "Básico",
+    descricao: "Aprofundamento teológico com 24 matérias, expandindo os fundamentos para uma compreensão mais ampla.",
+    materias: gradeBasico,
+    cor: "bg-secondary/10",
+  },
+  {
+    titulo: "Médio",
+    descricao: "Formação completa com 36 matérias, abrangendo todo o currículo teológico do ITS.",
+    materias: gradeMedio,
+    cor: "bg-primary/10",
   },
 ];
 
@@ -32,38 +77,35 @@ const Cursos = () => {
     <Layout>
       <section className="bg-primary py-16 text-primary-foreground md:py-24">
         <div className="container text-center">
-          <h1 className="text-3xl font-bold md:text-4xl lg:text-5xl">Cursos, Disciplinas e Núcleos</h1>
+          <h1 className="text-3xl font-bold md:text-4xl lg:text-5xl">Grade Curricular</h1>
           <p className="mx-auto mt-4 max-w-xl text-primary-foreground/80 text-lg">
-            Conheça os cursos e disciplinas disponíveis em cada núcleo do ITS.
+            Nossa formação é dividida em três níveis progressivos: Fundamental, Básico e Médio.
           </p>
         </div>
       </section>
 
-      {cursos.map((nucleo) => (
-        <section key={nucleo.nucleo} className="py-16 md:py-20 odd:bg-muted/50">
+      {niveis.map((nivel) => (
+        <section key={nivel.titulo} className="py-16 md:py-20 odd:bg-muted/50">
           <div className="container">
             <div className="mb-8 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary">
-                <MapPin className="h-5 w-5 text-secondary-foreground" />
+              <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${nivel.cor}`}>
+                <GraduationCap className="h-5 w-5 text-foreground" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-foreground md:text-2xl">{nucleo.nucleo}</h2>
-                <p className="text-sm text-muted-foreground">Formato: {nucleo.formato}</p>
+                <h2 className="text-xl font-bold text-foreground md:text-2xl">
+                  Nível {nivel.titulo} — {nivel.materias.length} matérias
+                </h2>
+                <p className="text-sm text-muted-foreground">{nivel.descricao}</p>
               </div>
             </div>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {nucleo.disciplinas.map((d) => (
-                <Card key={d.title} className="transition-shadow hover:shadow-md">
-                  <CardContent className="p-6">
-                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-accent">
-                      <BookOpen className="h-5 w-5 text-accent-foreground" />
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {nivel.materias.map((materia, i) => (
+                <Card key={`${nivel.titulo}-${i}`} className="transition-shadow hover:shadow-md">
+                  <CardContent className="flex items-center gap-3 p-4">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent">
+                      <BookOpen className="h-4 w-4 text-accent-foreground" />
                     </div>
-                    <h3 className="font-serif text-lg font-bold text-foreground">{d.title}</h3>
-                    <p className="mt-2 text-sm text-muted-foreground">{d.desc}</p>
-                    <div className="mt-3 flex items-center gap-1 text-xs text-muted-foreground">
-                      <Users className="h-3 w-3" />
-                      <span>{d.publico}</span>
-                    </div>
+                    <span className="text-sm font-medium text-foreground">{materia}</span>
                   </CardContent>
                 </Card>
               ))}
@@ -71,6 +113,17 @@ const Cursos = () => {
           </div>
         </section>
       ))}
+
+      <section className="py-12 md:py-16">
+        <div className="container text-center">
+          <p className="text-muted-foreground">
+            Todos os núcleos compartilham a mesma grade curricular, variando apenas a sequência de aprendizado.
+          </p>
+          <Button asChild variant="outline" className="mt-4">
+            <Link to="/nucleos">Conheça nossos Núcleos <ChevronRight className="ml-1 h-4 w-4" /></Link>
+          </Button>
+        </div>
+      </section>
 
       <section className="bg-primary py-16 text-primary-foreground">
         <div className="container text-center">
