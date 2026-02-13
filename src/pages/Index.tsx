@@ -115,7 +115,7 @@ const Index = () => {
             <img
               src={mocambique2}
               alt="Formatura de alunos do ITS em Moçambique"
-              className="h-64 w-full max-w-sm rounded-2xl object-cover shadow-md md:h-80"
+              className="h-80 w-full max-w-sm rounded-2xl object-cover object-top shadow-md"
             />
           </div>
         </div>
