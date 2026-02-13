@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { BookOpen, Globe, Users, Heart, ChevronRight, Quote } from "lucide-react";
 import Layout from "@/components/Layout";
 import logoIts from "@/assets/logo-its.jpeg";
+import mocambique2 from "@/assets/mocambique2.png";
 
 const disciplinas = [
   { title: "Bibliologia", desc: "Estudo sobre a Bíblia, sua inspiração, formação e autoridade." },
@@ -111,12 +112,11 @@ const Index = () => {
                 <Link to="/quem-somos">Saiba Mais</Link>
               </Button>
             </div>
-            <div className="flex h-64 w-full max-w-sm items-center justify-center rounded-2xl bg-accent md:h-80">
-              <div className="text-center">
-                <Globe className="mx-auto h-16 w-16 text-accent-foreground/40" />
-                <p className="mt-2 text-sm text-accent-foreground/60">Núcleo Moçambique</p>
-              </div>
-            </div>
+            <img
+              src={mocambique2}
+              alt="Formatura de alunos do ITS em Moçambique"
+              className="h-64 w-full max-w-sm rounded-2xl object-cover shadow-md md:h-80"
+            />
           </div>
         </div>
       </section>

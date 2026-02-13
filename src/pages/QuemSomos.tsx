@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Target, Eye, Heart, Globe, BookOpen } from "lucide-react";
 import mocambique1 from "@/assets/mocambique1.png";
-import mocambique2 from "@/assets/mocambique2.png";
 
 const QuemSomos = () => {
   return (
@@ -107,18 +106,11 @@ const QuemSomos = () => {
       <section className="bg-muted/50 py-16 md:py-24">
         <div className="container">
           <div className="flex flex-col items-center gap-8 lg:flex-row">
-            <div className="grid w-full max-w-md grid-cols-2 gap-4">
-              <img
-                src={mocambique1}
-                alt="Entrega de certificado do ITS em Moçambique"
-                className="h-64 w-full rounded-2xl object-cover shadow-md"
-              />
-              <img
-                src={mocambique2}
-                alt="Formatura de alunos do ITS em Moçambique"
-                className="h-64 w-full rounded-2xl object-cover shadow-md"
-              />
-            </div>
+            <img
+              src={mocambique1}
+              alt="Entrega de certificado do ITS em Moçambique"
+              className="h-64 w-full max-w-sm rounded-2xl object-cover shadow-md md:h-80"
+            />
             <div className="flex-1">
               <h2 className="text-2xl font-bold text-foreground md:text-3xl">Impacto em Moçambique</h2>
               <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
