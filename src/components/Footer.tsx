@@ -1,26 +1,40 @@
 import { Link } from "react-router-dom";
 import logoIts from "@/assets/logo-its.jpeg";
+import logoCnmcb from "@/assets/logo-cnmcb.jpeg";
+import logoMinisterioFamilia from "@/assets/logo-ministerio-familia.jpeg";
 
 const Footer = () => {
   return (
     <footer className="border-t bg-primary text-primary-foreground">
       <div className="container py-12">
-        <div className="grid gap-8 md:grid-cols-3">
-          {/* Institutional */}
-          <div>
+        <div className="grid gap-10 md:grid-cols-4">
+          {/* Institucional */}
+          <div className="md:col-span-1">
             <div className="mb-4 flex items-center gap-2">
               <img src={logoIts} alt="Logo ITS" className="h-9 w-9 rounded-lg object-contain bg-primary-foreground/20" />
-              <span className="font-serif text-lg font-bold">ITS</span>
+              <span className="font-serif text-lg font-bold">Instituto Teológico Servo</span>
             </div>
             <p className="text-sm leading-relaxed text-primary-foreground/80">
-              Instituto Teológico Servo — Formando servos fiéis para o Reino de Deus, com ensino bíblico sólido e acessível.
-            </p>
-            <p className="mt-3 text-sm text-primary-foreground/70">
-              Mantido pela Assembleia de Deus — Ministério Família
+              Formando servos fiéis para o Reino de Deus, com ensino bíblico sólido, acessível e comprometido com a edificação da Igreja.
             </p>
           </div>
 
-          {/* Quick links */}
+          {/* Parcerias */}
+          <div>
+            <h3 className="mb-4 font-serif text-sm font-bold uppercase tracking-wider">Parcerias</h3>
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <img src={logoMinisterioFamilia} alt="Logo Assembleia de Deus Ministério Família" className="h-10 w-10 rounded-lg object-contain bg-primary-foreground/20 p-0.5" />
+                <span className="text-sm text-primary-foreground/80">Assembleia de Deus Ministério Família</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <img src={logoCnmcb} alt="Logo CNMCB" className="h-10 w-10 rounded-lg object-contain bg-primary-foreground/20 p-0.5" />
+                <span className="text-sm text-primary-foreground/80">CNMCB — Convenção Nacional dos Ministros de Cristo do Brasil</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Links Rápidos */}
           <div>
             <h3 className="mb-4 font-serif text-sm font-bold uppercase tracking-wider">Links Rápidos</h3>
             <ul className="space-y-2 text-sm">
@@ -41,7 +55,7 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Contact */}
+          {/* Contato */}
           <div>
             <h3 className="mb-4 font-serif text-sm font-bold uppercase tracking-wider">Contato</h3>
             <div className="space-y-2 text-sm text-primary-foreground/80">
