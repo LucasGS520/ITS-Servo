@@ -29,10 +29,10 @@ const Metodologia = () => {
             <h2 className="text-2xl font-bold text-foreground md:text-3xl">Metodologia de Ensino</h2>
             <div className="mt-6 space-y-4 text-lg leading-relaxed text-muted-foreground">
               <p>
-                O Instituto Teológico Servo (ITS) adota uma <strong className="text-foreground">metodologia de ensino cíclica</strong>, que permite ao aluno ingressar no curso no início de qualquer disciplina, independentemente do grau escolhido (Fundamental, Básico ou Médio). Essa estrutura oferece flexibilidade sem comprometer a progressão pedagógica.
+              O Instituto Teológico Servo (ITS) adota uma metodologia de ensino cíclica, que permite ao aluno ingressar no curso no início de qualquer disciplina, independentemente do grau escolhido (Fundamental, Básico ou Médio). Essa estrutura oferece flexibilidade sem comprometer a progressão pedagógica.
               </p>
               <p>
-                Nosso modelo integra <strong className="text-foreground">fundamentação teórica consistente</strong> com <strong className="text-foreground">aplicação prática ministerial</strong>, sempre alicerçada nas Escrituras Sagradas. Cada conteúdo é desenvolvido com foco na formação bíblica sólida e na capacitação para o serviço cristão.
+                Nosso modelo integra fundamentação teórica consistente com aplicação prática ministerial, sempre alicerçada nas Escrituras Sagradas. Cada conteúdo é desenvolvido com foco na formação bíblica sólida e na capacitação para o serviço cristão.
               </p>
               <p>
                 A abordagem cíclica assegura que os principais fundamentos da fé sejam continuamente revisitados e aprofundados à medida que novos temas são introduzidos, promovendo consolidação do conhecimento e maturidade teológica.
@@ -40,12 +40,12 @@ const Metodologia = () => {
 
               <h3 className="text-xl font-bold text-foreground pt-4">Corpo Docente</h3>
               <p>
-                O ITS conta com professores que atuam como <strong className="text-foreground">líderes e teólogos com experiência pastoral e formação acadêmica</strong>, garantindo um ensino contextualizado, relevante e alinhado à realidade da igreja local.
+                O ITS conta com professores que atuam como líderes e teólogos com experiência pastoral e formação acadêmica, garantindo um ensino contextualizado, relevante e alinhado à realidade da igreja local.
               </p>
 
               <h3 className="text-xl font-bold text-foreground pt-4">Acompanhamento e Desenvolvimento do Aluno</h3>
               <p>
-                O processo formativo inclui <strong className="text-foreground">acompanhamento personalizado</strong>, com tutoria individual e atividades em grupo. Essa dinâmica favorece o desenvolvimento espiritual, o crescimento acadêmico e a edificação mútua dentro da comunidade de aprendizado.
+                O processo formativo inclui acompanhamento personalizado, com tutoria individual e atividades em grupo. Essa dinâmica favorece o desenvolvimento espiritual, o crescimento acadêmico e a edificação mútua dentro da comunidade de aprendizado.
               </p>
             </div>
           </div>
