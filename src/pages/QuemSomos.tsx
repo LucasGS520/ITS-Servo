@@ -109,7 +109,7 @@ const QuemSomos = () => {
             <img
               src={mocambique1}
               alt="Entrega de certificado do ITS em Moçambique"
-              className="h-64 w-full max-w-sm rounded-2xl object-cover shadow-md md:h-80"
+              className="h-80 w-full max-w-sm rounded-2xl object-cover object-top shadow-md"
             />
             <div className="flex-1">
               <h2 className="text-2xl font-bold text-foreground md:text-3xl">Impacto em Moçambique</h2>
