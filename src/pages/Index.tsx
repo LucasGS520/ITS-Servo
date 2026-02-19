@@ -22,7 +22,7 @@ const diferenciais = [
 ];
 
 const depoimentos = [
-  { name: "Pr. Débora Vilela", role: "Aluna do núcleo Engenho Novo - Barueri", text: "O instituto tem Sido fundamental para meu crescimento espiritual, oferecendo ensinamentos de grande relevância para minha jornada de fé. Tem regado minha fé com sabedoria, e inspiração. Sou grata a Deus por me permitir estudar e aprender a transformar vidas na nossa comunidade." },
+  { name: "Pra. Débora Vilela", role: "Aluna do núcleo Engenho Novo - Barueri", text: "O instituto tem Sido fundamental para meu crescimento espiritual, oferecendo ensinamentos de grande relevância para minha jornada de fé. Sou grata a Deus, por ter regado minha fé com sabedoria e inspiração, permitindo transformar vidas em minha comunidade." },
   { name: "Pb. Jhonatas da Silva Mota", role: "Aluno do núcleo Jd. Conceição - Osasco", text: "Encontrei no ITS a formação bíblica que tanto buscava: acessível, séria e comprometida com a palavra. Me ajudou muito na reflexão e no estudo prático." },
   { name: "Pr. Norberto Bispo Xerinda", role: "Líder eclesiástico em Moçambique", text: "Durante vários anos, íamos morrendo por falta de conhecimento... Mas conhecemos o ITS que nos ajudou a termos um conhecimento prático e teórico 100% Bíblico. Recomendamos a todos os irmãos que vivam o conhecimento com o Instituto Teológico Servo." },
 ];
@@ -145,10 +145,10 @@ const Index = () => {
           <h2 className="text-center text-2xl font-bold text-foreground md:text-3xl">O que dizem nossos alunos</h2>
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             {depoimentos.map((d) => (
-              <Card key={d.name} className="relative">
-                <CardContent className="p-6">
-                  <Quote className="mb-3 h-8 w-8 text-secondary/40" />
-                  <p className="text-sm italic leading-relaxed text-muted-foreground">"{d.text}"</p>
+              <Card key={d.name} className="relative flex flex-col h-full">
+                <CardContent className="flex flex-col flex-1 p-6">
+                  <Quote className="mb-3 h-8 w-8 shrink-0 text-secondary/40" />
+                  <p className="flex-1 text-sm italic leading-relaxed text-muted-foreground">"{d.text}"</p>
                   <div className="mt-4 border-t pt-4">
                     <p className="font-serif text-sm font-bold text-foreground">{d.name}</p>
                     <p className="text-xs text-muted-foreground">{d.role}</p>
