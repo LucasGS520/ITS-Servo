@@ -17,14 +17,14 @@ const disciplinas = [
 
 const diferenciais = [
   { icon: BookOpen, title: "Ensino Bíblico Sólido", desc: "Fundamentado nas Escrituras Sagradas, com rigor teológico e fidelidade doutrinária." },
-  { icon: Users, title: "Acessível a Todos", desc: "Formação teológica aberta a líderes, obreiros e membros da igreja local." },
-  { icon: Heart, title: "Compromisso Missionário", desc: "Visão global com atuação local e internacional, incluindo Moçambique." },
+  { icon: Users, title: "Acessível a Todos", desc: "Formação teológica aberta a líderes, obreiros e membros com excelente custo benefício." },
+  { icon: Heart, title: "Compromisso Missionário", desc: "Visão global do IDE de Jesus, com atuação local e internacional transformando vidas e ministérios." },
 ];
 
 const depoimentos = [
-  { name: "Pr. Carlos Mendes", role: "Líder eclesiástico", text: "O ITS transformou meu ministério. A profundidade do ensino e o carinho dos professores fazem toda a diferença." },
-  { name: "Maria Fernanda Silva", role: "Aluna do núcleo de SP", text: "Encontrei no ITS a formação bíblica que tanto buscava: acessível, séria e comprometida com a Palavra de Deus." },
-  { name: "Dc. José Mutimba", role: "Aluno em Moçambique", text: "Mesmo à distância, sinto o cuidado e a dedicação do instituto. O curso tem transformado vidas na nossa comunidade." },
+  { name: "Pr. Débora Vilela", role: "Aluna do núcleo Engenho Novo - Barueri", text: "O instituto tem Sido fundamental para meu crescimento espiritual, oferecendo ensinamentos de grande relevância para minha jornada de fé. Tem regado minha fé com sabedoria, e inspiração. Sou grata a Deus por me permitir estudar e aprender a transformar vidas na nossa comunidade." },
+  { name: "Pb. Jhonatas da Silva Mota", role: "Aluno do núcleo Jd. Conceição - Osasco", text: "Encontrei no ITS a formação bíblica que tanto buscava: acessível, séria e comprometida com a palavra. Me ajudou muito na reflexão e no estudo prático." },
+  { name: "Pr. Norberto Bispo Xerinda", role: "Líder eclesiástico em Moçambique", text: "Durante vários anos, íamos morrendo por falta de conhecimento... Mas conhecemos o ITS que nos ajudou a termos um conhecimento prático e teórico 100% Bíblico. Recomendamos a todos os irmãos que vivam o conhecimento com o Instituto Teológico Servo." },
 ];
 
 const Index = () => {
