@@ -1,72 +1,118 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CalendarIcon, Loader2 } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 import { z } from "zod";
+import { maskCPF, maskPhone, validateCPF } from "@/lib/masks";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+const nucleos = [
+  { value: "sede_jd_santa_monica", label: "Sede Jd. Santa Mônica (Barueri/SP)" },
+  { value: "engenho_novo", label: "Engenho Novo (Barueri/SP)" },
+  { value: "jd_conceicao", label: "Jd. Conceição (Osasco/SP)" },
+  { value: "ariston", label: "Ariston (Carapicuíba/SP)" },
+  { value: "maputo", label: "Maputo (Moçambique)" },
+];
 
 const inscricaoSchema = z.object({
-  nome: z.string().trim().min(3, "Nome deve ter pelo menos 3 caracteres").max(100, "Nome muito longo"),
-  telefone: z.string().trim().min(10, "Telefone inválido").max(20, "Telefone inválido"),
+  nome_completo: z.string().trim().min(3, "Nome deve ter pelo menos 3 caracteres").max(100),
+  cpf: z.string().refine((v) => validateCPF(v), "CPF inválido"),
+  telefone: z.string().refine((v) => v.replace(/\D/g, "").length >= 10, "Telefone inválido"),
+  email: z.string().trim().email("E-mail inválido").max(255),
+  data_nascimento: z.date({ required_error: "Data de nascimento obrigatória" }),
   escolaridade: z.string().min(1, "Selecione o grau de escolaridade"),
-  endereco: z.string().trim().min(5, "Endereço deve ter pelo menos 5 caracteres").max(200, "Endereço muito longo"),
-});
+  modalidade: z.enum(["presencial", "correspondencia"], { required_error: "Selecione a modalidade" }),
+  nucleo: z.string().optional(),
+}).refine(
+  (data) => data.modalidade !== "presencial" || (data.nucleo && data.nucleo.length > 0),
+  { message: "Selecione o núcleo para modalidade presencial", path: ["nucleo"] }
+);
 
 type FormData = z.infer<typeof inscricaoSchema>;
 
 const Inscricao = () => {
-  const [formData, setFormData] = useState<FormData>({ nome: "", telefone: "", escolaridade: "", endereco: "" });
-  const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
-  const [submitted, setSubmitted] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState<Partial<FormData>>({
+    nome_completo: "",
+    cpf: "",
+    telefone: "",
+    email: "",
+    escolaridade: "",
+    modalidade: undefined,
+    nucleo: "",
+  });
+  const [dataNascimento, setDataNascimento] = useState<Date | undefined>();
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = inscricaoSchema.safeParse(formData);
+    const dataToValidate = { ...formData, data_nascimento: dataNascimento };
+    const result = inscricaoSchema.safeParse(dataToValidate);
+
     if (!result.success) {
-      const fieldErrors: Partial<Record<keyof FormData, string>> = {};
+      const fieldErrors: Record<string, string> = {};
       result.error.errors.forEach((err) => {
-        const field = err.path[0] as keyof FormData;
+        const field = err.path[0] as string;
         fieldErrors[field] = err.message;
       });
       setErrors(fieldErrors);
       return;
     }
-    setErrors({});
-    setSubmitted(true);
-  };
 
-  if (submitted) {
-    return (
-      <Layout>
-        <section className="py-24 md:py-32">
-          <div className="container">
-            <div className="mx-auto max-w-md text-center">
-              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-secondary/10">
-                <CheckCircle className="h-10 w-10 text-secondary" />
-              </div>
-              <h1 className="text-2xl font-bold text-foreground md:text-3xl">Inscrição Enviada!</h1>
-              <p className="mt-4 text-lg text-muted-foreground">
-                Obrigado pelo seu interesse no Instituto Teológico Servo. Sua inscrição foi recebida com sucesso.
-              </p>
-              <Card className="mt-8 text-left">
-                <CardContent className="p-6">
-                  <h3 className="font-serif font-bold text-foreground">Próximos passos:</h3>
-                  <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
-                    <li>Nossa equipe entrará em contato pelo telefone informado em até 3 dias úteis.</li>
-                    <li>Você receberá as orientações sobre matrícula e início das aulas.</li>
-                    <li>Prepare-se para uma jornada transformadora de aprendizado bíblico!</li>
-                  </ol>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </section>
-      </Layout>
-    );
-  }
+    setErrors({});
+    setLoading(true);
+
+    try {
+      const { data, error } = await supabase
+        .from("inscricoes" as any)
+        .insert({
+          nome_completo: result.data.nome_completo,
+          cpf: result.data.cpf.replace(/\D/g, ""),
+          telefone: result.data.telefone.replace(/\D/g, ""),
+          email: result.data.email,
+          data_nascimento: format(result.data.data_nascimento, "yyyy-MM-dd"),
+          escolaridade: result.data.escolaridade,
+          modalidade: result.data.modalidade,
+          nucleo: result.data.modalidade === "presencial" ? result.data.nucleo : null,
+        } as any)
+        .select("numero_inscricao")
+        .single();
+
+      if (error) throw error;
+
+      const numero = (data as any).numero_inscricao;
+
+      // Try to send confirmation email (non-blocking)
+      try {
+        await supabase.functions.invoke("enviar-email-inscricao", {
+          body: { numero_inscricao: numero, nome: result.data.nome_completo, email: result.data.email },
+        });
+      } catch {
+        // Email sending is non-critical
+      }
+
+      toast({ title: "Inscrição realizada!", description: `Número: ${numero}` });
+      navigate(`/inscricao/pagamento/${numero}`);
+    } catch (err: any) {
+      toast({ title: "Erro ao enviar inscrição", description: err.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Layout>
@@ -81,69 +127,169 @@ const Inscricao = () => {
 
       <section className="py-16 md:py-24">
         <div className="container">
-          <div className="mx-auto max-w-lg">
-            <Card>
-              <CardContent className="p-6 md:p-8">
-                <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="mx-auto max-w-2xl">
+            <form onSubmit={handleSubmit} className="space-y-8">
+              {/* Seção 1 - Dados Pessoais */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-xl">Dados Pessoais</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-5">
                   <div className="space-y-2">
-                    <Label htmlFor="nome">Nome completo *</Label>
+                    <Label htmlFor="nome_completo">Nome completo *</Label>
                     <Input
-                      id="nome"
+                      id="nome_completo"
                       placeholder="Seu nome completo"
-                      value={formData.nome}
-                      onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+                      value={formData.nome_completo}
+                      onChange={(e) => setFormData({ ...formData, nome_completo: e.target.value })}
                     />
-                    {errors.nome && <p className="text-sm text-destructive">{errors.nome}</p>}
+                    {errors.nome_completo && <p className="text-sm text-destructive">{errors.nome_completo}</p>}
+                  </div>
+
+                  <div className="grid gap-5 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="cpf">CPF *</Label>
+                      <Input
+                        id="cpf"
+                        placeholder="000.000.000-00"
+                        value={formData.cpf}
+                        onChange={(e) => setFormData({ ...formData, cpf: maskCPF(e.target.value) })}
+                      />
+                      {errors.cpf && <p className="text-sm text-destructive">{errors.cpf}</p>}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="telefone">Telefone / WhatsApp *</Label>
+                      <Input
+                        id="telefone"
+                        placeholder="(00) 00000-0000"
+                        value={formData.telefone}
+                        onChange={(e) => setFormData({ ...formData, telefone: maskPhone(e.target.value) })}
+                      />
+                      {errors.telefone && <p className="text-sm text-destructive">{errors.telefone}</p>}
+                    </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="telefone">Telefone *</Label>
+                    <Label htmlFor="email">E-mail *</Label>
                     <Input
-                      id="telefone"
-                      placeholder="(00) 00000-0000"
-                      value={formData.telefone}
-                      onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
+                      id="email"
+                      type="email"
+                      placeholder="seu@email.com"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     />
-                    {errors.telefone && <p className="text-sm text-destructive">{errors.telefone}</p>}
+                    {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label>Grau de escolaridade *</Label>
-                    <Select
-                      value={formData.escolaridade}
-                      onValueChange={(value) => setFormData({ ...formData, escolaridade: value })}
+                  <div className="grid gap-5 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label>Data de nascimento *</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn("w-full justify-start text-left font-normal", !dataNascimento && "text-muted-foreground")}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {dataNascimento ? format(dataNascimento, "dd/MM/yyyy") : "Selecione a data"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={dataNascimento}
+                            onSelect={setDataNascimento}
+                            disabled={(date) => date > new Date() || date < new Date("1920-01-01")}
+                            initialFocus
+                            className={cn("p-3 pointer-events-auto")}
+                            captionLayout="dropdown-buttons"
+                            fromYear={1920}
+                            toYear={new Date().getFullYear()}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      {errors.data_nascimento && <p className="text-sm text-destructive">{errors.data_nascimento}</p>}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Grau de escolaridade *</Label>
+                      <Select
+                        value={formData.escolaridade}
+                        onValueChange={(value) => setFormData({ ...formData, escolaridade: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="fundamental">Ensino Fundamental</SelectItem>
+                          <SelectItem value="medio">Ensino Médio</SelectItem>
+                          <SelectItem value="superior">Ensino Superior</SelectItem>
+                          <SelectItem value="pos_graduacao">Pós-graduação</SelectItem>
+                          <SelectItem value="outro">Outro</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {errors.escolaridade && <p className="text-sm text-destructive">{errors.escolaridade}</p>}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Seção 2 - Dados Acadêmicos */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-xl">Dados Acadêmicos</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-5">
+                  <div className="space-y-3">
+                    <Label>Modalidade *</Label>
+                    <RadioGroup
+                      value={formData.modalidade}
+                      onValueChange={(value) => setFormData({ ...formData, modalidade: value as "presencial" | "correspondencia", nucleo: "" })}
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="fundamental">Ensino Fundamental</SelectItem>
-                        <SelectItem value="medio">Ensino Médio</SelectItem>
-                        <SelectItem value="superior_incompleto">Superior Incompleto</SelectItem>
-                        <SelectItem value="superior">Superior Completo</SelectItem>
-                        <SelectItem value="pos">Pós-graduação</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {errors.escolaridade && <p className="text-sm text-destructive">{errors.escolaridade}</p>}
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="presencial" id="presencial" />
+                        <Label htmlFor="presencial" className="font-normal cursor-pointer">Presencial</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="correspondencia" id="correspondencia" />
+                        <Label htmlFor="correspondencia" className="font-normal cursor-pointer">Por Correspondência</Label>
+                      </div>
+                    </RadioGroup>
+                    {errors.modalidade && <p className="text-sm text-destructive">{errors.modalidade}</p>}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="endereco">Endereço *</Label>
-                    <Input
-                      id="endereco"
-                      placeholder="Rua, número, bairro, cidade - UF"
-                      value={formData.endereco}
-                      onChange={(e) => setFormData({ ...formData, endereco: e.target.value })}
-                    />
-                    {errors.endereco && <p className="text-sm text-destructive">{errors.endereco}</p>}
-                  </div>
+                  {formData.modalidade === "presencial" && (
+                    <div className="space-y-2">
+                      <Label>Núcleo *</Label>
+                      <Select
+                        value={formData.nucleo}
+                        onValueChange={(value) => setFormData({ ...formData, nucleo: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o núcleo..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {nucleos.map((n) => (
+                            <SelectItem key={n.value} value={n.value}>{n.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {errors.nucleo && <p className="text-sm text-destructive">{errors.nucleo}</p>}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
-                  <Button type="submit" size="lg" className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/90 text-base">
-                    Enviar Inscrição
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/90 text-base"
+                disabled={loading}
+              >
+                {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Enviando...</> : "Continuar para Pagamento"}
+              </Button>
+            </form>
           </div>
         </div>
       </section>
