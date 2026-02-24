@@ -7,11 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import { BirthDatePicker } from "@/components/BirthDatePicker";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 import { maskCPF, maskPhone, validateCPF } from "@/lib/masks";
@@ -185,28 +183,10 @@ const Inscricao = () => {
                   <div className="grid gap-5 sm:grid-cols-2">
                     <div className="space-y-2">
                       <Label>Data de nascimento *</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn("w-full justify-start text-left font-normal", !dataNascimento && "text-muted-foreground")}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {dataNascimento ? format(dataNascimento, "dd/MM/yyyy") : "Selecione a data"}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={dataNascimento}
-                            onSelect={setDataNascimento}
-                            disabled={(date) => date > new Date() || date < new Date("1920-01-01")}
-                            initialFocus
-                            className={cn("p-3 pointer-events-auto")}
-                            locale={ptBR}
-                          />
-                        </PopoverContent>
-                      </Popover>
+                      <BirthDatePicker
+                        value={dataNascimento}
+                        onChange={setDataNascimento}
+                      />
                       {errors.data_nascimento && <p className="text-sm text-destructive">{errors.data_nascimento}</p>}
                     </div>
 
