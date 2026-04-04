@@ -40,7 +40,10 @@ const Header = () => {
               {item.label}
             </Link>
           ))}
-          <Button asChild className="ml-3 bg-secondary text-secondary-foreground hover:bg-secondary/90">
+          <Button asChild variant="outline" className="ml-2">
+            <Link to="/consulta">Consultar Inscrição</Link>
+          </Button>
+          <Button asChild className="ml-1 bg-secondary text-secondary-foreground hover:bg-secondary/90">
             <Link to="/inscricao">Inscreva-se</Link>
           </Button>
         </nav>
@@ -71,7 +74,10 @@ const Header = () => {
                 {item.label}
               </Link>
             ))}
-            <Button asChild className="mt-2 bg-secondary text-secondary-foreground hover:bg-secondary/90">
+            <Button asChild variant="outline" className="mt-2">
+              <Link to="/consulta" onClick={() => setIsOpen(false)}>Consultar Inscrição</Link>
+            </Button>
+            <Button asChild className="mt-1 bg-secondary text-secondary-foreground hover:bg-secondary/90">
               <Link to="/inscricao" onClick={() => setIsOpen(false)}>Inscreva-se</Link>
             </Button>
           </div>

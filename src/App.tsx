@@ -10,6 +10,7 @@ import Nucleos from "./pages/Nucleos";
 import Metodologia from "./pages/Metodologia";
 import Inscricao from "./pages/Inscricao";
 import Pagamento from "./pages/Pagamento";
+import ConsultaInscricao from "./pages/ConsultaInscricao";
 import AdminLogin from "./pages/AdminLogin";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/metodologia" element={<Metodologia />} />
           <Route path="/inscricao" element={<Inscricao />} />
           <Route path="/inscricao/pagamento/:numero" element={<Pagamento />} />
+          <Route path="/consulta" element={<ConsultaInscricao />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="*" element={<NotFound />} />
