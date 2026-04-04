@@ -10,6 +10,7 @@ import Nucleos from "./pages/Nucleos";
 import Metodologia from "./pages/Metodologia";
 import Inscricao from "./pages/Inscricao";
 import Pagamento from "./pages/Pagamento";
+import ConsultaInscricao from "./pages/ConsultaInscricao";
 import AdminLogin from "./pages/AdminLogin";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
