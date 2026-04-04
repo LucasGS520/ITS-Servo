@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, Loader2, FileText, Clock, CheckCircle, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { applyCpfMask } from "@/lib/masks";
+import { maskCPF } from "@/lib/masks";
 
 const statusLabels: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
   aguardando_pagamento: {
