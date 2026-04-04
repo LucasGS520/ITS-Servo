@@ -40,7 +40,10 @@ const Header = () => {
               {item.label}
             </Link>
           ))}
-          <Button asChild className="ml-3 bg-secondary text-secondary-foreground hover:bg-secondary/90">
+          <Button asChild variant="outline" className="ml-2">
+            <Link to="/consulta">Consultar Inscrição</Link>
+          </Button>
+          <Button asChild className="ml-1 bg-secondary text-secondary-foreground hover:bg-secondary/90">
             <Link to="/inscricao">Inscreva-se</Link>
           </Button>
         </nav>
