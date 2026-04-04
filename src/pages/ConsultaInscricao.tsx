@@ -136,7 +136,7 @@ const ConsultaInscricao = () => {
                       <Input
                         placeholder="000.000.000-00"
                         value={cpf}
-                        onChange={(e) => setCpf(applyCpfMask(e.target.value))}
+                        onChange={(e) => setCpf(maskCPF(e.target.value))}
                         onKeyDown={(e) => e.key === "Enter" && buscarPorCpf()}
                         maxLength={14}
                       />
