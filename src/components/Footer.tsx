@@ -45,6 +45,7 @@ const Footer = () => {
                 { label: "Núcleos", path: "/nucleos" },
                 { label: "Metodologia", path: "/metodologia" },
                 { label: "Inscrição", path: "/inscricao" },
+                { label: "Consultar Inscrição", path: "/consulta" },
               ].map((link) => (
                 <li key={link.path}>
                   <Link to={link.path} className="text-primary-foreground/80 transition-colors hover:text-primary-foreground">
