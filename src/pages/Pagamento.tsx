@@ -29,7 +29,8 @@ const Pagamento = () => {
 
       if (!error && data) {
         setInscricao(data);
-        if ((data as any).status !== "aguardando_pagamento") setEnviado(true);
+        const st = (data as any).status;
+        if (st !== "aguardando_pagamento" && st !== "pagamento_nao_identificado") setEnviado(true);
       }
       setLoading(false);
     };
