@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import logoIts from "@/assets/logo-its.jpeg";
 
+/** Array com os itens de navegação do site */
 const navItems = [
   { label: "Início", path: "/" },
   { label: "Quem Somos", path: "/quem-somos" },
@@ -12,6 +13,11 @@ const navItems = [
   { label: "Metodologia", path: "/metodologia" },
 ];
 
+/**
+ * Header / barra de navegação do site.
+ * - Exibe o logo, links de navegação e botões de ação (Consultar/Inscrever).
+ * - Responsivo: mostra uma barra para desktop e um menu colapsável para mobile.
+ */
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
@@ -27,7 +33,7 @@ const Header = () => {
           </div>
         </Link>
 
-        {/* Desktop nav */}
+        {/* Navegação Desktop */}
         <nav className="hidden items-center gap-1 md:flex">
           {navItems.map((item) => (
             <Link
@@ -48,7 +54,7 @@ const Header = () => {
           </Button>
         </nav>
 
-        {/* Mobile toggle */}
+        {/* Design Mobile */}
         <button
           className="md:hidden"
           onClick={() => setIsOpen(!isOpen)}
@@ -58,7 +64,7 @@ const Header = () => {
         </button>
       </div>
 
-      {/* Mobile nav */}
+      {/* Navegação Mobile */}
       {isOpen && (
         <nav className="border-t bg-card p-4 md:hidden">
           <div className="flex flex-col gap-2">

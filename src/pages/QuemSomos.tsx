@@ -4,10 +4,21 @@ import { Button } from "@/components/ui/button";
 import { Target, Eye, Heart, Globe, BookOpen } from "lucide-react";
 import mocambique1 from "@/assets/mocambique1.png";
 
+/**
+ * Componente da página "Quem Somos"
+ * 
+ * Exibe informações sobre o Instituto Teológico Servo, incluindo:
+ * - Seção hero com título e descrição
+ * - Histórico da instituição
+ * - Missão, Visão e Valores
+ * - Informações sobre a Assembleia de Deus Ministério Família
+ * - Impacto em Moçambique
+ * - Lema institucional
+ */
 const QuemSomos = () => {
   return (
     <Layout>
-      {/* Hero */}
+      {/* Seção Hero - Título e descrição da página */}
       <section className="bg-primary py-16 text-primary-foreground md:py-24">
         <div className="container text-center">
           <h1 className="text-3xl font-bold md:text-4xl lg:text-5xl">Quem Somos</h1>

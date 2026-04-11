@@ -1,3 +1,34 @@
+/**
+ * Função Edge Supabase — enviar-email-confirmacao
+ *
+ * Descrição:
+ *   Envia (prepara) o e-mail oficial de confirmação de matrícula após o
+ *   pagamento/comprovação do comprovante. Inclui instruções diferentes para
+ *   modalidades presenciais e por correspondência.
+ *
+ * Entrada (JSON, método POST):
+ *   {
+ *     "numero_inscricao": string,
+ *     "nome": string,
+ *     "email": string,
+ *     "modalidade": "presencial" | "correspondencia",
+ *     "nucleo"?: string
+ *   }
+ *
+ * Resposta:
+ *   - 200 JSON: { success: true, message: "Email queued (integration pending)" }
+ *   - 500 JSON: { error: string }
+ *
+ * Responsabilidades:
+ *   - Montar instruções específicas conforme a modalidade e núcleo escolhido.
+ *   - Registrar (log) o conteúdo do e-mail que será enviado.
+ *   - Garantir CORS e retornar status adequado ao frontend.
+ *
+ * Observações:
+ *   - Mapeamento de núcleos presente em `nucleoInfo`.
+ *   - Integração com provedor de e-mail e registros persistentes devem ser
+ *     implementados em produção; hoje apenas fazemos logging.
+ */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
@@ -20,6 +51,9 @@ serve(async (req) => {
 
   try {
     const { numero_inscricao, nome, email, modalidade, nucleo } = await req.json();
+    // TODO: Integrar com provedor de e-mail (Resend/SendGrid) e registrar
+    //       envios em sistema de observabilidade. Atualmente o e-mail é apenas
+    //       escrito nos logs para controle.
 
     let instrucoes = "";
     if (modalidade === "presencial" && nucleo) {

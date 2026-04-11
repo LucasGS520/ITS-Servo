@@ -1,3 +1,10 @@
+/**
+ * Página de Consulta de Inscrição
+ * 
+ * Permite que os usuários busquem suas inscrições por número de inscrição ou CPF,
+ * visualizem o status do pagamento e acessem a página de pagamento.
+ */
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
@@ -33,6 +40,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { maskCPF } from "@/lib/masks";
 
+/**
+ * Mapeia os status das inscrições com seus respectivos rótulos, ícones e cores
+ * para exibição na interface
+ */
 const statusLabels: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
   aguardando_pagamento: {
     label: "Aguardando Pagamento",

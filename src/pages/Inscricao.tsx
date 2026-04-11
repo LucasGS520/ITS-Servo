@@ -1,3 +1,10 @@
+/**
+ * Página de Inscrição - Instituto Teológico Servo
+ * 
+ * Componente responsável pelo formulário de inscrição de alunos.
+ * Coleta dados pessoais e acadêmicos, valida-os e persiste no banco de dados.
+ */
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
@@ -16,6 +23,7 @@ import { maskCPF, maskPhone, validateCPF } from "@/lib/masks";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+// Lista de núcleos disponíveis para inscrição presencial
 const nucleos = [
   { value: "sede_jd_santa_monica", label: "Sede Jd. Santa Mônica (Barueri/SP)" },
   { value: "engenho_novo", label: "Engenho Novo (Barueri/SP)" },
@@ -24,6 +32,10 @@ const nucleos = [
   { value: "maputo", label: "Maputo (Moçambique)" },
 ];
 
+/**
+ * Schema de validação para dados de inscrição
+ * Define as regras de validação para todos os campos do formulário
+ */
 const inscricaoSchema = z.object({
   nome_completo: z.string().trim().min(3, "Nome deve ter pelo menos 3 caracteres").max(100),
   cpf: z.string().refine((v) => validateCPF(v), "CPF inválido"),
@@ -38,8 +50,15 @@ const inscricaoSchema = z.object({
   { message: "Selecione o núcleo para modalidade presencial", path: ["nucleo"] }
 );
 
+// Tipo de dados do formulário inferido do schema Zod
 type FormData = z.infer<typeof inscricaoSchema>;
 
+/**
+ * Componente Inscricao
+ * 
+ * Renderiza um formulário de inscrição com validação em tempo real.
+ * Após submissão, persiste os dados no Supabase e envia e-mail de confirmação.
+ */
 const Inscricao = () => {
   const navigate = useNavigate();
   const { toast } = useToast();

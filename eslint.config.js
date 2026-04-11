@@ -1,3 +1,9 @@
+/**
+ * Configuração do ESLint usada pelo projeto.
+ * - Regras e plugins para validação de arquivos `.ts`/`.tsx`.
+ * - Plugins: `react-hooks`, `react-refresh` e regras recomendadas do TypeScript.
+ * - Execute `npm run lint` para validar o código localmente.
+ */
 import js from "@eslint/js";
 import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";

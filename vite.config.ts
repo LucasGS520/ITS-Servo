@@ -4,6 +4,12 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
+/**
+ * Configuração do Vite para desenvolvimento e build.
+ * - Define servidor de desenvolvimento (host/porta) e HMR.
+ * - Registra plugins (React SWC e tagger em `development`).
+ * - Resolve alias `@` para `./src` facilitando imports absolutos.
+ */
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",

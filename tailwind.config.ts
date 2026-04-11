@@ -1,5 +1,11 @@
 import type { Config } from "tailwindcss";
 
+/**
+ * Configuração do Tailwind CSS:
+ * - Define os caminhos (content) para geração das classes utilitárias.
+ * - Extende o tema com fontes, cores, animações e tokens personalizados.
+ * - Plugins adicionais podem ser registrados em `plugins`.
+ */
 export default {
   darkMode: ["class"],
   content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],

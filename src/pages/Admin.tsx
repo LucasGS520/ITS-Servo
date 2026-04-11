@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { maskCPF } from "@/lib/masks";
 
+/** Mapeamento de chaves de status para seus rótulos em português */
 const statusLabels: Record<string, string> = {
   aguardando_pagamento: "Aguardando Pagamento",
   comprovante_enviado: "Comprovante Enviado",
@@ -22,6 +23,7 @@ const statusLabels: Record<string, string> = {
   cancelado: "Cancelada",
 };
 
+/** Mapeamento de chaves de status para suas classes CSS de cor */
 const statusColors: Record<string, string> = {
   aguardando_pagamento: "bg-yellow-100 text-yellow-800",
   comprovante_enviado: "bg-blue-100 text-blue-800",
@@ -30,6 +32,10 @@ const statusColors: Record<string, string> = {
   cancelado: "bg-gray-100 text-gray-500",
 };
 
+/**
+ * Componente de painel administrativo para gerenciar inscrições
+ * Permite visualizar, filtrar, atualizar status e imprimir fichas de inscrição
+ */
 const Admin = () => {
   const navigate = useNavigate();
   const { toast } = useToast();

@@ -1,3 +1,31 @@
+/**
+ * Função Edge Supabase — enviar-email-inscricao
+ *
+ * Descrição:
+ *   Recebe dados de nova inscrição vindos do frontend e prepara o envio
+ *   do e-mail de confirmação ao candidato.
+ *
+ * Entrada (JSON, método POST):
+ *   {
+ *     "numero_inscricao": string,
+ *     "nome": string,
+ *     "email": string
+ *   }
+ *
+ * Resposta:
+ *   - 200 JSON: { success: true, message: "Email queued (integration pending)" }
+ *   - 500 JSON: { error: string }
+ *
+ * Responsabilidades:
+ *   - Extrair e validar o payload JSON enviado pelo frontend.
+ *   - Montar o conteúdo do e-mail de confirmação e registrar via logs.
+ *   - Retornar resposta JSON adequada e habilitar CORS.
+ *
+ * Observações:
+ *   - Executa no runtime Deno (importa o servidor HTTP do Deno).
+ *   - Atualmente apenas realiza logging; integração com provedor de e-mail
+ *     (ex.: Resend, SendGrid) e tratamento de retry devem ser implementados.
+ */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
@@ -12,9 +40,9 @@ serve(async (req) => {
 
   try {
     const { numero_inscricao, nome, email } = await req.json();
-
-    // Email logic prepared for integration with email service (e.g., Resend)
-    // For now, just log the email that would be sent
+    // TODO: Integrar com provedor de e-mail (Resend/SendGrid) e implementar
+    //       estratégia de retry/observabilidade. Atualmente apenas logamos
+    //       o conteúdo que seria enviado.
     console.log("📧 E-mail de confirmação de inscrição:");
     console.log(`Para: ${email}`);
     console.log(`Assunto: Inscrição Recebida - ${numero_inscricao}`);

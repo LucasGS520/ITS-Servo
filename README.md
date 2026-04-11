@@ -1,73 +1,150 @@
-# Welcome to your Lovable project
+# ITS-Servo - Instituto Teológico Servo
 
-## Project info
+Plataforma web moderna para gerenciamento e documentação do Instituto Teológico Servo, construída com tecnologias modernas e boas práticas de desenvolvimento.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## 📋 Sumário
 
-## How can I edit this code?
+- [Visão Geral](#visão-geral)
+- [Características](#características)
+- [Tecnologias](#tecnologias)
+- [Pré-requisitos](#pré-requisitos)
+- [Instalação](#instalação)
+- [Como Usar](#como-usar)
+- [Estrutura do Projeto](#estrutura-do-projeto)
+- [Contribuindo](#contribuindo)
+- [Licença](#licença)
 
-There are several ways of editing your application.
+## 🎯 Visão Geral
 
-**Use Lovable**
+O ITS-Servo é uma aplicação web desenvolvida para o Instituto Teológico Servo, facilitando a gestão de informações e interações com a comunidade teológica.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## ✨ Características
 
-Changes made via Lovable will be committed automatically to this repo.
+- Interface responsiva e intuitiva
+- Design moderno com componentes reutilizáveis
+- Compilação otimizada com Vite
+- TypeScript para maior segurança de tipos
+- Componentes UI profissionais com shadcn-ui
+- Estilização utilitária com Tailwind CSS
+- Ambiente de desenvolvimento com recarga instantânea
 
-**Use your preferred IDE**
+## 🛠️ Tecnologias
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+Este projeto foi construído com:
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- **[Vite](https://vitejs.dev/)** - Build tool e dev server rápido
+- **[React](https://react.dev/)** - Biblioteca JavaScript para interfaces de usuário
+- **[TypeScript](https://www.typescriptlang.org/)** - Superset tipado do JavaScript
+- **[shadcn-ui](https://ui.shadcn.com/)** - Componentes UI de alta qualidade
+- **[Tailwind CSS](https://tailwindcss.com/)** - Framework CSS utilitário
 
-Follow these steps:
+## 📦 Pré-requisitos
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+- Node.js (versão 16 ou superior) - [Instale com nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- npm (incluído com Node.js)
+- Git
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## 🚀 Instalação
 
-# Step 3: Install the necessary dependencies.
-npm i
+### Passo 1: Clone o repositório
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
+git clone https://github.com/seu-usuario/ITS-Servo.git
+cd ITS-Servo
+```
+
+### Passo 2: Instale as dependências
+
+```bash
+npm install
+```
+
+### Passo 3: Inicie o servidor de desenvolvimento
+
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+A aplicação estará disponível em `http://localhost:5173`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 📖 Como Usar
 
-**Use GitHub Codespaces**
+### Comandos disponíveis
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```bash
+# Inicia o servidor de desenvolvimento com recarga automática
+npm run dev
 
-## What technologies are used for this project?
+# Compila o projeto para produção
+npm run build
 
-This project is built with:
+# Visualiza o build de produção localmente
+npm run preview
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+# Executa linter (se configurado)
+npm run lint
+```
 
-## How can I deploy this project?
+### Desenvolvimento
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+1. Faça alterações nos arquivos do projeto
+2. O navegador recarregará automaticamente com suas mudanças
+3. Abra as Developer Tools (F12) para debugging
 
-## Can I connect a custom domain to my Lovable project?
+## 📁 Estrutura do Projeto
 
-Yes, you can!
+```
+ITS-Servo/
+├── src/
+│   ├── components/        # Componentes React reutilizáveis
+│   ├── pages/            # Páginas da aplicação
+│   ├── styles/           # Arquivo de estilos global
+│   ├── App.tsx           # Componente raiz
+│   └── main.tsx          # Ponto de entrada
+├── public/               # Arquivos estáticos
+├── node_modules/         # Dependências instaladas
+├── package.json          # Dependências e scripts
+├── tsconfig.json         # Configuração TypeScript
+├── vite.config.ts        # Configuração Vite
+└── README.md             # Este arquivo
+```
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 🤝 Contribuindo
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Contribuições são bem-vindas! Para contribuir:
+
+1. **Fork** este repositório
+2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. **Commit** suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. **Push** para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um **Pull Request**
+
+### Padrões de Código
+
+- Use TypeScript para novo código
+- Siga as convenções de nomenclatura do projeto
+- Componentes React em PascalCase
+- Arquivos em kebab-case
+- Mantenha a formatação consistente
+
+## 🐛 Reportando Bugs
+
+Se encontrar um bug, por favor abra uma [Issue](../../issues) com:
+
+- Descrição clara do problema
+- Passos para reproduzir
+- Comportamento esperado vs. comportamento atual
+- Screenshots se aplicável
+- Seu ambiente (SO, versão do Node.js, etc.)
+
+## 📝 Licença
+
+Este projeto é licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
+
+## 📧 Contato
+
+Para dúvidas ou sugestões sobre o projeto, entre em contato através das [Issues](../../issues) do repositório.
+
+---
+
+**Desenvolvido com ❤️ para o Instituto Teológico Servo**

@@ -4,6 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { BookOpen, Clock, FileText, CheckCircle } from "lucide-react";
 
+/**
+ * Array contendo os dados da estrutura pedagógica do ITS
+ * Cada item representa um aspecto importante da metodologia de ensino
+ */
 const estrutura = [
   { icon: BookOpen, title: "Módulos Temáticos", desc: "O conteúdo é organizado em módulos progressivos, permitindo que o aluno avance gradualmente no aprendizado teológico." },
   { icon: Clock, title: "Carga Horária", desc: "Cada disciplina tem duração de aproximadamente 1 mês, com aulas semanais de 1h30 — totalizando cerca de 6 horas/aula por disciplina." },
@@ -11,6 +15,14 @@ const estrutura = [
   { icon: CheckCircle, title: "Avaliações", desc: "Avaliações contínuas incluindo trabalhos escritos, participação em sala e provas ao final de cada módulo." },
 ];
 
+/**
+ * Componente Metodologia
+ * 
+ * Renderiza a página com informações sobre a metodologia de ensino,
+ * estrutura pedagógica e material didático do Instituto Teológico Servo.
+ * 
+ * Página de metodologia com seções de conteúdo
+ */
 const Metodologia = () => {
   return (
     <Layout>

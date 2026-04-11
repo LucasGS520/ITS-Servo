@@ -1,11 +1,16 @@
+/* Importações do Tailwind CSS - fornece estilos base, componentes e utilitários */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Importação de fontes do Google Fonts: Merriweather (headings) e Source Sans 3 (body) */
 @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Source+Sans+3:wght@300;400;500;600;700&display=swap');
 
+/* Camada base contém as variáveis de cores CSS e configurações raiz */
 @layer base {
+  /* Variáveis de cores do tema claro (padrão) */
   :root {
+    /* Cores de fundo e texto principal */
     --background: 210 20% 98%;
     --foreground: 215 30% 15%;
 

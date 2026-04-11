@@ -1,3 +1,7 @@
+/**
+ * Tipo para representar valores JSON genéricos
+ * Compatível com tipos primitivos e objetos/arrays aninhados
+ */
 export type Json =
   | string
   | number
@@ -6,83 +10,95 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
+/**
+ * Tipo principal de banco de dados Supabase
+ * Define a estrutura completa das tabelas, views, funções e enums
+ */
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  // Permite instanciar automaticamente createClient com as opções corretas
+  // em vez de createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
   public: {
     Tables: {
+      /**
+       * Tabela de inscrições
+       * Armazena informações dos candidatos inscritos
+       */
       inscricoes: {
         Row: {
-          comprovante_url: string | null
-          cpf: string
-          created_at: string
-          data_nascimento: string
-          email: string
-          escolaridade: string
-          id: string
-          modalidade: string
-          nome_completo: string
-          nucleo: string | null
-          numero_inscricao: string
-          status: string
-          telefone: string
-          updated_at: string
+          comprovante_url: string | null /** URL do comprovante de inscrição (opcional) */
+          cpf: string /** CPF do candidato */
+          created_at: string /** Data de criação do registro */
+          data_nascimento: string /** Data de nascimento do candidato */
+          email: string /** Email do candidato */
+          escolaridade: string /** Grau de escolaridade */
+          id: string /** Identificador único da inscrição */
+          modalidade: string /** Modalidade de inscrição */
+          nome_completo: string /** Nome completo do candidato */
+          nucleo: string | null /** Núcleo de atendimento (opcional) */
+          numero_inscricao: string /** Número único da inscrição */
+          status: string /** Status da inscrição */
+          telefone: string /** Telefone do candidato */
+          updated_at: string /** Data da última atualização */
         }
         Insert: {
-          comprovante_url?: string | null
-          cpf: string
-          created_at?: string
-          data_nascimento: string
-          email: string
-          escolaridade: string
-          id?: string
-          modalidade: string
-          nome_completo: string
-          nucleo?: string | null
-          numero_inscricao?: string
-          status?: string
-          telefone: string
-          updated_at?: string
+          comprovante_url?: string | null /** URL do comprovante de inscrição (opcional) */
+          cpf: string /** CPF do candidato */
+          created_at?: string /** Data de criação do registro (preenchido automaticamente) */
+          data_nascimento: string /** Data de nascimento do candidato */
+          email: string /** Email do candidato */
+          escolaridade: string /** Grau de escolaridade */
+          id?: string /** Identificador único da inscrição (preenchido automaticamente) */
+          modalidade: string /** Modalidade de inscrição */
+          nome_completo: string /** Nome completo do candidato */
+          nucleo?: string | null /** Núcleo de atendimento (opcional) */
+          numero_inscricao?: string /** Número único da inscrição (preenchido automaticamente) */
+          status?: string /** Status da inscrição (preenchido automaticamente) */
+          telefone: string /** Telefone do candidato */
+          updated_at?: string /** Data da última atualização (preenchido automaticamente) */
         }
         Update: {
-          comprovante_url?: string | null
-          cpf?: string
-          created_at?: string
-          data_nascimento?: string
-          email?: string
-          escolaridade?: string
-          id?: string
-          modalidade?: string
-          nome_completo?: string
-          nucleo?: string | null
-          numero_inscricao?: string
-          status?: string
-          telefone?: string
-          updated_at?: string
+          comprovante_url?: string | null /** URL do comprovante de inscrição (opcional) */
+          cpf?: string /** CPF do candidato */
+          created_at?: string /** Data de criação do registro (não deve ser atualizado) */
+          data_nascimento?: string /** Data de nascimento do candidato */
+          email?: string /** Email do candidato */
+          escolaridade?: string /** Grau de escolaridade */
+          id?: string /** Identificador único da inscrição (não deve ser atualizado) */
+          modalidade?: string /** Modalidade de inscrição */
+          nome_completo?: string /** Nome completo do candidato */
+          nucleo?: string | null /** Núcleo de atendimento (opcional) */
+          numero_inscricao?: string /** Número único da inscrição (não deve ser atualizado) */
+          status?: string /** Status da inscrição */
+          telefone?: string /** Telefone do candidato */
+          updated_at?: string /** Data da última atualização (preenchido automaticamente) */
         }
         Relationships: []
       }
+      /**
+       * Tabela de papéis de usuário
+       * Define os papéis/permissões para cada usuário
+       */
       user_roles: {
         Row: {
-          created_at: string
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
+          created_at: string /** Data de criação do registro */
+          id: string /** Identificador único do papel */
+          role: Database["public"]["Enums"]["app_role"] /** Tipo de papel (admin ou user) */
+          user_id: string /** ID do usuário */
         }
         Insert: {
-          created_at?: string
-          id?: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
+          created_at?: string /** Data de criação do registro (preenchido automaticamente) */
+          id?: string /** Identificador único do papel (preenchido automaticamente) */
+          role: Database["public"]["Enums"]["app_role"] /** Tipo de papel (admin ou user) */
+          user_id: string /** ID do usuário */
         }
         Update: {
-          created_at?: string
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
+          created_at?: string /** Data de criação do registro (não deve ser atualizado) */
+          id?: string /** Identificador único do papel (não deve ser atualizado) */
+          role?: Database["public"]["Enums"]["app_role"] /** Tipo de papel (admin ou user) */
+          user_id?: string /** ID do usuário (não deve ser atualizado) */
         }
         Relationships: []
       }
@@ -91,7 +107,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      /** Gera um novo número de inscrição único */
       generate_numero_inscricao: { Args: never; Returns: string }
+      /**
+       * Verifica se o usuário possui um papel específico
+       * - O papel a verificar
+       * - ID do usuário
+       */
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -99,9 +121,11 @@ export type Database = {
         }
         Returns: boolean
       }
+      /** Verifica se o usuário logado é administrador */
       is_admin: { Args: never; Returns: boolean }
     }
     Enums: {
+      /** Papéis disponíveis no sistema */
       app_role: "admin" | "user"
     }
     CompositeTypes: {
@@ -110,10 +134,16 @@ export type Database = {
   }
 }
 
+/** Tipo de banco de dados sem as configurações internas do Supabase */
 type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
+/** Schema padrão para acesso às tabelas públicas */
 type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
+/**
+ * Tipo genérico para acessar linhas de uma tabela ou view
+ * Permite tipagem automática dos dados retornados
+ */
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])

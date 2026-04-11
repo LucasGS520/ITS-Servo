@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { BookOpen, GraduationCap, ChevronRight } from "lucide-react";
 
+/** Matérias do nível fundamental - base sólida na fé cristã */
 const gradeFundamental = [
   "Bibliologia",
   "Administração Eclesiástica",

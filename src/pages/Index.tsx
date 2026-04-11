@@ -6,6 +6,10 @@ import Layout from "@/components/Layout";
 import logoIts from "@/assets/logo-its.jpeg";
 import mocambique2 from "@/assets/mocambique2.png";
 
+/**
+ * Array de disciplinas oferecidas pelo Instituto Teológico Servo
+ * Cada disciplina contém um título e uma descrição
+ */
 const disciplinas = [
   { title: "Bibliologia", desc: "Estudo sobre a Bíblia, sua inspiração, formação e autoridade." },
   { title: "Homilética", desc: "Arte e técnica da pregação bíblica eficaz." },
@@ -15,12 +19,20 @@ const disciplinas = [
   { title: "Missiologia", desc: "Estratégias e princípios para a expansão do Evangelho." },
 ];
 
+/**
+ * Array com os diferenciais do Instituto
+ * Cada diferencial possui ícone, título e descrição dos benefícios
+ */
 const diferenciais = [
   { icon: BookOpen, title: "Ensino Bíblico Sólido", desc: "Fundamentado nas Escrituras Sagradas, com rigor teológico e fidelidade doutrinária." },
   { icon: Users, title: "Acessível a Todos", desc: "Formação teológica aberta a líderes, obreiros e membros com excelente custo benefício." },
   { icon: Heart, title: "Compromisso Missionário", desc: "Visão global do IDE de Jesus, com atuação local e internacional transformando vidas e ministérios." },
 ];
 
+/**
+ * Array com depoimentos de alunos e líderes que frequentaram o Instituto
+ * Contém nome, cargo/função, e texto do depoimento
+ */
 const depoimentos = [
   { name: "Pra. Débora Vilela", role: "Aluna do núcleo Engenho Novo - Barueri", text: "O instituto tem Sido fundamental para meu crescimento espiritual, oferecendo ensinamentos de grande relevância para minha jornada de fé. Sou grata a Deus, por ter regado minha fé com sabedoria e inspiração, permitindo transformar vidas em minha comunidade." },
   { name: "Pb. Jhonatas da Silva Mota", role: "Aluno do núcleo Jd. Conceição - Osasco", text: "Encontrei no ITS a formação bíblica que tanto buscava: acessível, séria e comprometida com a palavra. Me ajudou muito na reflexão e no estudo prático." },

@@ -9,16 +9,33 @@ import { CheckCircle, Upload, Loader2, Copy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+/**
+ * Componente Pagamento
+ * 
+ * Página responsável por gerenciar o pagamento da inscrição.
+ * Permite ao usuário visualizar os dados de pagamento via PIX e enviar o comprovante.
+ * 
+ * Página de pagamento renderizada com Layout
+ */
 const Pagamento = () => {
+  // Parâmetro da rota contendo o número da inscrição
   const { numero } = useParams<{ numero: string }>();
   const { toast } = useToast();
+  
+  // Referência para o elemento input de arquivo
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [inscricao, setInscricao] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
-  const [enviado, setEnviado] = useState(false);
+  
+  // Estados do componente
+  const [inscricao, setInscricao] = useState<any>(null); // Dados da inscrição
+  const [loading, setLoading] = useState(true); // Carregamento inicial dos dados
+  const [uploading, setUploading] = useState(false); // Estado de envio do arquivo
+  const [file, setFile] = useState<File | null>(null); // Arquivo selecionado
+  const [enviado, setEnviado] = useState(false); // Indica se o comprovante foi enviado
 
+  /**
+   * Hook para buscar os dados da inscrição no Supabase
+   * Executa quando o componente monta ou quando o número da inscrição muda
+   */
   useEffect(() => {
     const fetchInscricao = async () => {
       const { data, error } = await supabase
@@ -29,6 +46,7 @@ const Pagamento = () => {
 
       if (!error && data) {
         setInscricao(data);
+        // Verifica se o comprovante já foi enviado
         const st = (data as any).status;
         if (st !== "aguardando_pagamento" && st !== "pagamento_nao_identificado") setEnviado(true);
       }
@@ -37,14 +55,22 @@ const Pagamento = () => {
     if (numero) fetchInscricao();
   }, [numero]);
 
+  /**
+   * Função para enviar o comprovante de pagamento
+   * 
+   * Valida o arquivo, faz upload para o Supabase Storage,
+   * atualiza o status da inscrição e envia notificação por email.
+   */
   const handleUpload = async () => {
     if (!file || !inscricao) return;
 
+    // Validação de tamanho máximo (5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast({ title: "Arquivo muito grande", description: "O limite é 5MB.", variant: "destructive" });
       return;
     }
 
+    // Validação de tipo de arquivo
     const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
     if (!allowedTypes.includes(file.type)) {
       toast({ title: "Formato inválido", description: "Use JPG, PNG, WebP ou PDF.", variant: "destructive" });
@@ -53,19 +79,23 @@ const Pagamento = () => {
 
     setUploading(true);
     try {
+      // Construir caminho único para o arquivo
       const ext = file.name.split(".").pop();
       const filePath = `${numero}/${Date.now()}.${ext}`;
 
+      // Upload do arquivo para o storage do Supabase
       const { error: uploadError } = await supabase.storage
         .from("comprovantes")
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
+      // Obter URL pública do arquivo enviado
       const { data: urlData } = supabase.storage
         .from("comprovantes")
         .getPublicUrl(filePath);
 
+      // Atualizar registro da inscrição com URL do comprovante
       const { error: updateError } = await supabase
         .from("inscricoes" as any)
         .update({
@@ -76,7 +106,7 @@ const Pagamento = () => {
 
       if (updateError) throw updateError;
 
-      // Try to send email notification (non-blocking)
+      // Tentativa de enviar notificação por email (não-bloqueante)
       try {
         await supabase.functions.invoke("enviar-email-comprovante", {
           body: { numero_inscricao: numero, nome: inscricao.nome_completo, email: inscricao.email },
@@ -92,6 +122,11 @@ const Pagamento = () => {
     }
   };
 
+  /**
+   * Copia o texto para a área de transferência
+   * 
+   * - Texto a ser copiado
+   */
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({ title: "Copiado!" });
@@ -201,9 +236,9 @@ const Pagamento = () => {
                 <div className="flex items-center justify-between rounded-lg bg-muted p-3">
                   <div>
                     <p className="text-xs text-muted-foreground">Chave PIX</p>
-                    <p className="font-mono text-sm font-semibold">00.000.000/0001-00</p>
+                    <p className="font-mono text-sm font-semibold">20.424.935/0001-02</p>
                   </div>
-                  <Button variant="ghost" size="icon" onClick={() => copyToClipboard("00.000.000/0001-00")}>
+                  <Button variant="ghost" size="icon" onClick={() => copyToClipboard("20424935000102")}>
                     <Copy className="h-4 w-4" />
                   </Button>
                 </div>

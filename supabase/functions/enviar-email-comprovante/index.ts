@@ -1,3 +1,31 @@
+/**
+ * Função Edge Supabase — enviar-email-comprovante
+ *
+ * Descrição:
+ *   Recebe notificação de envio de comprovante de pagamento e prepara as
+ *   notificações ao administrador do ITS e ao próprio aluno.
+ *
+ * Entrada (JSON, método POST):
+ *   {
+ *     "numero_inscricao": string,
+ *     "nome": string,
+ *     "email": string
+ *   }
+ *
+ * Resposta:
+ *   - 200 JSON: { success: true, message: "Email queued (integration pending)" }
+ *   - 500 JSON: { error: string }
+ *
+ * Responsabilidades:
+ *   - Validar/extrair payload do frontend.
+ *   - Notificar equipe administrativa e o aluno sobre o recebimento do
+ *     comprovante (atualmente via logs).
+ *   - Retornar resposta JSON e habilitar CORS para chamadas do cliente.
+ *
+ * Observações:
+ *   - Implementação atual apenas registra logs; integração com provedor de
+ *     e-mail deve ser adicionada em produção.
+ */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
@@ -12,13 +40,16 @@ serve(async (req) => {
 
   try {
     const { numero_inscricao, nome, email } = await req.json();
+    // TODO: Integrar com provedor de e-mail (Resend/SendGrid) e adicionar
+    //       logging/alertas adequados. Atualmente notificações são registradas
+    //       apenas via console.log para auditoria.
 
-    // Email to ITS admin
+    // Email para administração do ITS
     console.log("📧 Notificação ao ITS:");
     console.log(`Assunto: Novo comprovante recebido - ${numero_inscricao}`);
     console.log(`Corpo: O aluno ${nome} enviou o comprovante de pagamento para a inscrição ${numero_inscricao}.`);
 
-    // Email to student
+    // Email para Estudante confirmando o recebimento do comprovante
     console.log("📧 E-mail ao aluno:");
     console.log(`Para: ${email}`);
     console.log(`Assunto: Comprovante Recebido - ${numero_inscricao}`);
