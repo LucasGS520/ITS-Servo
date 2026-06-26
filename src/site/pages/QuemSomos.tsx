@@ -27,6 +27,25 @@ const QuemSomos = () => {
         </div>
       </section>
 
+      {/* Números de credibilidade */}
+      <section className="border-b bg-card py-10">
+        <div className="container">
+          <div className="grid grid-cols-2 gap-6 text-center md:grid-cols-4">
+            {[
+              { valor: "6", label: "Núcleos ativos" },
+              { valor: "2", label: "Países" },
+              { valor: "36", label: "Disciplinas no currículo" },
+              { valor: "3", label: "Níveis de formação" },
+            ].map((item) => (
+              <div key={item.label}>
+                <p className="text-3xl font-bold text-primary md:text-4xl">{item.valor}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{item.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* História */}
       <section className="py-16 md:py-24">
         <div className="container">
