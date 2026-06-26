@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
-import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -134,28 +133,28 @@ const Pagamento = () => {
 
   if (loading) {
     return (
-      <Layout>
+      <>
         <div className="flex min-h-[60vh] items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      </Layout>
+      </>
     );
   }
 
   if (!inscricao) {
     return (
-      <Layout>
+      <>
         <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
           <h1 className="text-2xl font-bold text-foreground">Inscrição não encontrada</h1>
           <p className="mt-2 text-muted-foreground">Verifique o número da inscrição e tente novamente.</p>
         </div>
-      </Layout>
+      </>
     );
   }
 
   if (enviado) {
     return (
-      <Layout>
+      <>
         <section className="py-24 md:py-32">
           <div className="container">
             <div className="mx-auto max-w-md text-center">
@@ -175,12 +174,12 @@ const Pagamento = () => {
             </div>
           </div>
         </section>
-      </Layout>
+      </>
     );
   }
 
   return (
-    <Layout>
+    <>
       <section className="bg-primary py-16 text-primary-foreground md:py-24">
         <div className="container text-center">
           <h1 className="text-3xl font-bold md:text-4xl">Pagamento</h1>
@@ -292,7 +291,7 @@ const Pagamento = () => {
           </div>
         </div>
       </section>
-    </Layout>
+    </>
   );
 };
 

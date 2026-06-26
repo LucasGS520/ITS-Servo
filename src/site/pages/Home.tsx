@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { BookOpen, Globe, Users, Heart, ChevronRight, Quote } from "lucide-react";
-import Layout from "@/components/Layout";
 import logoIts from "@/assets/logo-its.jpeg";
 import mocambique2 from "@/assets/mocambique2.png";
 
@@ -41,7 +40,7 @@ const depoimentos = [
 
 const Index = () => {
   return (
-    <Layout>
+    <>
       {/* Hero */}
       <section className="relative overflow-hidden bg-primary py-20 text-primary-foreground md:py-32">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,hsl(25_95%_55%/0.15),transparent_70%)]" />
@@ -184,7 +183,7 @@ const Index = () => {
           </Button>
         </div>
       </section>
-    </Layout>
+    </>
   );
 };
 

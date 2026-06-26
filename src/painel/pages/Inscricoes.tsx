@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -36,7 +35,7 @@ const statusColors: Record<string, string> = {
  * Componente de painel administrativo para gerenciar inscrições
  * Permite visualizar, filtrar, atualizar status e imprimir fichas de inscrição
  */
-const Admin = () => {
+const Inscricoes = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [inscricoes, setInscricoes] = useState<any[]>([]);
@@ -55,7 +54,7 @@ const Admin = () => {
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      navigate("/admin/login");
+      navigate("/painel/login");
       return;
     }
     const { data: roles } = await supabase
@@ -66,7 +65,7 @@ const Admin = () => {
 
     if (!roles || (roles as any).role !== "admin") {
       await supabase.auth.signOut();
-      navigate("/admin/login");
+      navigate("/painel/login");
     }
   };
 
@@ -116,7 +115,7 @@ const Admin = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    navigate("/admin/login");
+    navigate("/painel/login");
   };
 
   const handlePrint = (inscricao: any) => {
@@ -192,16 +191,16 @@ const Admin = () => {
 
   if (loading) {
     return (
-      <Layout>
+      <div className="flex min-h-screen flex-col">
         <div className="flex min-h-[60vh] items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      </Layout>
+      </div>
     );
   }
 
   return (
-    <Layout>
+    <>
       <section className="bg-primary py-10 text-primary-foreground">
         <div className="container flex items-center justify-between">
           <h1 className="text-2xl font-bold md:text-3xl">Painel Administrativo</h1>
@@ -427,8 +426,8 @@ const Admin = () => {
           )}
         </DialogContent>
       </Dialog>
-    </Layout>
+    </>
   );
 };
 
-export default Admin;
+export default Inscricoes;

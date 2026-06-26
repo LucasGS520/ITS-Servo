@@ -1,4 +1,3 @@
-import Layout from "@/components/Layout";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Target, Eye, Heart, Globe, BookOpen } from "lucide-react";
@@ -17,7 +16,7 @@ import mocambique1 from "@/assets/mocambique1.png";
  */
 const QuemSomos = () => {
   return (
-    <Layout>
+    <>
       {/* Seção Hero - Título e descrição da página */}
       <section className="bg-primary py-16 text-primary-foreground md:py-24">
         <div className="container text-center">
@@ -156,7 +155,7 @@ const QuemSomos = () => {
           </div>
         </div>
       </section>
-    </Layout>
+    </>
   );
 };
 

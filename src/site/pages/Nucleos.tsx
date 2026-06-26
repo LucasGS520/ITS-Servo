@@ -1,4 +1,3 @@
-import Layout from "@/components/Layout";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -26,7 +25,7 @@ const nucleos = [
  */
 const Nucleos = () => {
   return (
-    <Layout>
+    <>
       {/* Seção de cabeçalho com título e descrição */}
       <section className="bg-primary py-16 text-primary-foreground md:py-24">
         <div className="container text-center">
@@ -91,7 +90,7 @@ const Nucleos = () => {
           </Button>
         </div>
       </section>
-    </Layout>
+    </>
   );
 };
 

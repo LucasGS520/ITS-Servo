@@ -7,7 +7,6 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -132,7 +131,7 @@ const Inscricao = () => {
   };
 
   return (
-    <Layout>
+    <>
       <section className="bg-primary py-16 text-primary-foreground md:py-24">
         <div className="container text-center">
           <h1 className="text-3xl font-bold md:text-4xl lg:text-5xl">Inscrição</h1>
@@ -290,7 +289,7 @@ const Inscricao = () => {
           </div>
         </div>
       </section>
-    </Layout>
+    </>
   );
 };
 

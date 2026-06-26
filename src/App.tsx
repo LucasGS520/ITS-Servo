@@ -1,66 +1,59 @@
-// Importações de componentes de UI
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-
-// Importações de bibliotecas externas
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-// Importações de páginas
-import Index from "./pages/Index";
-import QuemSomos from "./pages/QuemSomos";
-import Cursos from "./pages/Cursos";
-import Nucleos from "./pages/Nucleos";
-import Metodologia from "./pages/Metodologia";
-import Inscricao from "./pages/Inscricao";
-import Pagamento from "./pages/Pagamento";
-import ConsultaInscricao from "./pages/ConsultaInscricao";
-import AdminLogin from "./pages/AdminLogin";
-import Admin from "./pages/Admin";
-import NotFound from "./pages/NotFound";
+// Layouts
+import SiteLayout from "@/site/layout/SiteLayout";
+import PainelLayout from "@/painel/layout/PainelLayout";
 
-// Inicializa o cliente de cache de queries do React Query
+// Site Institucional
+import Home from "@/site/pages/Home";
+import QuemSomos from "@/site/pages/QuemSomos";
+import Cursos from "@/site/pages/Cursos";
+import Nucleos from "@/site/pages/Nucleos";
+import Metodologia from "@/site/pages/Metodologia";
+import Inscricao from "@/site/pages/Inscricao";
+import Pagamento from "@/site/pages/Pagamento";
+import ConsultaInscricao from "@/site/pages/ConsultaInscricao";
+import NotFound from "@/site/pages/NotFound";
+
+// Painel Operacional
+import Login from "@/painel/pages/Login";
+import Inscricoes from "@/painel/pages/Inscricoes";
+
 const queryClient = new QueryClient();
 
-/**
- * Componente principal da aplicação (App)
- * 
- * Configura os provedores globais e rotas da aplicação:
- * - QueryClientProvider: Gerencia cache e estado das requisições HTTP
- * - TooltipProvider: Fornece contexto para componentes de tooltip
- * - Toasters: Componentes para exibição de notificações
- * - BrowserRouter: Habilita roteamento no navegador
- */
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      {/* Componentes de notificação */}
       <Toaster />
       <Sonner />
-      
-      {/* Roteador e definição de rotas */}
       <BrowserRouter>
         <Routes>
-          {/* Página inicial */}
-          <Route path="/" element={<Index />} />
-          
-          {/* Páginas informativas */}
-          <Route path="/quem-somos" element={<QuemSomos />} />
-          <Route path="/cursos" element={<Cursos />} />
-          <Route path="/nucleos" element={<Nucleos />} />
-          <Route path="/metodologia" element={<Metodologia />} />
-          
-          {/* Páginas de inscrição e pagamento */}
-          <Route path="/inscricao" element={<Inscricao />} />
-          <Route path="/inscricao/pagamento/:numero" element={<Pagamento />} />
-          <Route path="/consulta" element={<ConsultaInscricao />} />
-          
-          {/* Páginas administrativas */}
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin" element={<Admin />} />
-          
-          {/* Rota coringa para páginas não encontradas */}
+          {/* ── Site Institucional ── */}
+          <Route element={<SiteLayout />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/quem-somos" element={<QuemSomos />} />
+            <Route path="/cursos" element={<Cursos />} />
+            <Route path="/nucleos" element={<Nucleos />} />
+            <Route path="/metodologia" element={<Metodologia />} />
+            <Route path="/inscricao" element={<Inscricao />} />
+            <Route path="/inscricao/pagamento/:numero" element={<Pagamento />} />
+            <Route path="/consulta" element={<ConsultaInscricao />} />
+          </Route>
+
+          {/* ── Painel Operacional ── */}
+          <Route path="/painel" element={<PainelLayout />}>
+            <Route path="login" element={<Login />} />
+            <Route index element={<Inscricoes />} />
+          </Route>
+
+          {/* Retrocompatibilidade: redireciona rotas antigas do /admin */}
+          <Route path="/admin/login" element={<Login />} />
+          <Route path="/admin" element={<Inscricoes />} />
+
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

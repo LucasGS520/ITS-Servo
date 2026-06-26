@@ -1,4 +1,3 @@
-import Layout from "@/components/Layout";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,7 +24,7 @@ const estrutura = [
  */
 const Metodologia = () => {
   return (
-    <Layout>
+    <>
       <section className="bg-primary py-16 text-primary-foreground md:py-24">
         <div className="container text-center">
           <h1 className="text-3xl font-bold md:text-4xl lg:text-5xl">Metodologia e Material Didático</h1>
@@ -100,7 +99,7 @@ const Metodologia = () => {
           </div>
         </div>
       </section>
-    </Layout>
+    </>
   );
 };
 
