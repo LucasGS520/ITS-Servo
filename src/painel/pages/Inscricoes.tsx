@@ -1,83 +1,43 @@
-import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Loader2, LogOut, Eye, ExternalLink, Search, Printer, Users, DollarSign, BookOpen, MapPin } from "lucide-react";
-import { Label } from "@/components/ui/label";
+import { Loader2, Eye, ExternalLink, Search, Printer, CheckCircle } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { maskCPF } from "@/lib/masks";
+import { useInscricoes, INSCRICOES_KEY } from "@/painel/hooks/useInscricoes";
 
-/** Mapeamento de chaves de status para seus rótulos em português */
 const statusLabels: Record<string, string> = {
   aguardando_pagamento: "Aguardando Pagamento",
   comprovante_enviado: "Comprovante Enviado",
   confirmada: "Confirmada",
-  pagamento_nao_identificado: "Pagamento Não Identificado",
+  pagamento_nao_identificado: "Pag. Não Identificado",
   cancelado: "Cancelada",
 };
 
-/** Mapeamento de chaves de status para suas classes CSS de cor */
 const statusColors: Record<string, string> = {
-  aguardando_pagamento: "bg-yellow-100 text-yellow-800",
-  comprovante_enviado: "bg-blue-100 text-blue-800",
-  confirmada: "bg-green-100 text-green-800",
-  pagamento_nao_identificado: "bg-red-100 text-red-800",
-  cancelado: "bg-gray-100 text-gray-500",
+  aguardando_pagamento: "bg-yellow-100 text-yellow-800 border-yellow-200",
+  comprovante_enviado: "bg-blue-100 text-blue-800 border-blue-200",
+  confirmada: "bg-green-100 text-green-800 border-green-200",
+  pagamento_nao_identificado: "bg-red-100 text-red-800 border-red-200",
+  cancelado: "bg-gray-100 text-gray-500 border-gray-200",
 };
 
-/**
- * Componente de painel administrativo para gerenciar inscrições
- * Permite visualizar, filtrar, atualizar status e imprimir fichas de inscrição
- */
 const Inscricoes = () => {
-  const navigate = useNavigate();
   const { toast } = useToast();
-  const [inscricoes, setInscricoes] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const { data: inscricoes = [], isLoading } = useInscricoes();
+
   const [filterStatus, setFilterStatus] = useState<string>("todos");
   const [searchTerm, setSearchTerm] = useState("");
   const [selected, setSelected] = useState<any>(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
-  const printRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    checkAuth();
-    fetchInscricoes();
-  }, []);
-
-  const checkAuth = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      navigate("/painel/login");
-      return;
-    }
-    const { data: roles } = await supabase
-      .from("user_roles" as any)
-      .select("role")
-      .eq("user_id", user.id)
-      .single();
-
-    if (!roles || (roles as any).role !== "admin") {
-      await supabase.auth.signOut();
-      navigate("/painel/login");
-    }
-  };
-
-  const fetchInscricoes = async () => {
-    const { data, error } = await supabase
-      .from("inscricoes" as any)
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (!error && data) setInscricoes(data as any[]);
-    setLoading(false);
-  };
 
   const handleStatusChange = async (id: string, newStatus: string, inscricao: any) => {
     setUpdatingStatus(true);
@@ -86,7 +46,6 @@ const Inscricoes = () => {
         .from("inscricoes" as any)
         .update({ status: newStatus } as any)
         .eq("id", id);
-
       if (error) throw error;
 
       if (newStatus === "confirmada") {
@@ -103,8 +62,8 @@ const Inscricoes = () => {
         } catch {}
       }
 
+      await queryClient.invalidateQueries({ queryKey: INSCRICOES_KEY });
       toast({ title: "Status atualizado!" });
-      fetchInscricoes();
       setSelected(null);
     } catch (err: any) {
       toast({ title: "Erro", description: err.message, variant: "destructive" });
@@ -113,54 +72,43 @@ const Inscricoes = () => {
     }
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/painel/login");
-  };
-
   const handlePrint = (inscricao: any) => {
     const win = window.open("", "_blank");
     if (!win) return;
     win.document.write(`
-      <html>
-      <head>
-        <title>Ficha de Inscrição - ${inscricao.numero_inscricao}</title>
+      <html><head>
+        <title>Ficha - ${inscricao.numero_inscricao}</title>
         <style>
           body { font-family: Arial, sans-serif; padding: 40px; color: #333; }
           h1 { font-size: 20px; text-align: center; margin-bottom: 4px; }
           h2 { font-size: 14px; text-align: center; color: #666; margin-bottom: 30px; font-weight: normal; }
           .field { margin-bottom: 12px; display: flex; }
           .label { font-weight: bold; min-width: 180px; }
-          .value { flex: 1; }
           hr { border: none; border-top: 1px solid #ddd; margin: 20px 0; }
           .footer { margin-top: 40px; text-align: center; font-size: 12px; color: #999; }
-          @media print { body { padding: 20px; } }
         </style>
-      </head>
-      <body>
+      </head><body>
         <h1>Instituto Teológico Servo</h1>
         <h2>Ficha de Inscrição — ${inscricao.numero_inscricao}</h2>
         <hr>
-        <div class="field"><span class="label">Nome Completo:</span><span class="value">${inscricao.nome_completo}</span></div>
-        <div class="field"><span class="label">CPF:</span><span class="value">${maskCPF(inscricao.cpf)}</span></div>
-        <div class="field"><span class="label">Telefone:</span><span class="value">${inscricao.telefone}</span></div>
-        <div class="field"><span class="label">E-mail:</span><span class="value">${inscricao.email}</span></div>
-        <div class="field"><span class="label">Data de Nascimento:</span><span class="value">${new Date(inscricao.data_nascimento + "T12:00:00").toLocaleDateString("pt-BR")}</span></div>
-        <div class="field"><span class="label">Escolaridade:</span><span class="value">${inscricao.escolaridade}</span></div>
+        <div class="field"><span class="label">Nome Completo:</span><span>${inscricao.nome_completo}</span></div>
+        <div class="field"><span class="label">CPF:</span><span>${maskCPF(inscricao.cpf)}</span></div>
+        <div class="field"><span class="label">Telefone:</span><span>${inscricao.telefone}</span></div>
+        <div class="field"><span class="label">E-mail:</span><span>${inscricao.email}</span></div>
+        <div class="field"><span class="label">Nascimento:</span><span>${new Date(inscricao.data_nascimento + "T12:00:00").toLocaleDateString("pt-BR")}</span></div>
+        <div class="field"><span class="label">Escolaridade:</span><span>${inscricao.escolaridade}</span></div>
         <hr>
-        <div class="field"><span class="label">Modalidade:</span><span class="value">${inscricao.modalidade === "correspondencia" ? "Por Correspondência" : "Presencial"}</span></div>
-        ${inscricao.nucleo ? `<div class="field"><span class="label">Núcleo:</span><span class="value">${inscricao.nucleo}</span></div>` : ""}
-        <div class="field"><span class="label">Status:</span><span class="value">${statusLabels[inscricao.status] || inscricao.status}</span></div>
-        <div class="field"><span class="label">Data da Inscrição:</span><span class="value">${new Date(inscricao.created_at).toLocaleDateString("pt-BR")}</span></div>
+        <div class="field"><span class="label">Modalidade:</span><span>${inscricao.modalidade === "correspondencia" ? "Por Correspondência" : "Presencial"}</span></div>
+        ${inscricao.nucleo ? `<div class="field"><span class="label">Núcleo:</span><span>${inscricao.nucleo}</span></div>` : ""}
+        <div class="field"><span class="label">Status:</span><span>${statusLabels[inscricao.status] ?? inscricao.status}</span></div>
+        <div class="field"><span class="label">Data da Inscrição:</span><span>${new Date(inscricao.created_at).toLocaleDateString("pt-BR")}</span></div>
         <div class="footer">Documento gerado em ${new Date().toLocaleString("pt-BR")}</div>
-      </body>
-      </html>
+      </body></html>
     `);
     win.document.close();
     win.print();
   };
 
-  // Filter + search
   const filtered = inscricoes.filter((i) => {
     const matchStatus = filterStatus === "todos" || i.status === filterStatus;
     if (!searchTerm.trim()) return matchStatus;
@@ -174,209 +122,154 @@ const Inscricoes = () => {
     );
   });
 
-  // Dashboard stats
-  const total = inscricoes.length;
-  const confirmadas = inscricoes.filter((i) => i.status === "confirmada").length;
-  const receitaEstimada = confirmadas * 190;
-  const porModalidade = {
-    presencial: inscricoes.filter((i) => i.modalidade === "presencial" && i.status !== "cancelado").length,
-    correspondencia: inscricoes.filter((i) => i.modalidade === "correspondencia" && i.status !== "cancelado").length,
-  };
-  const nucleosCount: Record<string, number> = {};
-  inscricoes.forEach((i) => {
-    if (i.nucleo && i.status !== "cancelado") {
-      nucleosCount[i.nucleo] = (nucleosCount[i.nucleo] || 0) + 1;
-    }
-  });
-
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="flex min-h-screen flex-col">
-        <div className="flex min-h-[60vh] items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <>
-      <section className="bg-primary py-10 text-primary-foreground">
-        <div className="container flex items-center justify-between">
-          <h1 className="text-2xl font-bold md:text-3xl">Painel Administrativo</h1>
-          <Button variant="outline" onClick={handleLogout} className="border-primary-foreground/50 text-primary-foreground bg-primary-foreground/10 hover:bg-primary-foreground/20">
-            <LogOut className="mr-2 h-4 w-4" /> Sair
-          </Button>
+    <div className="container py-8 space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">Inscrições</h1>
+        <p className="text-sm text-muted-foreground mt-1">Gerencie e confirme as inscrições recebidas</p>
+      </div>
+
+      {/* Filtros rápidos por status */}
+      <div className="grid gap-2 grid-cols-3 sm:grid-cols-5 lg:grid-cols-6">
+        <Card
+          className={`cursor-pointer transition-all hover:shadow-sm ${filterStatus === "todos" ? "ring-2 ring-primary bg-primary/5" : ""}`}
+          onClick={() => setFilterStatus("todos")}
+        >
+          <CardContent className="p-3 text-center">
+            <p className="text-[11px] text-muted-foreground">Todos</p>
+            <p className="text-xl font-bold text-foreground">{inscricoes.length}</p>
+          </CardContent>
+        </Card>
+        {Object.entries(statusLabels).map(([key, label]) => {
+          const count = inscricoes.filter((i) => i.status === key).length;
+          return (
+            <Card
+              key={key}
+              className={`cursor-pointer transition-all hover:shadow-sm ${filterStatus === key ? "ring-2 ring-primary" : ""}`}
+              onClick={() => setFilterStatus(filterStatus === key ? "todos" : key)}
+            >
+              <CardContent className="p-3 text-center">
+                <p className="text-[11px] text-muted-foreground leading-tight">{label}</p>
+                <p className="text-xl font-bold text-foreground">{count}</p>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {/* Busca + filtro dropdown */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nome, nº inscrição, CPF ou e-mail..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9"
+          />
         </div>
-      </section>
+        <Select value={filterStatus} onValueChange={setFilterStatus}>
+          <SelectTrigger className="w-full sm:w-[200px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos os status</SelectItem>
+            {Object.entries(statusLabels).map(([key, label]) => (
+              <SelectItem key={key} value={key}>{label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
-      <section className="py-8 md:py-12">
-        <div className="container space-y-8">
-          {/* Dashboard */}
-          <div>
-            <h2 className="text-lg font-semibold text-foreground mb-4">Visão Geral</h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <Card>
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="rounded-full bg-primary/10 p-2.5">
-                    <Users className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total de Inscrições</p>
-                    <p className="text-2xl font-bold text-foreground">{total}</p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="rounded-full bg-green-100 p-2.5">
-                    <DollarSign className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Receita (confirmadas)</p>
-                    <p className="text-2xl font-bold text-foreground">
-                      R$ {receitaEstimada.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="rounded-full bg-blue-100 p-2.5">
-                    <BookOpen className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Modalidade</p>
-                    <p className="text-sm font-medium text-foreground">
-                      {porModalidade.presencial} presencial · {porModalidade.correspondencia} corresp.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="rounded-full bg-purple-100 p-2.5">
-                    <MapPin className="h-5 w-5 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Núcleos ativos</p>
-                    <p className="text-sm font-medium text-foreground">
-                      {Object.keys(nucleosCount).length} núcleos
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-
-          {/* Status cards */}
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-            {Object.entries(statusLabels).map(([key, label]) => {
-              const count = inscricoes.filter((i) => i.status === key).length;
-              return (
-                <Card
-                  key={key}
-                  className={`cursor-pointer transition-shadow hover:shadow-md ${filterStatus === key ? "ring-2 ring-primary" : ""}`}
-                  onClick={() => setFilterStatus(filterStatus === key ? "todos" : key)}
-                >
-                  <CardContent className="p-3 text-center">
-                    <p className="text-xs text-muted-foreground">{label}</p>
-                    <p className="text-xl font-bold text-foreground">{count}</p>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-
-          {/* Search + Filter */}
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Buscar por nome, nº, CPF ou e-mail..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-full sm:w-[220px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos os status</SelectItem>
-                {Object.entries(statusLabels).map(([key, label]) => (
-                  <SelectItem key={key} value={key}>{label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Table */}
-          <Card>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nº Inscrição</TableHead>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Modalidade</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Data</TableHead>
-                      <TableHead>Ações</TableHead>
+      {/* Tabela */}
+      <Card>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nº Inscrição</TableHead>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Núcleo / Modalidade</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Data</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
+                      Nenhuma inscrição encontrada.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filtered.map((i) => (
+                    <TableRow key={i.id} className={i.status === "cancelado" ? "opacity-50" : ""}>
+                      <TableCell className="font-mono text-sm">{i.numero_inscricao}</TableCell>
+                      <TableCell className="font-medium">{i.nome_completo}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {i.modalidade === "correspondencia"
+                          ? "Correspondência"
+                          : i.nucleo ?? "Presencial"}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className={statusColors[i.status]}>
+                          {statusLabels[i.status]}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {new Date(i.created_at).toLocaleDateString("pt-BR")}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
+                          {/* Confirmação inline — aparece só quando há comprovante enviado */}
+                          {i.status === "comprovante_enviado" && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-green-700 hover:bg-green-50 hover:text-green-800"
+                              title="Confirmar inscrição"
+                              onClick={() => handleStatusChange(i.id, "confirmada", i)}
+                            >
+                              <CheckCircle className="h-4 w-4" />
+                            </Button>
+                          )}
+                          <Button variant="ghost" size="sm" onClick={() => setSelected(i)} title="Ver detalhes">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => handlePrint(i)} title="Imprimir ficha">
+                            <Printer className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filtered.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                          Nenhuma inscrição encontrada.
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      filtered.map((i) => (
-                        <TableRow key={i.id} className={i.status === "cancelado" ? "opacity-60" : ""}>
-                          <TableCell className="font-mono text-sm">{i.numero_inscricao}</TableCell>
-                          <TableCell>{i.nome_completo}</TableCell>
-                          <TableCell className="capitalize">{i.modalidade === "correspondencia" ? "Correspondência" : "Presencial"}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className={statusColors[i.status]}>
-                              {statusLabels[i.status]}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-sm">{new Date(i.created_at).toLocaleDateString("pt-BR")}</TableCell>
-                          <TableCell>
-                            <div className="flex gap-1">
-                              <Button variant="ghost" size="sm" onClick={() => setSelected(i)} title="Ver detalhes">
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="sm" onClick={() => handlePrint(i)} title="Imprimir ficha">
-                                <Printer className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
 
-          <p className="text-sm text-muted-foreground text-right">
-            Exibindo {filtered.length} de {total} inscrições
-          </p>
-        </div>
-      </section>
+      <p className="text-right text-sm text-muted-foreground">
+        {filtered.length} de {inscricoes.length} inscrições
+      </p>
 
-      {/* Detail Dialog */}
+      {/* Dialog de detalhe */}
       <Dialog open={!!selected} onOpenChange={() => setSelected(null)}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle className="flex items-center justify-between">
-              <span>Inscrição {selected?.numero_inscricao}</span>
+            <DialogTitle className="flex items-center justify-between pr-8">
+              <span>{selected?.numero_inscricao}</span>
               {selected && (
                 <Button variant="outline" size="sm" onClick={() => handlePrint(selected)}>
                   <Printer className="mr-1.5 h-3.5 w-3.5" /> Imprimir
@@ -384,30 +277,39 @@ const Inscricoes = () => {
               )}
             </DialogTitle>
           </DialogHeader>
+
           {selected && (
-            <div className="space-y-4">
+            <div className="space-y-5">
+              {/* Dados pessoais */}
               <div className="grid grid-cols-2 gap-3 text-sm">
-                <div><strong>Nome:</strong> {selected.nome_completo}</div>
-                <div><strong>CPF:</strong> {maskCPF(selected.cpf)}</div>
-                <div><strong>Telefone:</strong> {selected.telefone}</div>
-                <div><strong>E-mail:</strong> {selected.email}</div>
-                <div><strong>Nascimento:</strong> {new Date(selected.data_nascimento + "T12:00:00").toLocaleDateString("pt-BR")}</div>
-                <div><strong>Escolaridade:</strong> {selected.escolaridade}</div>
-                <div><strong>Modalidade:</strong> {selected.modalidade === "correspondencia" ? "Correspondência" : "Presencial"}</div>
-                {selected.nucleo && <div><strong>Núcleo:</strong> {selected.nucleo}</div>}
+                <div><span className="text-muted-foreground">Nome</span><p className="font-medium">{selected.nome_completo}</p></div>
+                <div><span className="text-muted-foreground">CPF</span><p className="font-medium">{maskCPF(selected.cpf)}</p></div>
+                <div><span className="text-muted-foreground">Telefone</span><p className="font-medium">{selected.telefone}</p></div>
+                <div><span className="text-muted-foreground">E-mail</span><p className="font-medium break-all">{selected.email}</p></div>
+                <div><span className="text-muted-foreground">Nascimento</span><p className="font-medium">{new Date(selected.data_nascimento + "T12:00:00").toLocaleDateString("pt-BR")}</p></div>
+                <div><span className="text-muted-foreground">Escolaridade</span><p className="font-medium">{selected.escolaridade}</p></div>
+                <div><span className="text-muted-foreground">Modalidade</span><p className="font-medium">{selected.modalidade === "correspondencia" ? "Correspondência" : "Presencial"}</p></div>
+                {selected.nucleo && <div><span className="text-muted-foreground">Núcleo</span><p className="font-medium">{selected.nucleo}</p></div>}
               </div>
 
+              {/* Comprovante */}
               {selected.comprovante_url && (
-                <div>
-                  <strong className="text-sm">Comprovante:</strong>
-                  <a href={selected.comprovante_url} target="_blank" rel="noopener noreferrer" className="ml-2 inline-flex items-center text-sm text-primary hover:underline">
-                    Ver comprovante <ExternalLink className="ml-1 h-3 w-3" />
+                <div className="rounded-lg border bg-muted/40 px-4 py-3">
+                  <p className="text-xs text-muted-foreground mb-1">Comprovante enviado</p>
+                  <a
+                    href={selected.comprovante_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center text-sm font-medium text-primary hover:underline"
+                  >
+                    Abrir comprovante <ExternalLink className="ml-1 h-3 w-3" />
                   </a>
                 </div>
               )}
 
+              {/* Alterar status */}
               <div className="space-y-2 border-t pt-4">
-                <strong className="text-sm">Alterar Status:</strong>
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Alterar status</p>
                 <div className="flex flex-wrap gap-2">
                   {Object.entries(statusLabels).map(([key, label]) => (
                     <Button
@@ -417,7 +319,9 @@ const Inscricoes = () => {
                       disabled={selected.status === key || updatingStatus}
                       onClick={() => handleStatusChange(selected.id, key, selected)}
                     >
-                      {updatingStatus ? <Loader2 className="h-3 w-3 animate-spin" /> : label}
+                      {updatingStatus && selected.status !== key ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : label}
                     </Button>
                   ))}
                 </div>
@@ -426,7 +330,7 @@ const Inscricoes = () => {
           )}
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 };
 

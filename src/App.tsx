@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 // Layouts
 import SiteLayout from "@/site/layout/SiteLayout";
@@ -21,7 +21,9 @@ import NotFound from "@/site/pages/NotFound";
 
 // Painel Operacional
 import Login from "@/painel/pages/Login";
+import Dashboard from "@/painel/pages/Dashboard";
 import Inscricoes from "@/painel/pages/Inscricoes";
+import Financeiro from "@/painel/pages/Financeiro";
 
 const queryClient = new QueryClient();
 
@@ -45,14 +47,16 @@ const App = () => (
           </Route>
 
           {/* ── Painel Operacional ── */}
+          <Route path="/painel/login" element={<Login />} />
           <Route path="/painel" element={<PainelLayout />}>
-            <Route path="login" element={<Login />} />
-            <Route index element={<Inscricoes />} />
+            <Route index element={<Dashboard />} />
+            <Route path="inscricoes" element={<Inscricoes />} />
+            <Route path="financeiro" element={<Financeiro />} />
           </Route>
 
-          {/* Retrocompatibilidade: redireciona rotas antigas do /admin */}
-          <Route path="/admin/login" element={<Login />} />
-          <Route path="/admin" element={<Inscricoes />} />
+          {/* Retrocompatibilidade */}
+          <Route path="/admin/login" element={<Navigate to="/painel/login" replace />} />
+          <Route path="/admin" element={<Navigate to="/painel" replace />} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>
