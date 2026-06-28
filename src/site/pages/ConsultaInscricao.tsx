@@ -128,7 +128,7 @@ const ConsultaInscricao = () => {
     setCancelling(true);
     const { error } = await supabase
       .from("inscricoes")
-      .update({ status: "cancelado" } as any)
+      .update({ status: "cancelado" })
       .eq("id", id);
 
     if (error) {

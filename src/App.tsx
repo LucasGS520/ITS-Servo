@@ -18,6 +18,7 @@ import Inscricao from "@/site/pages/Inscricao";
 import Pagamento from "@/site/pages/Pagamento";
 import ConsultaInscricao from "@/site/pages/ConsultaInscricao";
 import NotFound from "@/site/pages/NotFound";
+import ErrorBoundary from "@/shared/components/ErrorBoundary";
 
 // Painel Operacional
 import Login from "@/painel/pages/Login";
@@ -33,6 +34,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <ErrorBoundary>
         <Routes>
           {/* ── Site Institucional ── */}
           <Route element={<SiteLayout />}>
@@ -60,6 +62,7 @@ const App = () => (
 
           <Route path="*" element={<NotFound />} />
         </Routes>
+        </ErrorBoundary>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

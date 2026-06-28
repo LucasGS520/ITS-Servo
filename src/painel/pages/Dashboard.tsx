@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Users, DollarSign, Clock, AlertTriangle, TrendingUp, MapPin, BookOpen } from "lucide-react";
 import { useInscricoes } from "@/painel/hooks/useInscricoes";
+import { PRICING } from "@/shared/constants/pricing";
 
 const statusLabels: Record<string, string> = {
   aguardando_pagamento: "Aguardando Pagamento",
@@ -34,7 +35,7 @@ const Dashboard = () => {
       (i) => new Date(i.created_at) >= inicioDeMes && i.status !== "cancelado"
     );
     const pendentesAnalise = inscricoes.filter((i) => i.status === "comprovante_enviado");
-    const receitaConfirmada = ativas.length * 190;
+    const receitaConfirmada = ativas.length * PRICING.TOTAL;
 
     const porStatus = Object.keys(statusLabels).reduce<Record<string, number>>((acc, key) => {
       acc[key] = inscricoes.filter((i) => i.status === key).length;

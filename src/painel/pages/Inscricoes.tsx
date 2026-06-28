@@ -43,8 +43,8 @@ const Inscricoes = () => {
     setUpdatingStatus(true);
     try {
       const { error } = await supabase
-        .from("inscricoes" as any)
-        .update({ status: newStatus } as any)
+        .from("inscricoes")
+        .update({ status: newStatus })
         .eq("id", id);
       if (error) throw error;
 
@@ -75,9 +75,15 @@ const Inscricoes = () => {
   const handlePrint = (inscricao: any) => {
     const win = window.open("", "_blank");
     if (!win) return;
+    const esc = (s: string) =>
+      String(s ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
     win.document.write(`
       <html><head>
-        <title>Ficha - ${inscricao.numero_inscricao}</title>
+        <title>Ficha - ${esc(inscricao.numero_inscricao)}</title>
         <style>
           body { font-family: Arial, sans-serif; padding: 40px; color: #333; }
           h1 { font-size: 20px; text-align: center; margin-bottom: 4px; }
@@ -89,19 +95,19 @@ const Inscricoes = () => {
         </style>
       </head><body>
         <h1>Instituto Teológico Servo</h1>
-        <h2>Ficha de Inscrição — ${inscricao.numero_inscricao}</h2>
+        <h2>Ficha de Inscrição — ${esc(inscricao.numero_inscricao)}</h2>
         <hr>
-        <div class="field"><span class="label">Nome Completo:</span><span>${inscricao.nome_completo}</span></div>
-        <div class="field"><span class="label">CPF:</span><span>${maskCPF(inscricao.cpf)}</span></div>
-        <div class="field"><span class="label">Telefone:</span><span>${inscricao.telefone}</span></div>
-        <div class="field"><span class="label">E-mail:</span><span>${inscricao.email}</span></div>
-        <div class="field"><span class="label">Nascimento:</span><span>${new Date(inscricao.data_nascimento + "T12:00:00").toLocaleDateString("pt-BR")}</span></div>
-        <div class="field"><span class="label">Escolaridade:</span><span>${inscricao.escolaridade}</span></div>
+        <div class="field"><span class="label">Nome Completo:</span><span>${esc(inscricao.nome_completo)}</span></div>
+        <div class="field"><span class="label">CPF:</span><span>${esc(maskCPF(inscricao.cpf))}</span></div>
+        <div class="field"><span class="label">Telefone:</span><span>${esc(inscricao.telefone)}</span></div>
+        <div class="field"><span class="label">E-mail:</span><span>${esc(inscricao.email)}</span></div>
+        <div class="field"><span class="label">Nascimento:</span><span>${esc(new Date(inscricao.data_nascimento + "T12:00:00").toLocaleDateString("pt-BR"))}</span></div>
+        <div class="field"><span class="label">Escolaridade:</span><span>${esc(inscricao.escolaridade)}</span></div>
         <hr>
-        <div class="field"><span class="label">Modalidade:</span><span>${inscricao.modalidade === "correspondencia" ? "Por Correspondência" : "Presencial"}</span></div>
-        ${inscricao.nucleo ? `<div class="field"><span class="label">Núcleo:</span><span>${inscricao.nucleo}</span></div>` : ""}
-        <div class="field"><span class="label">Status:</span><span>${statusLabels[inscricao.status] ?? inscricao.status}</span></div>
-        <div class="field"><span class="label">Data da Inscrição:</span><span>${new Date(inscricao.created_at).toLocaleDateString("pt-BR")}</span></div>
+        <div class="field"><span class="label">Modalidade:</span><span>${esc(inscricao.modalidade === "correspondencia" ? "Por Correspondência" : "Presencial")}</span></div>
+        ${inscricao.nucleo ? `<div class="field"><span class="label">Núcleo:</span><span>${esc(inscricao.nucleo)}</span></div>` : ""}
+        <div class="field"><span class="label">Status:</span><span>${esc(statusLabels[inscricao.status] ?? inscricao.status)}</span></div>
+        <div class="field"><span class="label">Data da Inscrição:</span><span>${esc(new Date(inscricao.created_at).toLocaleDateString("pt-BR"))}</span></div>
         <div class="footer">Documento gerado em ${new Date().toLocaleString("pt-BR")}</div>
       </body></html>
     `);

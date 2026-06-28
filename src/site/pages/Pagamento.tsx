@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { CheckCircle, Upload, Loader2, Copy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { PRICING } from "@/shared/constants/pricing";
 
 /**
  * Componente Pagamento
@@ -38,16 +39,14 @@ const Pagamento = () => {
   useEffect(() => {
     const fetchInscricao = async () => {
       const { data, error } = await supabase
-        .from("inscricoes" as any)
+        .from("inscricoes")
         .select("*")
         .eq("numero_inscricao", numero)
         .single();
 
       if (!error && data) {
         setInscricao(data);
-        // Verifica se o comprovante já foi enviado
-        const st = (data as any).status;
-        if (st !== "aguardando_pagamento" && st !== "pagamento_nao_identificado") setEnviado(true);
+        if (data.status !== "aguardando_pagamento" && data.status !== "pagamento_nao_identificado") setEnviado(true);
       }
       setLoading(false);
     };
@@ -96,11 +95,11 @@ const Pagamento = () => {
 
       // Atualizar registro da inscrição com URL do comprovante
       const { error: updateError } = await supabase
-        .from("inscricoes" as any)
+        .from("inscricoes")
         .update({
           comprovante_url: urlData.publicUrl,
           status: "comprovante_enviado",
-        } as any)
+        })
         .eq("numero_inscricao", numero);
 
       if (updateError) throw updateError;
@@ -220,7 +219,7 @@ const Pagamento = () => {
                   </div>
                   <div className="border-t pt-3 flex justify-between">
                     <span className="font-bold text-foreground">Total</span>
-                    <span className="font-bold text-foreground text-lg">R$ 190,00</span>
+                    <span className="font-bold text-foreground text-lg">{PRICING.TOTAL.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
                   </div>
                 </div>
               </CardContent>

@@ -4,13 +4,10 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Loader2, DollarSign, TrendingUp, Clock, XCircle } from "lucide-react";
 import { useInscricoes } from "@/painel/hooks/useInscricoes";
+import { PRICING } from "@/shared/constants/pricing";
 
 const fmt = (n: number) =>
   n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-
-const TAXA_MATRICULA = 40;
-const TAXA_MATERIAL = 150;
-const TOTAL_INSCRICAO = TAXA_MATRICULA + TAXA_MATERIAL;
 
 type Situacao = "confirmada" | "em_analise" | "pendente" | "nao_identificado";
 
@@ -44,11 +41,11 @@ const Financeiro = () => {
     const naoIdentificado = ativas.filter((i) => i.status === "pagamento_nao_identificado").length;
 
     const resumo = {
-      confirmada: confirmadas * TOTAL_INSCRICAO,
-      em_analise: emAnalise * TOTAL_INSCRICAO,
-      pendente: pendentes * TOTAL_INSCRICAO,
-      nao_identificado: naoIdentificado * TOTAL_INSCRICAO,
-      potencial: ativas.length * TOTAL_INSCRICAO,
+      confirmada: confirmadas * PRICING.TOTAL,
+      em_analise: emAnalise * PRICING.TOTAL,
+      pendente: pendentes * PRICING.TOTAL,
+      nao_identificado: naoIdentificado * PRICING.TOTAL,
+      potencial: ativas.length * PRICING.TOTAL,
     };
 
     const linhas = ativas
@@ -59,9 +56,9 @@ const Financeiro = () => {
         nucleo: i.modalidade === "correspondencia" ? "Correspondência" : (i.nucleo ?? "Presencial"),
         data: new Date(i.created_at).toLocaleDateString("pt-BR"),
         situacao: statusToSituacao(i.status),
-        matricula: TAXA_MATRICULA,
-        material: TAXA_MATERIAL,
-        total: TOTAL_INSCRICAO,
+        matricula: PRICING.MATRICULA,
+        material: PRICING.MATERIAL,
+        total: PRICING.TOTAL,
       }))
       .filter((l) => l.situacao !== null);
 
@@ -81,7 +78,7 @@ const Financeiro = () => {
       <div>
         <h1 className="text-2xl font-bold text-foreground">Financeiro</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Visibilidade das taxas de inscrição — R${TAXA_MATRICULA} matrícula + R${TAXA_MATERIAL} material = R${TOTAL_INSCRICAO}/aluno
+          Visibilidade das taxas de inscrição — R${PRICING.MATRICULA} matrícula + R${PRICING.MATERIAL} material = R${PRICING.TOTAL}/aluno
         </p>
       </div>
 

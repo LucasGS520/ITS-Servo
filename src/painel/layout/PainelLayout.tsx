@@ -19,11 +19,11 @@ const PainelLayout = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { navigate("/painel/login"); return; }
       const { data: roles } = await supabase
-        .from("user_roles" as any)
+        .from("user_roles")
         .select("role")
         .eq("user_id", user.id)
         .single();
-      if (!roles || (roles as any).role !== "admin") {
+      if (!roles || roles.role !== "admin") {
         await supabase.auth.signOut();
         navigate("/painel/login");
         return;

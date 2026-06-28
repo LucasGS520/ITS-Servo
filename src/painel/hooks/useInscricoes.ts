@@ -8,11 +8,11 @@ export const useInscricoes = () =>
     queryKey: INSCRICOES_KEY,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("inscricoes" as any)
+        .from("inscricoes")
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as any[];
+      return data ?? [];
     },
-    staleTime: 30_000,
+    staleTime: 10_000,
   });
