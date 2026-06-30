@@ -7,7 +7,6 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -129,7 +128,7 @@ const ConsultaInscricao = () => {
     setCancelling(true);
     const { error } = await supabase
       .from("inscricoes")
-      .update({ status: "cancelado" } as any)
+      .update({ status: "cancelado" })
       .eq("id", id);
 
     if (error) {
@@ -152,7 +151,7 @@ const ConsultaInscricao = () => {
   const getStatus = (status: string) => statusLabels[status] || statusLabels.aguardando_pagamento;
 
   return (
-    <Layout>
+    <>
       <section className="bg-primary py-16 text-primary-foreground md:py-24">
         <div className="container text-center">
           <h1 className="text-3xl font-bold md:text-4xl">Consultar Inscrição</h1>
@@ -390,7 +389,7 @@ const ConsultaInscricao = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </Layout>
+    </>
   );
 };
 

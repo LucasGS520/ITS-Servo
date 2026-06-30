@@ -7,7 +7,6 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -95,7 +94,7 @@ const Inscricao = () => {
 
     try {
       const { data, error } = await supabase
-        .from("inscricoes" as any)
+        .from("inscricoes")
         .insert({
           nome_completo: result.data.nome_completo,
           cpf: result.data.cpf.replace(/\D/g, ""),
@@ -105,13 +104,13 @@ const Inscricao = () => {
           escolaridade: result.data.escolaridade,
           modalidade: result.data.modalidade,
           nucleo: result.data.modalidade === "presencial" ? result.data.nucleo : null,
-        } as any)
+        })
         .select("numero_inscricao")
         .single();
 
       if (error) throw error;
 
-      const numero = (data as any).numero_inscricao;
+      const numero = data.numero_inscricao;
 
       // Try to send confirmation email (non-blocking)
       try {
@@ -132,7 +131,7 @@ const Inscricao = () => {
   };
 
   return (
-    <Layout>
+    <>
       <section className="bg-primary py-16 text-primary-foreground md:py-24">
         <div className="container text-center">
           <h1 className="text-3xl font-bold md:text-4xl lg:text-5xl">Inscrição</h1>
@@ -290,7 +289,7 @@ const Inscricao = () => {
           </div>
         </div>
       </section>
-    </Layout>
+    </>
   );
 };
 

@@ -1,4 +1,3 @@
-import Layout from "@/components/Layout";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,7 +24,7 @@ const estrutura = [
  */
 const Metodologia = () => {
   return (
-    <Layout>
+    <>
       <section className="bg-primary py-16 text-primary-foreground md:py-24">
         <div className="container text-center">
           <h1 className="text-3xl font-bold md:text-4xl lg:text-5xl">Metodologia e Material Didático</h1>
@@ -52,7 +51,7 @@ const Metodologia = () => {
 
               <h3 className="text-xl font-bold text-foreground pt-4">Corpo Docente</h3>
               <p>
-                O ITS conta com professores que atuam como líderes e teólogos com experiência pastoral e formação acadêmica, garantindo um ensino contextualizado, relevante e alinhado à realidade da igreja local.
+                O ITS conta com professores que são líderes e teólogos em atuação — com experiência pastoral e formação acadêmica. O ensino é contextualizado, relevante e alinhado à realidade da igreja local. Não é teoria sem prática: cada professor ministra aquilo que vive.
               </p>
 
               <h3 className="text-xl font-bold text-foreground pt-4">Acompanhamento e Desenvolvimento do Aluno</h3>
@@ -100,7 +99,7 @@ const Metodologia = () => {
           </div>
         </div>
       </section>
-    </Layout>
+    </>
   );
 };
 

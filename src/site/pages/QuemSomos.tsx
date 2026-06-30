@@ -1,4 +1,3 @@
-import Layout from "@/components/Layout";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Target, Eye, Heart, Globe, BookOpen } from "lucide-react";
@@ -17,7 +16,7 @@ import mocambique1 from "@/assets/mocambique1.png";
  */
 const QuemSomos = () => {
   return (
-    <Layout>
+    <>
       {/* Seção Hero - Título e descrição da página */}
       <section className="bg-primary py-16 text-primary-foreground md:py-24">
         <div className="container text-center">
@@ -25,6 +24,25 @@ const QuemSomos = () => {
           <p className="mx-auto mt-4 max-w-xl text-primary-foreground/80 text-lg">
             Conheça a história, a missão e os valores do Instituto Teológico Servo.
           </p>
+        </div>
+      </section>
+
+      {/* Números de credibilidade */}
+      <section className="border-b bg-card py-10">
+        <div className="container">
+          <div className="grid grid-cols-2 gap-6 text-center md:grid-cols-4">
+            {[
+              { valor: "6", label: "Núcleos ativos" },
+              { valor: "2", label: "Países" },
+              { valor: "36", label: "Disciplinas no currículo" },
+              { valor: "3", label: "Níveis de formação" },
+            ].map((item) => (
+              <div key={item.label}>
+                <p className="text-3xl font-bold text-primary md:text-4xl">{item.valor}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{item.label}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -156,7 +174,7 @@ const QuemSomos = () => {
           </div>
         </div>
       </section>
-    </Layout>
+    </>
   );
 };
 
