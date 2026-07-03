@@ -19,6 +19,7 @@ import Pagamento from "@/site/pages/Pagamento";
 import ConsultaInscricao from "@/site/pages/ConsultaInscricao";
 import NotFound from "@/site/pages/NotFound";
 import ErrorBoundary from "@/shared/components/ErrorBoundary";
+import ProtectedRoute from "@/shared/components/ProtectedRoute";
 
 // Painel Operacional
 import Login from "@/painel/pages/Login";
@@ -50,7 +51,7 @@ const App = () => (
 
           {/* ── Painel Operacional ── */}
           <Route path="/painel/login" element={<Login />} />
-          <Route path="/painel" element={<PainelLayout />}>
+          <Route path="/painel" element={<ProtectedRoute><PainelLayout /></ProtectedRoute>}>
             <Route index element={<Dashboard />} />
             <Route path="inscricoes" element={<Inscricoes />} />
             <Route path="financeiro" element={<Financeiro />} />

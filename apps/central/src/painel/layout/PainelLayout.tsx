@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, FileText, DollarSign, LogOut, Loader2, BookOpen } from "lucide-react";
+import { LayoutDashboard, FileText, DollarSign, LogOut, BookOpen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const navItems = [
@@ -12,39 +11,11 @@ const navItems = [
 
 const PainelLayout = () => {
   const navigate = useNavigate();
-  const [checking, setChecking] = useState(true);
-
-  useEffect(() => {
-    const check = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { navigate("/painel/login"); return; }
-      const { data: roles } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .single();
-      if (!roles || roles.role !== "admin") {
-        await supabase.auth.signOut();
-        navigate("/painel/login");
-        return;
-      }
-      setChecking(false);
-    };
-    check();
-  }, [navigate]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/painel/login");
   };
-
-  if (checking) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-muted/30">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
 
   return (
     <div className="flex min-h-screen flex-col bg-muted/30">
