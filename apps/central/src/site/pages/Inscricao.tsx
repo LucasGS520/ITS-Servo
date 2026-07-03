@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { z } from "zod";
 import { maskCPF, maskPhone, validateCPF } from "@/lib/masks";
 import { supabase } from "@/integrations/supabase/client";
+import { criarInscricao } from "@its-servo/supabase";
 import { useToast } from "@/hooks/use-toast";
 
 // Lista de núcleos disponíveis para inscrição presencial
@@ -93,36 +94,22 @@ const Inscricao = () => {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase
-        .from("inscricoes")
-        .insert({
-          nome_completo: result.data.nome_completo,
-          cpf: result.data.cpf.replace(/\D/g, ""),
-          telefone: result.data.telefone.replace(/\D/g, ""),
-          email: result.data.email,
-          data_nascimento: format(result.data.data_nascimento, "yyyy-MM-dd"),
-          escolaridade: result.data.escolaridade,
-          modalidade: result.data.modalidade,
-          nucleo: result.data.modalidade === "presencial" ? result.data.nucleo : null,
-        })
-        .select("numero_inscricao")
-        .single();
+      // Contrato: criação server-side (valida, insere via service_role, gera
+      // token de posse e dispara o e-mail com link mágico). O Site/Central não
+      // toca a tabela `inscricoes` diretamente. Ver docs/arquitetura.md §5.
+      const { numero_inscricao, token } = await criarInscricao(supabase, {
+        nome_completo: result.data.nome_completo,
+        cpf: result.data.cpf,
+        telefone: result.data.telefone,
+        email: result.data.email,
+        data_nascimento: format(result.data.data_nascimento, "yyyy-MM-dd"),
+        escolaridade: result.data.escolaridade,
+        modalidade: result.data.modalidade,
+        nucleo: result.data.modalidade === "presencial" ? result.data.nucleo : null,
+      });
 
-      if (error) throw error;
-
-      const numero = data.numero_inscricao;
-
-      // Try to send confirmation email (non-blocking)
-      try {
-        await supabase.functions.invoke("enviar-email-inscricao", {
-          body: { numero_inscricao: numero, nome: result.data.nome_completo, email: result.data.email },
-        });
-      } catch {
-        // Email sending is non-critical
-      }
-
-      toast({ title: "Inscrição realizada!", description: `Número: ${numero}` });
-      navigate(`/inscricao/pagamento/${numero}`);
+      toast({ title: "Inscrição realizada!", description: `Número: ${numero_inscricao}` });
+      navigate(`/inscricao/pagamento/${numero_inscricao}?token=${encodeURIComponent(token)}`);
     } catch (err: any) {
       toast({ title: "Erro ao enviar inscrição", description: err.message, variant: "destructive" });
     } finally {

@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CheckCircle, Upload, Loader2, Copy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { buscarInscricao, enviarComprovante } from "@its-servo/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { PRICING } from "@/shared/constants/pricing";
 
@@ -18,8 +19,10 @@ import { PRICING } from "@/shared/constants/pricing";
  * Página de pagamento renderizada com Layout
  */
 const Pagamento = () => {
-  // Parâmetro da rota contendo o número da inscrição
+  // Parâmetro da rota contendo o número da inscrição + token de posse (link mágico)
   const { numero } = useParams<{ numero: string }>();
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token") ?? "";
   const { toast } = useToast();
   
   // Referência para o elemento input de arquivo
@@ -38,20 +41,21 @@ const Pagamento = () => {
    */
   useEffect(() => {
     const fetchInscricao = async () => {
-      const { data, error } = await supabase
-        .from("inscricoes")
-        .select("*")
-        .eq("numero_inscricao", numero)
-        .single();
-
-      if (!error && data) {
-        setInscricao(data);
-        if (data.status !== "aguardando_pagamento" && data.status !== "pagamento_nao_identificado") setEnviado(true);
+      try {
+        // Contrato: leitura só com token de posse (RPC). Sem token → sem acesso.
+        const insc = await buscarInscricao(supabase, numero!, token);
+        if (insc) {
+          setInscricao(insc);
+          if (insc.status !== "aguardando_pagamento" && insc.status !== "pagamento_nao_identificado") setEnviado(true);
+        }
+      } catch {
+        // não encontrada / token inválido → inscricao permanece null
       }
       setLoading(false);
     };
-    if (numero) fetchInscricao();
-  }, [numero]);
+    if (numero && token) fetchInscricao();
+    else setLoading(false);
+  }, [numero, token]);
 
   /**
    * Função para enviar o comprovante de pagamento
@@ -77,39 +81,10 @@ const Pagamento = () => {
 
     setUploading(true);
     try {
-      // Construir caminho único para o arquivo
-      const ext = file.name.split(".").pop();
-      const filePath = `${numero}/${Date.now()}.${ext}`;
-
-      // Upload do arquivo para o storage do Supabase
-      const { error: uploadError } = await supabase.storage
-        .from("comprovantes")
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      // Obter URL pública do arquivo enviado
-      const { data: urlData } = supabase.storage
-        .from("comprovantes")
-        .getPublicUrl(filePath);
-
-      // Atualizar registro da inscrição com URL do comprovante
-      const { error: updateError } = await supabase
-        .from("inscricoes")
-        .update({
-          comprovante_url: urlData.publicUrl,
-          status: "comprovante_enviado",
-        })
-        .eq("numero_inscricao", numero);
-
-      if (updateError) throw updateError;
-
-      // Tentativa de enviar notificação por email (não-bloqueante)
-      try {
-        await supabase.functions.invoke("enviar-email-comprovante", {
-          body: { numero_inscricao: numero, nome: inscricao.nome_completo, email: inscricao.email },
-        });
-      } catch {}
+      // Contrato: upload em bucket PRIVADO + atualização de status + e-mail,
+      // tudo server-side (edge), validando o token de posse. O client não fala
+      // com o storage nem com a tabela diretamente. Ver docs/arquitetura.md §5.
+      await enviarComprovante(supabase, { numero: numero!, token, file });
 
       setEnviado(true);
       toast({ title: "Comprovante enviado!", description: "Seu pagamento está em análise." });
