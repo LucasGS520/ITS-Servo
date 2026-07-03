@@ -1,0 +1,85 @@
+:root{
+  --bg:            #f5f1e8;
+  --bg-tint:       #efe9db;
+  --surface:       #fffdf8;
+  --surface-2:     #faf6ec;
+  --surface-ink:   #101a30;
+
+  --ink:           #14203a;
+  --ink-soft:      #27324e;
+  --muted:         #5b6478;
+  --muted-2:       #8b8f9c;
+  --on-dark:       #eef2fb;
+  --on-dark-soft:  #b7c0d6;
+
+  --line:          #e7ddc9;
+  --line-strong:   #d9cbac;
+  --line-ink:      #24314f;
+
+  --navy-950:      #0a1120;
+  --navy-900:      #0f1830;
+  --navy-800:      #15223f;
+  --navy-700:      #1c2e52;
+  --navy-600:      #26406e;   /* PRIMÁRIA */
+  --navy-500:      #33518a;
+  --navy-400:      #4d70ae;
+  --navy-300:      #7d97c9;
+  --navy-100:      #dbe4f2;
+
+  --gold-800:      #7a5417;
+  --gold-700:      #9a6d1f;
+  --gold-600:      #b8862f;   /* ACENTO */
+  --gold-500:      #caa23f;
+  --gold-400:      #dcb85f;
+  --gold-300:      #e9cd88;
+  --gold-100:      #f6e8c6;
+
+  --success:       #3f7d55;
+  --danger:        #a23b34;
+  --info:          var(--navy-500);
+
+  --font-serif: "Fraunces", "Iowan Old Style", Georgia, "Times New Roman", serif;
+  --font-sans:  "Raleway", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --text-xs:   .75rem;
+  --text-sm:   .875rem;
+  --text-base: 1rem;
+  --text-lg:   1.125rem;
+  --text-xl:   1.25rem;
+  --text-2xl:  1.5rem;
+  --text-3xl:  1.9rem;
+  --text-4xl:  2.4rem;
+  --text-5xl:  3.15rem;
+  --text-6xl:  4.1rem;
+  --text-7xl:  5.4rem;
+
+  --tracking-tight:  -.02em;
+  --tracking-normal: 0;
+  --tracking-wide:   .04em;
+  --tracking-widest: .22em;
+
+  --sp-1:.25rem; --sp-2:.5rem; --sp-3:.75rem; --sp-4:1rem; --sp-5:1.25rem;
+  --sp-6:1.5rem; --sp-8:2rem; --sp-10:2.5rem; --sp-12:3rem; --sp-16:4rem;
+  --sp-20:5rem; --sp-24:6rem; --sp-32:8rem;
+
+  --radius-xs:  .25rem;
+  --radius-sm:  .375rem;
+  --radius:     .625rem;
+  --radius-lg:  .875rem;
+  --radius-xl:  1.25rem;
+  --radius-2xl: 1.75rem;
+  --radius-full:999px;
+
+  --shadow-sm:  0 1px 2px rgba(20,32,58,.06);
+  --shadow:     0 4px 14px -6px rgba(20,32,58,.16), 0 2px 6px -4px rgba(20,32,58,.10);
+  --shadow-lg:  0 22px 48px -20px rgba(20,32,58,.30), 0 8px 20px -14px rgba(20,32,58,.18);
+  --shadow-gold:0 10px 34px -12px rgba(184,134,47,.55);
+  --shadow-inset:inset 0 1px 0 rgba(255,255,255,.6);
+
+  --ease-out:    cubic-bezier(0,0,.2,1);
+  --ease-in-out: cubic-bezier(.4,0,.2,1);
+  --ease-spring: cubic-bezier(.34,1.4,.5,1);
+  --dur-fast:   .15s;
+  --dur:        .3s;
+  --dur-slow:   .6s;
+}

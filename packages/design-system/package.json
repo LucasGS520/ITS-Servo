@@ -1,0 +1,15 @@
+{
+  "name": "@its-servo/design-system",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Tokens e estilos da marca ITS-Servo (fonte única para os dois produtos)",
+  "exports": {
+    "./styles.css": "./styles.css",
+    "./tokens.css": "./tokens.css"
+  },
+  "files": [
+    "styles.css",
+    "tokens.css"
+  ]
+}
