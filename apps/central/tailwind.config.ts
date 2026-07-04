@@ -20,8 +20,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        serif: ["Merriweather", "serif"],
-        sans: ["Source Sans 3", "sans-serif"],
+        serif: ["Fraunces", "Georgia", "serif"],
+        sans: ["Raleway", "system-ui", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
