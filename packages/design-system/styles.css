@@ -44,6 +44,7 @@
   --gold-400:      #f79a5c;
   --gold-300:      #fab98a;
   --gold-100:      #fde7d5;
+  --accent-gold:   #c9a33f;   /* dourado antigo — destaque pontual (ex.: "comprometida") */
 
   --success:       #3f7d55;
   --danger:        #a23b34;
@@ -316,6 +317,7 @@ h1,h2,h3,h4,h5{ font-family:var(--font-serif); font-weight:600; color:var(--ink)
 }
 .hero h1 .accent{ color:var(--navy-600); font-style:normal; }
 .hero h1 .gild{ color:var(--gold-600); font-style:normal; }
+.hero h1 .gold{ color:var(--accent-gold); font-style:normal; }
 .hero__lead{
   font-size:clamp(1.05rem,1.6vw,var(--text-xl)); color:var(--ink-soft);
   max-width:50ch; line-height:1.7;
