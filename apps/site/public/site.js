@@ -8,22 +8,27 @@
   /* ---------- 1. Hero: split de caracteres com char-in ---------- */
   function splitChars(el, baseDelay){
     var text = el.getAttribute('data-text') || el.textContent;
+    var lead = /^\s/.test(text), trail = /\s$/.test(text);
+    var words = text.trim().split(/\s+/);
     el.textContent = '';
     var i = 0;
-    text.split('').forEach(function(ch){
-      if(ch === ' '){
-        var sp = document.createElement('span');
-        sp.className = 'space';
-        el.appendChild(sp);
-        return;
-      }
-      var s = document.createElement('span');
-      s.className = 'char';
-      s.textContent = ch;
-      s.style.animationDelay = (baseDelay + i*0.028) + 's';
-      el.appendChild(s);
-      i++;
+    if(lead) el.appendChild(document.createTextNode(' '));
+    words.forEach(function(word, wi){
+      // cada palavra é um bloco inquebrável — a quebra só acontece nos espaços
+      var w = document.createElement('span');
+      w.className = 'word';
+      word.split('').forEach(function(ch){
+        var s = document.createElement('span');
+        s.className = 'char';
+        s.textContent = ch;
+        s.style.animationDelay = (baseDelay + i*0.028) + 's';
+        w.appendChild(s);
+        i++;
+      });
+      el.appendChild(w);
+      if(wi < words.length - 1) el.appendChild(document.createTextNode(' '));
     });
+    if(trail) el.appendChild(document.createTextNode(' '));
     return i;
   }
   var delay = 0.1;
@@ -62,16 +67,21 @@
     for(var k=0;k<n;k++){
       var g = document.createElement('i');
       g.textContent = PHRASES[Math.floor(Math.random()*PHRASES.length)];
-      g.style.left = Math.random()*80 + '%';
-      g.style.top = Math.random()*100 + '%';
-      g.style.fontSize = (0.85 + Math.random()*0.75).toFixed(2) + 'rem';
+      // Só nas MARGENS laterais — nunca sobre o texto/conteúdo central.
+      if(k % 2 === 0){
+        g.style.right = (80 + Math.random()*15) + '%';   // margem esquerda (cresce p/ a esquerda)
+      } else {
+        g.style.left = (68 + Math.random()*25) + '%';    // margem direita (cresce p/ a direita)
+      }
+      g.style.top = (3 + Math.random()*88) + '%';
+      g.style.fontSize = (0.8 + Math.random()*0.55).toFixed(2) + 'rem';
       g.style.animationDuration = (11 + Math.random()*11) + 's';
       g.style.animationDelay = (-Math.random()*18) + 's';
       frag.appendChild(g);
     }
     container.appendChild(frag);
   }
-  makePhrases(document.getElementById('glyphs'), 11);
+  makePhrases(document.getElementById('glyphs'), 10);
   makePhrases(document.getElementById('glyphs2'), 6);
 
   /* ---------- 4. Marquee (valores institucionais) ---------- */
