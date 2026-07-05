@@ -45,25 +45,34 @@
     document.querySelectorAll('.reveal').forEach(function(el){ el.classList.add('in'); });
   }
 
-  /* ---------- 3. Glifos aramaicos/hebraicos derivando (escrita antiga) ---------- */
-  var GLYPHS = 'אבגדהוזחטיכלמנסעפצקרשת';
-  function makeGlyphs(container, n){
+  /* ---------- 3. Frases em aramaico bíblico (Daniel/Esdras, escrita hebraica) derivando ---------- */
+  var PHRASES = [
+    'מְנֵא מְנֵא תְּקֵל וּפַרְסִין',
+    'אֱלָהָא דִי־שְׁמַיָּא',
+    'לְעָלַם וּלְעָלְמֵי עָלְמַיָּא',
+    'דִּי־הוּא אֱלָהָא חַיָּא',
+    'בְּרַם אִיתַי אֱלָהּ בִּשְׁמַיָּא גָּלֵא רָזִין',
+    'מַלְכוּתֵהּ מַלְכוּת עָלַם',
+    'שְׁלָמְכוֹן יִשְׂגֵּא',
+    'הוֹדֵית וְשַׁבְּחֵת לְמַלְכָּא'
+  ];
+  function makePhrases(container, n){
     if(!container || reduce) return;
     var frag = document.createDocumentFragment();
     for(var k=0;k<n;k++){
       var g = document.createElement('i');
-      g.textContent = GLYPHS.charAt(Math.floor(Math.random()*GLYPHS.length));
-      g.style.left = Math.random()*100 + '%';
+      g.textContent = PHRASES[Math.floor(Math.random()*PHRASES.length)];
+      g.style.left = Math.random()*80 + '%';
       g.style.top = Math.random()*100 + '%';
-      g.style.fontSize = (0.9 + Math.random()*1.9).toFixed(2) + 'rem';
-      g.style.animationDuration = (7 + Math.random()*10) + 's';
-      g.style.animationDelay = (-Math.random()*14) + 's';
+      g.style.fontSize = (0.85 + Math.random()*0.75).toFixed(2) + 'rem';
+      g.style.animationDuration = (11 + Math.random()*11) + 's';
+      g.style.animationDelay = (-Math.random()*18) + 's';
       frag.appendChild(g);
     }
     container.appendChild(frag);
   }
-  makeGlyphs(document.getElementById('glyphs'), 28);
-  makeGlyphs(document.getElementById('glyphs2'), 16);
+  makePhrases(document.getElementById('glyphs'), 11);
+  makePhrases(document.getElementById('glyphs2'), 6);
 
   /* ---------- 4. Marquee (valores institucionais) ---------- */
   var values = ['Sola Scriptura','Fidelidade doutrinária','Ensino bíblico sólido','Compromisso missionário','Acessível a todos','Presencial e correspondência','36 disciplinas','Coram Deo'];
