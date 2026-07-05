@@ -1,0 +1,123 @@
+---
+// Feature: "Encontre o núcleo mais próximo de você"
+// Leaflet + OpenStreetMap + Nominatim (geocoding) — grátis, sem API key.
+// Coordenadas APROXIMADAS por bairro — TODO: refinar com endereços reais.
+import 'leaflet/dist/leaflet.css';
+
+const nucleos = [
+  { nome: 'Sede Jd. Santa Mônica', cidade: 'Barueri/SP', lat: -23.509, lng: -46.876 },
+  { nome: 'Engenho Novo', cidade: 'Barueri/SP', lat: -23.523, lng: -46.869 },
+  { nome: 'Jd. Conceição', cidade: 'Osasco/SP', lat: -23.532, lng: -46.792 },
+  { nome: 'Ariston', cidade: 'Carapicuíba/SP', lat: -23.528, lng: -46.836 },
+];
+---
+<section class="section" id="encontrar">
+  <div class="wrap">
+    <div class="section__head section__head--center reveal">
+      <span class="eyebrow">Proximidade</span>
+      <h2 class="section__title">Encontre o núcleo mais próximo de você</h2>
+      <p class="section__desc" style="margin-inline:auto">
+        Digite seu endereço, bairro ou CEP e veja os núcleos presenciais ordenados por distância.
+      </p>
+    </div>
+
+    <div class="mapfinder reveal">
+      <form class="mapfinder__form" id="mf-form">
+        <input class="input" id="mf-input" type="text" autocomplete="off"
+          placeholder="Ex.: Alphaville, Barueri ou 06454-000" aria-label="Seu endereço" />
+        <button class="btn btn--gold" type="submit" id="mf-btn">Buscar</button>
+      </form>
+      <p class="mapfinder__msg" id="mf-msg"></p>
+      <div class="mapfinder__grid">
+        <div class="mapfinder__map" id="mf-map"></div>
+        <ul class="mapfinder__results" id="mf-results">
+          {nucleos.map((n) => (
+            <li class="mapfinder__item">
+              <div><p class="nucleo__name">{n.nome}</p><p class="nucleo__city">{n.cidade}</p></div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script type="application/json" id="mf-data" set:html={JSON.stringify(nucleos)}></script>
+</section>
+
+<script>
+  import L from 'leaflet';
+
+  const dataEl = document.getElementById('mf-data');
+  const mapEl = document.getElementById('mf-map');
+  if (dataEl && mapEl) {
+    type Nucleo = { nome: string; cidade: string; lat: number; lng: number };
+    const nucleos: Nucleo[] = JSON.parse(dataEl.textContent || '[]');
+    const form = document.getElementById('mf-form') as HTMLFormElement;
+    const input = document.getElementById('mf-input') as HTMLInputElement;
+    const btn = document.getElementById('mf-btn') as HTMLButtonElement;
+    const msg = document.getElementById('mf-msg') as HTMLParagraphElement;
+    const results = document.getElementById('mf-results') as HTMLUListElement;
+
+    const GOLD = '#b8862f', NAVY = '#26406e';
+    const map = L.map(mapEl, { scrollWheelZoom: false }).setView([-23.52, -46.83], 11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap', maxZoom: 19,
+    }).addTo(map);
+
+    nucleos.forEach((n) => {
+      L.circleMarker([n.lat, n.lng], { radius: 8, color: NAVY, weight: 2, fillColor: GOLD, fillOpacity: 0.9 })
+        .addTo(map)
+        .bindPopup(`<strong>${n.nome}</strong><br>${n.cidade}`);
+    });
+    let userMarker: L.CircleMarker | null = null;
+
+    const haversine = (aLat: number, aLng: number, bLat: number, bLng: number) => {
+      const R = 6371, toRad = (x: number) => (x * Math.PI) / 180;
+      const dLat = toRad(bLat - aLat), dLng = toRad(bLng - aLng);
+      const s = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(aLat)) * Math.cos(toRad(bLat)) * Math.sin(dLng / 2) ** 2;
+      return R * 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1 - s));
+    };
+
+    const render = (list: (Nucleo & { dist?: number })[]) => {
+      results.innerHTML = list
+        .map((n, i) => `
+          <li class="mapfinder__item${n.dist !== undefined && i === 0 ? ' is-nearest' : ''}">
+            <div><p class="nucleo__name">${n.nome}</p><p class="nucleo__city">${n.cidade}</p></div>
+            ${n.dist !== undefined ? `<span class="mapfinder__dist">${n.dist.toFixed(1)} km</span>` : ''}
+          </li>`)
+        .join('');
+    };
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const q = input.value.trim();
+      if (!q) return;
+      msg.textContent = 'Buscando…';
+      btn.disabled = true;
+      try {
+        const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&q=${encodeURIComponent(q)}`;
+        // Uso leve; a política do Nominatim pede um Referer identificável (o próprio site).
+        const res = await fetch(url, { headers: { 'Accept-Language': 'pt-BR' } });
+        const data = await res.json();
+        if (!data.length) {
+          msg.textContent = 'Endereço não encontrado. Tente incluir a cidade ou o CEP.';
+          return;
+        }
+        const lat = parseFloat(data[0].lat), lng = parseFloat(data[0].lon);
+        if (userMarker) map.removeLayer(userMarker);
+        userMarker = L.circleMarker([lat, lng], { radius: 9, color: '#fff', weight: 3, fillColor: NAVY, fillOpacity: 1 })
+          .addTo(map).bindPopup('Você está aqui').openPopup();
+        const ranked = nucleos
+          .map((n) => ({ ...n, dist: haversine(lat, lng, n.lat, n.lng) }))
+          .sort((a, b) => a.dist - b.dist);
+        render(ranked);
+        map.fitBounds(L.latLngBounds([[lat, lng], [ranked[0].lat, ranked[0].lng]]).pad(0.4));
+        msg.textContent = `Núcleo mais próximo: ${ranked[0].nome} (${ranked[0].dist.toFixed(1)} km).`;
+      } catch {
+        msg.textContent = 'Não foi possível buscar agora. Tente novamente.';
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  }
+</script>

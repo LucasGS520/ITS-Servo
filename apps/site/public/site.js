@@ -45,24 +45,25 @@
     document.querySelectorAll('.reveal').forEach(function(el){ el.classList.add('in'); });
   }
 
-  /* ---------- 3. Constelação (estrelas) ---------- */
-  function makeStars(container, n){
+  /* ---------- 3. Glifos aramaicos/hebraicos derivando (escrita antiga) ---------- */
+  var GLYPHS = 'אבגדהוזחטיכלמנסעפצקרשת';
+  function makeGlyphs(container, n){
     if(!container || reduce) return;
     var frag = document.createDocumentFragment();
     for(var k=0;k<n;k++){
-      var s = document.createElement('i');
-      s.style.left = Math.random()*100 + '%';
-      s.style.top = Math.random()*100 + '%';
-      s.style.animationDelay = (Math.random()*4) + 's';
-      s.style.opacity = 0.3 + Math.random()*0.5;
-      var sc = 0.6 + Math.random()*1.1;
-      s.style.transform = 'scale('+sc+')';
-      frag.appendChild(s);
+      var g = document.createElement('i');
+      g.textContent = GLYPHS.charAt(Math.floor(Math.random()*GLYPHS.length));
+      g.style.left = Math.random()*100 + '%';
+      g.style.top = Math.random()*100 + '%';
+      g.style.fontSize = (0.9 + Math.random()*1.9).toFixed(2) + 'rem';
+      g.style.animationDuration = (7 + Math.random()*10) + 's';
+      g.style.animationDelay = (-Math.random()*14) + 's';
+      frag.appendChild(g);
     }
     container.appendChild(frag);
   }
-  makeStars(document.getElementById('stars'), 34);
-  makeStars(document.getElementById('stars2'), 26);
+  makeGlyphs(document.getElementById('glyphs'), 28);
+  makeGlyphs(document.getElementById('glyphs2'), 16);
 
   /* ---------- 4. Marquee (valores institucionais) ---------- */
   var values = ['Sola Scriptura','Fidelidade doutrinária','Ensino bíblico sólido','Compromisso missionário','Acessível a todos','Presencial e correspondência','36 disciplinas','Coram Deo'];
@@ -82,20 +83,6 @@
       if(!open){ item.classList.add('is-open'); }
     });
   });
-
-  /* ---------- 6. Partículas de luz (motes) ---------- */
-  var motes = document.getElementById('motes');
-  if(motes && !reduce){
-    for(var m=0;m<18;m++){
-      var p = document.createElement('i');
-      var size = 2 + Math.random()*4;
-      p.style.left = Math.random()*100 + '%';
-      p.style.width = p.style.height = size + 'px';
-      p.style.animationDuration = (7 + Math.random()*9) + 's';
-      p.style.animationDelay = (-Math.random()*12) + 's';
-      motes.appendChild(p);
-    }
-  }
 
   /* ---------- 7. Parallax do hero (mouse) ---------- */
   var layers = Array.prototype.slice.call(document.querySelectorAll('.hero__layer'));

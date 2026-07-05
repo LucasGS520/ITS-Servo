@@ -1,11 +1,11 @@
 ---
 import Base from '../layouts/Base.astro';
+import NucleoMap from '../components/NucleoMap.astro';
 const nucleos = [
   { nome: 'Sede Jd. Santa Mônica', cidade: 'Barueri — SP', ref: 'Assembleia de Deus Ministério Família', formato: 'Presencial', global: false },
   { nome: 'Engenho Novo', cidade: 'Barueri — SP', ref: 'Assembleia de Deus Ministério Família', formato: 'Presencial', global: false },
   { nome: 'Jd. Conceição', cidade: 'Osasco — SP', ref: 'Assembleia de Deus Ministério Família', formato: 'Presencial', global: false },
   { nome: 'Ariston', cidade: 'Carapicuíba — SP', ref: 'Assembleia de Deus Ministério Família', formato: 'Presencial', global: false },
-  { nome: 'Maputo', cidade: 'Moçambique', ref: 'Núcleo missionário internacional', formato: 'Presencial', global: true },
   { nome: 'Correspondência', cidade: 'Todo o Brasil e exterior', ref: 'Material enviado para qualquer endereço', formato: 'À distância', global: true },
 ];
 ---
@@ -45,6 +45,8 @@ const nucleos = [
       <div class="section__cta"><a class="btn btn--outline" href="/cursos">Ver Grade Curricular</a></div>
     </div>
   </section>
+
+  <NucleoMap />
 
   <section class="section" style="padding-top:0">
     <div class="wrap">

@@ -7,13 +7,29 @@ import Base from '../layouts/Base.astro';
 <!-- ================= HERO ================= -->
 <section class="hero" id="top">
   <div class="hero__bg" aria-hidden="true">
-    <div class="hero__aurora hero__layer" data-depth="14"><span></span><span></span><span></span></div>
-    <div class="hero__rays hero__layer" data-depth="6"></div>
-    <div class="hero__grid hero__layer" data-depth="22"></div>
-    <div class="hero__stars hero__layer" data-depth="30" id="stars"></div>
-    <div class="hero__motes" id="motes"></div>
+    <div class="hero__graticule hero__layer" data-depth="10"></div>
+    <div class="hero__map hero__layer" data-depth="8">
+      <svg viewBox="0 0 600 400" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+        <path d="M40 250 C120 210 160 300 250 260 S400 210 470 270 S560 250 590 300"/>
+        <path d="M80 120 C160 90 220 150 300 110 S440 70 520 130"/>
+        <path d="M120 330 C200 300 300 360 420 320" stroke-dasharray="5 9"/>
+        <path d="M250 260 C300 200 380 210 470 270" stroke-dasharray="2 8"/>
+        <circle cx="250" cy="260" r="3.5" fill="currentColor" stroke="none"/>
+        <circle cx="470" cy="270" r="3.5" fill="currentColor" stroke="none"/>
+      </svg>
+    </div>
+    <div class="hero__compass hero__layer" data-depth="5">
+      <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1">
+        <circle cx="50" cy="50" r="46"/>
+        <circle cx="50" cy="50" r="33"/>
+        <path d="M50 6 L57 43 L94 50 L57 57 L50 94 L43 57 L6 50 L43 43 Z" fill="currentColor" fill-opacity=".45" stroke="none"/>
+        <path d="M50 18 L54 46 L82 50 L54 54 L50 82 L46 54 L18 50 L46 46 Z"/>
+      </svg>
+    </div>
+    <div class="hero__glyphs" id="glyphs"></div>
   </div>
   <div class="wrap hero__inner">
+    <img class="brand__logo brand__logo--hero reveal" src="/img/logo-its.jpeg" alt="Instituto Teológico Servo" width="96" height="96" />
     <span class="eyebrow reveal">Escola de Teologia e Ensinos Bíblicos</span>
     <h1>
       <span class="chars" data-text="Formação teológica "></span>
@@ -36,8 +52,8 @@ import Base from '../layouts/Base.astro';
       <a href="/quem-somos" class="btn btn--outline btn--lg">Conheça o ITS</a>
     </div>
     <div class="hero__stats">
-      <div><div class="stat__num"><span data-count="6">0</span></div><div class="stat__label">Núcleos ativos</div></div>
-      <div><div class="stat__num"><span data-count="2">0</span></div><div class="stat__label">Países</div></div>
+      <div><div class="stat__num"><span data-count="5">0</span></div><div class="stat__label">Núcleos ativos</div></div>
+      <div><div class="stat__num"><span data-count="3">0</span></div><div class="stat__label">Cidades atendidas</div></div>
       <div><div class="stat__num"><span data-count="36">0</span></div><div class="stat__label">Disciplinas no currículo</div></div>
       <div><div class="stat__num"><span data-count="3">0</span></div><div class="stat__label">Níveis de formação</div></div>
     </div>
@@ -104,7 +120,7 @@ import Base from '../layouts/Base.astro';
     </div>
 
     <div class="section__cta reveal">
-      <a class="btn btn--outline" href="/inscricao">Ver grade curricular completa
+      <a class="btn btn--outline" href="/cursos">Ver grade curricular completa
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
       </a>
     </div>
@@ -129,7 +145,7 @@ import Base from '../layouts/Base.astro';
         <ul class="check-list">
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Aulas semanais</li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Interação com professores e colegas</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 4 núcleos em São Paulo e 1 em Moçambique</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 4 núcleos presenciais na Grande São Paulo</li>
         </ul>
       </article>
       <article class="card reveal" data-anim="right">
@@ -146,7 +162,7 @@ import Base from '../layouts/Base.astro';
     </div>
 
     <div class="section__cta reveal">
-      <a class="btn btn--outline" href="/inscricao">Ver metodologia completa
+      <a class="btn btn--outline" href="/metodologia">Ver metodologia completa
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
       </a>
     </div>
@@ -159,7 +175,7 @@ import Base from '../layouts/Base.astro';
     <div class="section__head section__head--center reveal">
       <span class="eyebrow">Presença</span>
       <h2 class="section__title">Onde estudar?</h2>
-      <p class="section__desc">6 núcleos ativos — presencial em São Paulo e Moçambique, ou por correspondência em qualquer lugar.</p>
+      <p class="section__desc">5 núcleos ativos — presencial na Grande São Paulo, ou por correspondência em qualquer lugar.</p>
     </div>
 
     <div class="grid cols-3">
@@ -180,16 +196,13 @@ import Base from '../layouts/Base.astro';
         <div><p class="nucleo__name">Ariston</p><p class="nucleo__city">Carapicuíba/SP</p></div>
       </div>
       <div class="nucleo reveal" data-delay="1">
-        <span class="nucleo__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8M12 3c2.5 2.4 3.9 5.6 4 9-.1 3.4-1.5 6.6-4 9-2.5-2.4-3.9-5.6-4-9 .1-3.4 1.5-6.6 4-9z"/></svg></span>
-        <div><p class="nucleo__name">Maputo</p><p class="nucleo__city">Moçambique</p></div>
-      </div>
-      <div class="nucleo reveal" data-delay="2">
         <span class="nucleo__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="m22 6-10 7L2 6"/></svg></span>
         <div><p class="nucleo__name">Correspondência</p><p class="nucleo__city">Todo o Brasil e exterior</p></div>
       </div>
     </div>
 
-    <div class="section__cta reveal">
+    <div class="section__cta reveal" style="gap:var(--sp-4);flex-wrap:wrap">
+      <a class="btn btn--gold" href="/nucleos#encontrar">Encontre o núcleo mais próximo</a>
       <a class="btn btn--outline" href="/nucleos">Ver detalhes dos núcleos
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
       </a>
@@ -299,14 +312,14 @@ import Base from '../layouts/Base.astro';
         <h2 class="section__title">Presença em Moçambique</h2>
         <p class="section__desc" style="margin-bottom:var(--sp-6)">
           O ITS expandiu sua missão para além das fronteiras brasileiras. Em Moçambique,
-          o instituto mantém um núcleo ativo, levando formação teológica de qualidade a
-          líderes e obreiros locais — fortalecendo a igreja e impactando comunidades inteiras.
+          o instituto mantém uma presença missionária, levando formação teológica de qualidade
+          a líderes e obreiros locais — fortalecendo a igreja e impactando comunidades inteiras.
         </p>
         <a class="btn btn--primary" href="/quem-somos">Conheça nossa história</a>
       </div>
       <figure class="split__media reveal" data-anim="right">
         <img src="/img/mocambique2.png" alt="Formatura de alunos do ITS em Moçambique" loading="lazy" />
-        <span class="badge badge--gold split__badge"><span class="dot"></span>Núcleo Maputo</span>
+        <span class="badge badge--gold split__badge"><span class="dot"></span>Missão internacional</span>
       </figure>
     </div>
   </div>
@@ -352,11 +365,11 @@ import Base from '../layouts/Base.astro';
 <section class="section" id="consulta" style="border-top:0">
   <div class="wrap">
     <div class="card card--dark reveal" style="text-align:center;padding:var(--sp-20) var(--sp-8);position:relative;overflow:hidden">
-      <div class="hero__stars" style="position:absolute;inset:0;opacity:.7" id="stars2"></div>
+      <div class="hero__glyphs" style="position:absolute;inset:0;opacity:.5" id="glyphs2"></div>
       <div style="position:relative;z-index:2">
         <span class="eyebrow" style="color:var(--gold-400);justify-content:center;display:inline-flex">Comece hoje</span>
         <h2 style="color:#fff;font-size:var(--text-5xl);margin:var(--sp-4) auto var(--sp-4);max-width:20ch">Pronto para aprofundar seu conhecimento bíblico?</h2>
-        <p style="color:var(--on-dark-soft);max-width:54ch;margin:0 auto var(--sp-8)">Inscreva-se no ITS e inicie sua formação teológica. Presencial em São Paulo e Moçambique, ou por correspondência para qualquer lugar.</p>
+        <p style="color:var(--on-dark-soft);max-width:54ch;margin:0 auto var(--sp-8)">Inscreva-se no ITS e inicie sua formação teológica. Presencial na Grande São Paulo, ou por correspondência para qualquer lugar.</p>
         <div style="display:flex;gap:var(--sp-4);justify-content:center;flex-wrap:wrap">
           <a href="/inscricao" class="btn btn--gold btn--lg">Inscreva-se Agora</a>
           <a href="/consulta" class="btn btn--outline btn--lg btn--on-dark">Consultar minha inscrição</a>

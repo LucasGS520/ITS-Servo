@@ -210,3 +210,7 @@ Esse diagnóstico estrutural (pastas, módulos, dependências e fronteiras entre
 ## Ideais do Design - Alinhamento
 
 - Modelo ao invés de "estrelas" ou "celestes", ser **Escrituras, templos, mapa antigo** coisas mais voltadas para periodo biblico, e como era ensinamentos naquela epoca
+- Escritura 
+
+- Adicionar um Mapa, e campo para "Encontre o núcleo mais próximo de você", que ao adicionar seu endereço, mostre os nucleos mais próximos
+- Remover como núcleo "Maputo", manter apenas os presenciais no Brasil
