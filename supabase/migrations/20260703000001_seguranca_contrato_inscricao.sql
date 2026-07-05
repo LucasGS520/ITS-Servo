@@ -53,6 +53,12 @@ DROP POLICY IF EXISTS "Anyone can upload comprovantes" ON storage.objects;
 DROP POLICY IF EXISTS "Anyone can view comprovantes"   ON storage.objects;
 -- (a política "Admins can delete comprovantes" permanece)
 
+-- Admin precisa LER os objetos para gerar signed URLs no painel (o upload
+-- público/anon é feito via edge com service_role, que ignora RLS).
+CREATE POLICY "Admins can view comprovantes" ON storage.objects
+  FOR SELECT TO authenticated
+  USING (bucket_id = 'comprovantes' AND public.is_admin());
+
 -- ---------------------------------------------------------------------
 -- 5) Helper interno: valida token de posse de uma inscrição
 -- ---------------------------------------------------------------------
