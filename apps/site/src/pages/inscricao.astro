@@ -1,0 +1,155 @@
+---
+import Base from '../layouts/Base.astro';
+const nucleos = [
+  { value: 'sede_jd_santa_monica', label: 'Sede Jd. Santa Mônica (Barueri/SP)' },
+  { value: 'engenho_novo', label: 'Engenho Novo (Barueri/SP)' },
+  { value: 'jd_conceicao', label: 'Jd. Conceição (Osasco/SP)' },
+  { value: 'ariston', label: 'Ariston (Carapicuíba/SP)' },
+  { value: 'maputo', label: 'Maputo (Moçambique)' },
+];
+---
+<Base title="Inscrição — Instituto Teológico Servo">
+  <section class="section" style="background:linear-gradient(160deg,var(--navy-800),var(--navy-950));color:var(--on-dark);text-align:center">
+    <div class="wrap">
+      <span class="eyebrow" style="color:var(--gold-400);justify-content:center;display:inline-flex">Comece sua jornada</span>
+      <h1 style="color:#fff;font-size:var(--text-5xl);margin:var(--sp-4) 0 var(--sp-3)">Inscrição</h1>
+      <p style="color:var(--on-dark-soft);max-width:56ch;margin:0 auto;font-size:var(--text-lg)">
+        Preencha o formulário para se inscrever no Instituto Teológico Servo.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap" style="max-width:44rem">
+      <form id="form-inscricao" class="card" style="display:flex;flex-direction:column;gap:var(--sp-6)">
+        <div>
+          <h2 style="font-size:var(--text-xl);margin-bottom:var(--sp-4)">Dados Pessoais</h2>
+          <div style="display:flex;flex-direction:column;gap:var(--sp-5)">
+            <div class="field">
+              <label for="nome_completo">Nome completo *</label>
+              <input class="input" id="nome_completo" name="nome_completo" required minlength="3" placeholder="Seu nome completo" />
+            </div>
+            <div class="grid cols-2" style="gap:var(--sp-5)">
+              <div class="field">
+                <label for="cpf">CPF *</label>
+                <input class="input" id="cpf" name="cpf" required inputmode="numeric" placeholder="000.000.000-00" />
+              </div>
+              <div class="field">
+                <label for="telefone">Telefone / WhatsApp *</label>
+                <input class="input" id="telefone" name="telefone" required inputmode="numeric" placeholder="(00) 00000-0000" />
+              </div>
+            </div>
+            <div class="field">
+              <label for="email">E-mail *</label>
+              <input class="input" id="email" name="email" type="email" required placeholder="seu@email.com" />
+              <span class="field__hint">Enviaremos o link de pagamento para este e-mail.</span>
+            </div>
+            <div class="grid cols-2" style="gap:var(--sp-5)">
+              <div class="field">
+                <label for="data_nascimento">Data de nascimento *</label>
+                <input class="input" id="data_nascimento" name="data_nascimento" type="date" required />
+              </div>
+              <div class="field">
+                <label for="escolaridade">Grau de escolaridade *</label>
+                <select class="input" id="escolaridade" name="escolaridade" required>
+                  <option value="" disabled selected>Selecione…</option>
+                  <option value="fundamental">Ensino Fundamental</option>
+                  <option value="medio">Ensino Médio</option>
+                  <option value="superior">Ensino Superior</option>
+                  <option value="pos_graduacao">Pós-graduação</option>
+                  <option value="outro">Outro</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="border-top:1px solid var(--line);padding-top:var(--sp-6)">
+          <h2 style="font-size:var(--text-xl);margin-bottom:var(--sp-4)">Dados Acadêmicos</h2>
+          <div class="field">
+            <label>Modalidade *</label>
+            <label style="font-weight:400;display:flex;align-items:center;gap:.5rem;cursor:pointer">
+              <input type="radio" name="modalidade" value="presencial" required /> Presencial
+            </label>
+            <label style="font-weight:400;display:flex;align-items:center;gap:.5rem;cursor:pointer">
+              <input type="radio" name="modalidade" value="correspondencia" /> Por Correspondência
+            </label>
+          </div>
+          <div class="field" id="nucleo-wrap" style="margin-top:var(--sp-5);display:none">
+            <label for="nucleo">Núcleo *</label>
+            <select class="input" id="nucleo" name="nucleo">
+              <option value="" disabled selected>Selecione o núcleo…</option>
+              {nucleos.map((n) => <option value={n.value}>{n.label}</option>)}
+            </select>
+          </div>
+        </div>
+
+        <button class="btn btn--gold btn--lg btn--block" type="submit">Continuar para pagamento</button>
+        <p id="form-msg" style="text-align:center;font-size:var(--text-sm);color:var(--muted)"></p>
+      </form>
+    </div>
+  </section>
+</Base>
+
+<script>
+  import { createBrowserClient, criarInscricao } from '@its-servo/supabase';
+
+  const url = import.meta.env.PUBLIC_SUPABASE_URL;
+  const key = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+  const centralUrl = import.meta.env.PUBLIC_CENTRAL_URL ?? '';
+
+  const form = document.getElementById('form-inscricao') as HTMLFormElement;
+  const msg = document.getElementById('form-msg') as HTMLParagraphElement;
+  const nucleoWrap = document.getElementById('nucleo-wrap') as HTMLDivElement;
+  const nucleoSel = document.getElementById('nucleo') as HTMLSelectElement;
+
+  // Mostra/oculta o núcleo conforme a modalidade
+  form.querySelectorAll('input[name="modalidade"]').forEach((el) =>
+    el.addEventListener('change', () => {
+      const presencial = (form.elements.namedItem('modalidade') as RadioNodeList).value === 'presencial';
+      nucleoWrap.style.display = presencial ? 'flex' : 'none';
+      nucleoSel.required = presencial;
+      if (!presencial) nucleoSel.value = '';
+    }),
+  );
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    msg.textContent = '';
+    if (!url || !key) { msg.textContent = 'Configuração do servidor ausente. Tente novamente mais tarde.'; return; }
+
+    const fd = new FormData(form);
+    const modalidade = String(fd.get('modalidade') || '');
+    const dto = {
+      nome_completo: String(fd.get('nome_completo') || ''),
+      cpf: String(fd.get('cpf') || ''),
+      telefone: String(fd.get('telefone') || ''),
+      email: String(fd.get('email') || ''),
+      data_nascimento: String(fd.get('data_nascimento') || ''),
+      escolaridade: String(fd.get('escolaridade') || ''),
+      modalidade: modalidade as 'presencial' | 'correspondencia',
+      nucleo: modalidade === 'presencial' ? String(fd.get('nucleo') || '') : null,
+    };
+
+    const btn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+    btn.disabled = true;
+    const label = btn.textContent;
+    btn.textContent = 'Enviando…';
+    try {
+      const supabase = createBrowserClient(url, key);
+      const { numero_inscricao, token } = await criarInscricao(supabase, dto);
+      if (centralUrl) {
+        window.location.href = `${centralUrl}/inscricao/${numero_inscricao}?token=${encodeURIComponent(token)}`;
+      } else {
+        msg.innerHTML = `Inscrição <strong>${numero_inscricao}</strong> criada! Enviamos um link de pagamento para o seu e-mail.`;
+        form.reset();
+        nucleoWrap.style.display = 'none';
+      }
+    } catch (err: any) {
+      msg.textContent = 'Não foi possível concluir: ' + (err?.message ?? 'tente novamente.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = label;
+    }
+  });
+</script>

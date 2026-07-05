@@ -2,6 +2,8 @@
 // Layout base do Site Institucional (Produto A).
 // Importa o design system compartilhado (tokens + estilos da marca).
 import '@its-servo/design-system/styles.css';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
 
 interface Props {
   title?: string;
@@ -34,7 +36,9 @@ const {
     />
   </head>
   <body>
+    <Nav />
     <slot />
+    <Footer />
     <script is:inline src="/site.js" defer></script>
   </body>
 </html>

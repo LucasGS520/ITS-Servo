@@ -233,6 +233,9 @@ importers:
       '@its-servo/design-system':
         specifier: workspace:*
         version: link:../../packages/design-system
+      '@its-servo/supabase':
+        specifier: workspace:*
+        version: link:../../packages/supabase
       astro:
         specifier: ^4.16.0
         version: 4.16.19(@types/node@22.20.0)(rollup@4.62.2)(typescript@5.9.3)

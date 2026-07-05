@@ -1,0 +1,110 @@
+---
+import Base from '../layouts/Base.astro';
+const numeros = [
+  { valor: '6', label: 'Núcleos ativos' },
+  { valor: '2', label: 'Países' },
+  { valor: '36', label: 'Disciplinas no currículo' },
+  { valor: '3', label: 'Níveis de formação' },
+];
+---
+<Base title="Quem Somos — Instituto Teológico Servo">
+  <section class="section" style="background:linear-gradient(160deg,var(--navy-800),var(--navy-950));color:var(--on-dark);text-align:center">
+    <div class="wrap">
+      <span class="eyebrow" style="color:var(--gold-400);justify-content:center;display:inline-flex">Nossa instituição</span>
+      <h1 style="color:#fff;font-size:var(--text-5xl);margin:var(--sp-4) 0 var(--sp-3)">Quem Somos</h1>
+      <p style="color:var(--on-dark-soft);max-width:56ch;margin:0 auto;font-size:var(--text-lg)">
+        Conheça a história, a missão e os valores do Instituto Teológico Servo.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="grid cols-4" style="text-align:center">
+        {numeros.map((n) => (
+          <div>
+            <p style="font-family:var(--font-serif);font-size:var(--text-4xl);font-weight:700;color:var(--navy-700);line-height:1">{n.valor}</p>
+            <p style="color:var(--muted);font-size:var(--text-sm);margin-top:.3rem">{n.label}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tint">
+    <div class="wrap" style="max-width:60ch">
+      <span class="eyebrow">Trajetória</span>
+      <h2 class="section__title">Nossa História</h2>
+      <div style="color:var(--ink-soft);font-size:var(--text-lg);line-height:1.8;display:flex;flex-direction:column;gap:var(--sp-4)">
+        <p>O Instituto Teológico Servo (ITS) foi fundado com o propósito de preparar homens e mulheres que desejam aprofundar seu conhecimento bíblico e servir ao Senhor Jesus Cristo em obediência à Sua comissão (Mc 16:15). Com perfil interdenominacional, o instituto promove uma formação teológica comprometida com a centralidade das Escrituras e com a missão da Igreja.</p>
+        <p>Vinculado à Assembleia de Deus Ministério Família, o ITS nasceu da visão de líderes comprometidos com a capacitação de servos aptos a atuar com responsabilidade, maturidade espiritual e fundamentação doutrinária no Reino de Deus.</p>
+        <p>Desde sua fundação, o instituto dedica-se a oferecer uma formação bíblica sólida, contextualizada e prática. Sua atuação ultrapassa o território brasileiro, mantendo também um núcleo ativo de ensino teológico em Moçambique, ampliando seu alcance missionário e educacional.</p>
+        <p>Ao longo de sua trajetória, o ITS já formou centenas de alunos, muitos dos quais exercem hoje funções como líderes, pastores, missionários e cooperadores em suas comunidades, contribuindo para o fortalecimento da Igreja e a expansão do Evangelho.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section__head section__head--center">
+        <span class="eyebrow">Identidade</span>
+        <h2 class="section__title">Missão, Visão e Valores</h2>
+      </div>
+      <div class="grid cols-3">
+        <article class="card card--center">
+          <div class="card__icon" style="margin-inline:auto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/></svg></div>
+          <h3>Missão</h3>
+          <p>Formar servos comprometidos com a Palavra de Deus, capacitando-os para o ministério cristão com excelência, fidelidade doutrinária e amor ao próximo.</p>
+        </article>
+        <article class="card card--center">
+          <div class="card__icon" style="margin-inline:auto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></div>
+          <h3>Visão</h3>
+          <p>Promover maturidade espiritual e fortalecer líderes e educadores para uma vida cristã saudável e comprometida.</p>
+        </article>
+        <article class="card card--center">
+          <div class="card__icon" style="margin-inline:auto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg></div>
+          <h3>Valores</h3>
+          <p>Fidelidade bíblica, compromisso missionário, acessibilidade, excelência no ensino, amor ao próximo e respeito à diversidade cultural.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tint">
+    <div class="wrap" style="max-width:60ch;text-align:center">
+      <span class="eyebrow" style="justify-content:center;display:inline-flex">Parcerias</span>
+      <h2 class="section__title">Assembleia de Deus Ministério Família</h2>
+      <p class="section__desc" style="margin-inline:auto">
+        O ITS tem parceria com a igreja Assembleia de Deus Ministério Família, bem como com a CNMCB (Convenção Nacional dos Ministros de Cristo do Brasil), comprometidas com a evangelização, o discipulado e a formação de líderes cristãos. Essa ligação institucional garante que o ensino do instituto esteja alinhado com os princípios pentecostais e a sã doutrina.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="split">
+        <figure class="split__media">
+          <img src="/img/mocambique1.png" alt="Entrega de certificado do ITS em Moçambique" loading="lazy" />
+          <span class="badge badge--gold split__badge"><span class="dot"></span>Núcleo Maputo</span>
+        </figure>
+        <div>
+          <span class="eyebrow">Missão internacional</span>
+          <h2 class="section__title">Impacto em Moçambique</h2>
+          <p class="section__desc" style="margin-bottom:var(--sp-4)">Em Moçambique, o ITS mantém um núcleo dedicado à formação de líderes e obreiros locais. O impacto do instituto naquele país tem sido significativo: comunidades fortalecidas, líderes mais preparados e igrejas edificadas sobre fundamentos bíblicos sólidos.</p>
+          <p class="section__desc">A atuação em Moçambique reflete a vocação missionária do ITS e seu compromisso com a expansão do Evangelho além das fronteiras nacionais.</p>
+          <a class="btn btn--gold" href="/inscricao" style="margin-top:var(--sp-6)">Inscreva-se</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tint">
+    <div class="wrap" style="max-width:60ch;text-align:center">
+      <div class="card__icon" style="margin-inline:auto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5c2.5-.8 5.5-.8 8 .5 2.5-1.3 5.5-1.3 8-.5v13c-2.5-.8-5.5-.8-8 .5-2.5-1.3-5.5-1.3-8-.5z"/><path d="M12 5.5v13"/></svg></div>
+      <h2 class="section__title">O Lema</h2>
+      <blockquote style="font-family:var(--font-serif);font-style:italic;font-size:var(--text-xl);color:var(--ink-soft);line-height:1.7;max-width:52ch;margin:var(--sp-4) auto 0">
+        “Procura apresentar-te a Deus aprovado como obreiro, que não tem do que se envergonhar, e que maneja bem a palavra da verdade.” — 2 Timóteo 2:15
+      </blockquote>
+    </div>
+  </section>
+</Base>

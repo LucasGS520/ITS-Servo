@@ -1,0 +1,67 @@
+---
+import Base from '../layouts/Base.astro';
+const nucleos = [
+  { nome: 'Sede Jd. Santa Mônica', cidade: 'Barueri — SP', ref: 'Assembleia de Deus Ministério Família', formato: 'Presencial', global: false },
+  { nome: 'Engenho Novo', cidade: 'Barueri — SP', ref: 'Assembleia de Deus Ministério Família', formato: 'Presencial', global: false },
+  { nome: 'Jd. Conceição', cidade: 'Osasco — SP', ref: 'Assembleia de Deus Ministério Família', formato: 'Presencial', global: false },
+  { nome: 'Ariston', cidade: 'Carapicuíba — SP', ref: 'Assembleia de Deus Ministério Família', formato: 'Presencial', global: false },
+  { nome: 'Maputo', cidade: 'Moçambique', ref: 'Núcleo missionário internacional', formato: 'Presencial', global: true },
+  { nome: 'Correspondência', cidade: 'Todo o Brasil e exterior', ref: 'Material enviado para qualquer endereço', formato: 'À distância', global: true },
+];
+---
+<Base title="Nossos Núcleos — Instituto Teológico Servo">
+  <section class="section" style="background:linear-gradient(160deg,var(--navy-800),var(--navy-950));color:var(--on-dark);text-align:center">
+    <div class="wrap">
+      <span class="eyebrow" style="color:var(--gold-400);justify-content:center;display:inline-flex">Onde estudar</span>
+      <h1 style="color:#fff;font-size:var(--text-5xl);margin:var(--sp-4) 0 var(--sp-3)">Nossos Núcleos</h1>
+      <p style="color:var(--on-dark-soft);max-width:56ch;margin:0 auto;font-size:var(--text-lg)">
+        O ITS está presente em diversas localidades, levando formação teológica de qualidade para onde há necessidade.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section__head section__head--center">
+        <p class="section__desc" style="margin-inline:auto">Todos os núcleos compartilham a mesma grade curricular, variando apenas a sequência de aprendizado das matérias. Isso garante a mesma qualidade e profundidade em qualquer localidade.</p>
+      </div>
+      <div class="grid cols-3">
+        {nucleos.map((n) => (
+          <article class="card">
+            <div class="card__icon" style="margin-bottom:var(--sp-4)">
+              {n.global ? (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8M12 3c2.5 2.4 3.9 5.6 4 9-.1 3.4-1.5 6.6-4 9-2.5-2.4-3.9-5.6-4-9 .1-3.4 1.5-6.6 4-9z"/></svg>
+              ) : (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.2-7-11a7 7 0 0 1 14 0c0 5.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+              )}
+            </div>
+            <h3 style="font-size:var(--text-lg)">{n.nome}</h3>
+            <p style="font-size:var(--text-sm);font-weight:500;color:var(--muted);margin-top:.25rem">{n.cidade}</p>
+            <p style="font-size:var(--text-xs);color:var(--muted-2);margin-top:.25rem">{n.ref}</p>
+            <div style="margin-top:var(--sp-3)"><span class="badge badge--soft">{n.formato}</span></div>
+          </article>
+        ))}
+      </div>
+      <div class="section__cta"><a class="btn btn--outline" href="/cursos">Ver Grade Curricular</a></div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0">
+    <div class="wrap">
+      <div class="card" style="max-width:46rem;margin-inline:auto;text-align:center;background:var(--surface-2)">
+        <p style="color:var(--muted)">Não sabe qual núcleo fica mais próximo de você?</p>
+        <p style="margin-top:.25rem;font-weight:600">Entre em contato via WhatsApp:
+          <a href="https://wa.me/5511972294009" target="_blank" rel="noopener noreferrer" style="color:var(--navy-600)">(11) 97229-4009</a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="background:linear-gradient(160deg,var(--navy-800),var(--navy-950));color:var(--on-dark);text-align:center">
+    <div class="wrap">
+      <h2 style="color:#fff;font-size:var(--text-4xl)">Estude no núcleo mais próximo de você</h2>
+      <p style="color:var(--on-dark-soft);max-width:48ch;margin:var(--sp-3) auto var(--sp-8)">Inscreva-se e inicie sua formação teológica no ITS.</p>
+      <a class="btn btn--gold btn--lg" href="/inscricao">Inscreva-se Agora</a>
+    </div>
+  </section>
+</Base>

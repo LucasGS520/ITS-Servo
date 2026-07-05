@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@its-servo/design-system": "workspace:*",
+    "@its-servo/supabase": "workspace:*",
     "astro": "^4.16.0"
   }
 }

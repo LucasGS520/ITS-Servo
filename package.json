@@ -8,8 +8,8 @@
     "dev:central": "pnpm --filter @its-servo/central dev",
     "build:site": "pnpm --filter @its-servo/site build",
     "build:central": "pnpm --filter @its-servo/central build",
-    "build": "pnpm -r build",
-    "lint": "pnpm -r lint"
+    "build": "pnpm -r --if-present build",
+    "lint": "pnpm -r --if-present lint"
   },
   "engines": {
     "node": ">=18"
