@@ -67,22 +67,23 @@
     for(var k=0;k<n;k++){
       var g = document.createElement('i');
       g.textContent = PHRASES[Math.floor(Math.random()*PHRASES.length)];
-      // Só nas MARGENS laterais — nunca sobre o texto/conteúdo central.
+      // Nas MARGENS laterais (fora do texto), porém MAIORES e mais numerosas
+      // para preencher os vazios. Frases longas sangram para fora da tela.
       if(k % 2 === 0){
-        g.style.right = (80 + Math.random()*15) + '%';   // margem esquerda (cresce p/ a esquerda)
+        g.style.right = (72 + Math.random()*22) + '%';   // margem esquerda (cresce p/ a esquerda)
       } else {
-        g.style.left = (68 + Math.random()*25) + '%';    // margem direita (cresce p/ a direita)
+        g.style.left = (68 + Math.random()*26) + '%';    // margem direita (cresce p/ a direita)
       }
-      g.style.top = (3 + Math.random()*88) + '%';
-      g.style.fontSize = (0.8 + Math.random()*0.55).toFixed(2) + 'rem';
-      g.style.animationDuration = (11 + Math.random()*11) + 's';
-      g.style.animationDelay = (-Math.random()*18) + 's';
+      g.style.top = (1 + Math.random()*93) + '%';
+      g.style.fontSize = (1.15 + Math.random()*1.15).toFixed(2) + 'rem';
+      g.style.animationDuration = (12 + Math.random()*12) + 's';
+      g.style.animationDelay = (-Math.random()*22) + 's';
       frag.appendChild(g);
     }
     container.appendChild(frag);
   }
-  makePhrases(document.getElementById('glyphs'), 10);
-  makePhrases(document.getElementById('glyphs2'), 6);
+  makePhrases(document.getElementById('glyphs'), 16);
+  makePhrases(document.getElementById('glyphs2'), 9);
 
   /* ---------- 4. Marquee (valores institucionais) ---------- */
   var values = ['Sola Scriptura','Fidelidade doutrinária','Ensino bíblico sólido','Compromisso missionário','Acessível a todos','Presencial e correspondência','36 disciplinas','Coram Deo'];
