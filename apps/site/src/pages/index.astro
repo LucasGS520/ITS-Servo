@@ -1,0 +1,372 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base>
+
+
+<!-- ================= HERO ================= -->
+<section class="hero" id="top">
+  <div class="hero__bg" aria-hidden="true">
+    <div class="hero__compass hero__layer" data-depth="5">
+      <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1">
+        <circle cx="50" cy="50" r="46"/>
+        <circle cx="50" cy="50" r="33"/>
+        <path d="M50 6 L57 43 L94 50 L57 57 L50 94 L43 57 L6 50 L43 43 Z" fill="currentColor" fill-opacity=".45" stroke="none"/>
+        <path d="M50 18 L54 46 L82 50 L54 54 L50 82 L46 54 L18 50 L46 46 Z"/>
+      </svg>
+    </div>
+    <div class="hero__glyphs" id="glyphs"></div>
+  </div>
+  <div class="wrap hero__inner">
+    <img class="brand__logo brand__logo--hero reveal" src="/img/logo-its.jpeg" alt="Instituto Teológico Servo" width="96" height="96" />
+    <span class="eyebrow reveal">Escola de Teologia e Ensinos Bíblicos</span>
+    <h1>
+      <span class="chars" data-text="Formação teológica "></span>
+      <span class="chars gild" data-text="sólida"></span><span class="chars" data-text=", "></span><br/>
+      <span class="chars gild" data-text="acessível "></span><span class="chars" data-text="e "></span><span class="chars gild" data-text="comprometida"></span><span class="chars" data-text=" com a missão."></span>
+    </h1>
+    <p class="hero__lead">
+      O Instituto Teológico Servo capacita líderes, obreiros e membros para servir ao
+      Reino de Deus com mais profundidade e fidelidade bíblica.
+    </p>
+    <blockquote class="hero__scripture line-reveal">
+      “Procura apresentar-te a Deus aprovado como obreiro, que não tem do que se
+      envergonhar, e que maneja bem a palavra da verdade.” — 2&nbsp;Timóteo&nbsp;2.15
+    </blockquote>
+    <div class="hero__cta">
+      <a href="/inscricao" class="btn btn--gold btn--lg btn--glow">
+        Quero me inscrever
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+      <a href="/quem-somos" class="btn btn--outline btn--lg">Conheça o ITS</a>
+    </div>
+    <div class="hero__stats">
+      <div><div class="stat__num"><span data-count="5">0</span></div><div class="stat__label">Núcleos ativos</div></div>
+      <div><div class="stat__num"><span data-count="3">0</span></div><div class="stat__label">Cidades atendidas</div></div>
+      <div><div class="stat__num"><span data-count="36">0</span></div><div class="stat__label">Disciplinas no currículo</div></div>
+      <div><div class="stat__num"><span data-count="3">0</span></div><div class="stat__label">Níveis de formação</div></div>
+    </div>
+  </div>
+  <div class="hero__scroll" aria-hidden="true">
+    <span class="mouse"></span>
+    <span>Role</span>
+  </div>
+</section>
+
+<!-- ================= MARQUEE (valores / disciplinas) ================= -->
+<div class="section" style="padding:var(--sp-8) 0;">
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee__track" id="marquee"></div>
+  </div>
+</div>
+
+<!-- ================= O QUE É ENSINADO (disciplinas) ================= -->
+<section class="section section--tint" id="cursos">
+  <div class="wrap">
+    <div class="section__head section__head--center reveal">
+      <span class="eyebrow">Grade curricular</span>
+      <h2 class="section__title">O que é ensinado?</h2>
+      <p class="section__desc">36 disciplinas organizadas em 3 níveis progressivos — Fundamental, Básico e Médio.</p>
+    </div>
+
+    <div class="grid cols-3">
+      <article class="card card--course reveal" data-anim="zoom">
+        <div class="card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5c2.5-.8 5.5-.8 8 .5 2.5-1.3 5.5-1.3 8-.5v13c-2.5-.8-5.5-.8-8 .5-2.5-1.3-5.5-1.3-8-.5z"/><path d="M12 5.5v13"/></svg></div>
+        <span class="card__kicker">Fundamental</span>
+        <h3>Bibliologia</h3>
+        <p>Estudo sobre a Bíblia, sua inspiração, formação e autoridade.</p>
+      </article>
+      <article class="card card--course reveal" data-anim="zoom" data-delay="1">
+        <div class="card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-5-5 18-4-7-9-6z"/></svg></div>
+        <span class="card__kicker">Fundamental</span>
+        <h3>Homilética</h3>
+        <p>Arte e técnica da pregação bíblica eficaz.</p>
+      </article>
+      <article class="card card--course reveal" data-anim="zoom" data-delay="2">
+        <div class="card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M5 8h14"/><path d="M9 21h6"/></svg></div>
+        <span class="card__kicker">Básico</span>
+        <h3>Cristologia</h3>
+        <p>Estudo sobre a pessoa e a obra de Jesus Cristo.</p>
+      </article>
+      <article class="card card--course reveal" data-anim="zoom">
+        <div class="card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14z"/><path d="M21 21l-5-5"/></svg></div>
+        <span class="card__kicker">Médio</span>
+        <h3>Hermenêutica</h3>
+        <p>Princípios e métodos para interpretação correta das Escrituras.</p>
+      </article>
+      <article class="card card--course reveal" data-anim="zoom" data-delay="1">
+        <div class="card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/></svg></div>
+        <span class="card__kicker">Médio</span>
+        <h3>Escatologia</h3>
+        <p>Estudo das profecias e dos eventos finais segundo as Escrituras.</p>
+      </article>
+      <article class="card card--course reveal" data-anim="zoom" data-delay="2">
+        <div class="card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z"/><path d="M3.6 9h16.8M3.6 15h16.8M12 3c2.5 2.4 3.9 5.6 4 9-.1 3.4-1.5 6.6-4 9-2.5-2.4-3.9-5.6-4-9 .1-3.4 1.5-6.6 4-9z"/></svg></div>
+        <span class="card__kicker">Fundamental</span>
+        <h3>Missiologia</h3>
+        <p>Estratégias e princípios para a expansão do Evangelho.</p>
+      </article>
+    </div>
+
+    <div class="section__cta reveal">
+      <a class="btn btn--outline" href="/cursos">Ver grade curricular completa
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ================= COMO FUNCIONA (modalidades) ================= -->
+<section class="section" id="metodologia">
+  <div class="wrap">
+    <div class="section__head section__head--center reveal">
+      <span class="eyebrow">Metodologia</span>
+      <h2 class="section__title">Como funciona?</h2>
+      <p class="section__desc">Escolha a modalidade que melhor se encaixa na sua rotina.</p>
+    </div>
+
+    <div class="grid cols-2">
+      <article class="card reveal" data-anim="left">
+        <div class="card__icon card__icon--navy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <span class="card__kicker">Presencial</span>
+        <h3>Aulas nos núcleos</h3>
+        <p>Aulas semanais de 1h30 em um dos nossos núcleos. Uma disciplina por mês, com material didático incluso.</p>
+        <ul class="check-list">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Aulas semanais</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Interação com professores e colegas</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 4 núcleos presenciais na Grande São Paulo</li>
+        </ul>
+      </article>
+      <article class="card reveal" data-anim="right">
+        <div class="card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="m22 6-10 7L2 6"/></svg></div>
+        <span class="card__kicker">Por correspondência</span>
+        <h3>Estude no seu ritmo</h3>
+        <p>Receba o material em casa e estude no seu ritmo. Disponível para todo o Brasil e exterior.</p>
+        <ul class="check-list">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Estude onde e quando quiser</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Material enviado para qualquer localidade</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Ideal para regiões sem núcleo presencial</li>
+        </ul>
+      </article>
+    </div>
+
+    <div class="section__cta reveal">
+      <a class="btn btn--outline" href="/metodologia">Ver metodologia completa
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ONDE ESTUDAR (núcleos) ================= -->
+<section class="section section--tint" id="nucleos">
+  <div class="wrap">
+    <div class="section__head section__head--center reveal">
+      <span class="eyebrow">Presença</span>
+      <h2 class="section__title">Onde estudar?</h2>
+      <p class="section__desc">5 núcleos ativos — presencial na Grande São Paulo, ou por correspondência em qualquer lugar.</p>
+    </div>
+
+    <div class="grid cols-3">
+      <div class="nucleo reveal">
+        <span class="nucleo__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.2-7-11a7 7 0 0 1 14 0c0 5.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
+        <div><p class="nucleo__name">Sede Jd. Santa Mônica</p><p class="nucleo__city">Barueri/SP</p></div>
+      </div>
+      <div class="nucleo reveal" data-delay="1">
+        <span class="nucleo__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.2-7-11a7 7 0 0 1 14 0c0 5.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
+        <div><p class="nucleo__name">Engenho Novo</p><p class="nucleo__city">Barueri/SP</p></div>
+      </div>
+      <div class="nucleo reveal" data-delay="2">
+        <span class="nucleo__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.2-7-11a7 7 0 0 1 14 0c0 5.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
+        <div><p class="nucleo__name">Jd. Conceição</p><p class="nucleo__city">Osasco/SP</p></div>
+      </div>
+      <div class="nucleo reveal">
+        <span class="nucleo__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.2-7-11a7 7 0 0 1 14 0c0 5.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
+        <div><p class="nucleo__name">Ariston</p><p class="nucleo__city">Carapicuíba/SP</p></div>
+      </div>
+      <div class="nucleo reveal" data-delay="1">
+        <span class="nucleo__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="m22 6-10 7L2 6"/></svg></span>
+        <div><p class="nucleo__name">Correspondência</p><p class="nucleo__city">Todo o Brasil e exterior</p></div>
+      </div>
+    </div>
+
+    <div class="section__cta reveal" style="gap:var(--sp-4);flex-wrap:wrap">
+      <a class="btn btn--gold" href="/nucleos#encontrar">Encontre o núcleo mais próximo</a>
+      <a class="btn btn--outline" href="/nucleos">Ver detalhes dos núcleos
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ================= QUANTO CUSTA (preços) ================= -->
+<section class="section" id="matricula">
+  <div class="wrap">
+    <div class="section__head section__head--center reveal">
+      <span class="eyebrow">Investimento</span>
+      <h2 class="section__title">Quanto custa?</h2>
+      <p class="section__desc">Formação teológica séria com excelente custo-benefício.</p>
+    </div>
+
+    <div class="card card--dark price reveal" data-anim="zoom">
+      <div class="price__head">
+        <div class="card__icon card__icon--navy" style="margin:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 2.7 3 6 3s6-2 6-3v-5"/></svg></div>
+        <div>
+          <p style="font-family:var(--font-serif);font-weight:700;color:#fff;font-size:var(--text-xl)">Taxa de inscrição</p>
+          <p style="font-size:var(--text-sm);color:var(--on-dark-soft)">Pagamento único na entrada</p>
+        </div>
+      </div>
+      <div class="price__rows">
+        <div class="price__row"><span>Matrícula</span><strong>R$ 40,00</strong></div>
+        <div class="price__row"><span>Material didático (apostilas — 3 matérias)</span><strong>R$ 150,00</strong></div>
+        <div class="price__total"><span class="label">Total</span><span class="value">R$ 190,00</span></div>
+      </div>
+      <a class="btn btn--gold btn--block btn--glow" href="/inscricao" style="margin-top:var(--sp-8)">Inscreva-se agora</a>
+      <p class="price__note">Pagamento via PIX após o envio do formulário</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= POR QUE O ITS (diferenciais) ================= -->
+<section class="section section--tint" id="quem-somos">
+  <div class="wrap">
+    <div class="section__head section__head--center reveal">
+      <span class="eyebrow">Nossos diferenciais</span>
+      <h2 class="section__title">Por que escolher o ITS?</h2>
+    </div>
+
+    <div class="grid cols-3">
+      <article class="card card--center reveal" data-anim="zoom">
+        <div class="card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5c2.5-.8 5.5-.8 8 .5 2.5-1.3 5.5-1.3 8-.5v13c-2.5-.8-5.5-.8-8 .5-2.5-1.3-5.5-1.3-8-.5z"/><path d="M12 5.5v13"/></svg></div>
+        <h3>Ensino Bíblico Sólido</h3>
+        <p>Fundamentado nas Escrituras Sagradas, com rigor teológico e fidelidade doutrinária.</p>
+      </article>
+      <article class="card card--center reveal" data-anim="zoom" data-delay="1">
+        <div class="card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <h3>Acessível a Todos</h3>
+        <p>Formação teológica aberta a líderes, obreiros e membros com excelente custo-benefício.</p>
+      </article>
+      <article class="card card--center reveal" data-anim="zoom" data-delay="2">
+        <div class="card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg></div>
+        <h3>Compromisso Missionário</h3>
+        <p>Visão global do IDE de Jesus, com atuação local e internacional transformando vidas e ministérios.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ================= DEPOIMENTOS ================= -->
+<section class="section">
+  <div class="wrap">
+    <div class="section__head section__head--center reveal">
+      <span class="eyebrow">Depoimentos</span>
+      <h2 class="section__title">O que dizem nossos alunos</h2>
+    </div>
+
+    <div class="grid cols-3">
+      <article class="card reveal" data-anim="zoom">
+        <span class="quote__mark">&ldquo;</span>
+        <p class="quote__text">O instituto tem sido fundamental para meu crescimento espiritual, oferecendo ensinamentos de grande relevância para minha jornada de fé. Sou grata a Deus por ter regado minha fé com sabedoria e inspiração, permitindo transformar vidas em minha comunidade.</p>
+        <div class="quote__author">
+          <p class="quote__name">Pra. Débora Vilela</p>
+          <p class="quote__role">Núcleo Engenho Novo — Barueri</p>
+        </div>
+      </article>
+      <article class="card reveal" data-anim="zoom" data-delay="1">
+        <span class="quote__mark">&ldquo;</span>
+        <p class="quote__text">Encontrei no ITS a formação bíblica que tanto buscava: acessível, séria e comprometida com a palavra. Me ajudou muito na reflexão e no estudo prático.</p>
+        <div class="quote__author">
+          <p class="quote__name">Pb. Jhonatas da Silva Mota</p>
+          <p class="quote__role">Núcleo Jd. Conceição — Osasco</p>
+        </div>
+      </article>
+      <article class="card reveal" data-anim="zoom" data-delay="2">
+        <span class="quote__mark">&ldquo;</span>
+        <p class="quote__text">Durante vários anos, íamos morrendo por falta de conhecimento... Mas conhecemos o ITS que nos ajudou a termos um conhecimento prático e teórico 100% Bíblico. Recomendamos a todos os irmãos.</p>
+        <div class="quote__author">
+          <p class="quote__name">Pr. Norberto Bispo Xerinda</p>
+          <p class="quote__role">Líder eclesiástico — Moçambique</p>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PRESENÇA EM MOÇAMBIQUE ================= -->
+<section class="section section--tint">
+  <div class="wrap">
+    <div class="split">
+      <div class="reveal" data-anim="left">
+        <span class="eyebrow">Missão internacional</span>
+        <h2 class="section__title">Presença em Moçambique</h2>
+        <p class="section__desc" style="margin-bottom:var(--sp-6)">
+          O ITS expandiu sua missão para além das fronteiras brasileiras. Em Moçambique,
+          o instituto mantém uma presença missionária, levando formação teológica de qualidade
+          a líderes e obreiros locais — fortalecendo a igreja e impactando comunidades inteiras.
+        </p>
+        <a class="btn btn--primary" href="/quem-somos">Conheça nossa história</a>
+      </div>
+      <figure class="split__media reveal" data-anim="right">
+        <img src="/img/mocambique2.png" alt="Formatura de alunos do ITS em Moçambique" loading="lazy" />
+        <span class="badge badge--gold split__badge"><span class="dot"></span>Missão internacional</span>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FAQ (acordeão) ================= -->
+<section class="section">
+  <div class="wrap">
+    <div class="section__head section__head--center reveal">
+      <span class="eyebrow">Perguntas frequentes</span>
+      <h2 class="section__title">Antes de se inscrever</h2>
+    </div>
+    <div class="accordion reveal">
+      <div class="acc__item is-open">
+        <button class="acc__trigger">Preciso ter formação prévia em teologia?
+          <span class="acc__icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
+        </button>
+        <div class="acc__panel"><div><p>Não. O ITS acredita que a formação teológica deve ser acessível a todos, independentemente da formação acadêmica prévia. O ensino começa pelo nível Fundamental e avança de forma progressiva.</p></div></div>
+      </div>
+      <div class="acc__item">
+        <button class="acc__trigger">Consigo estudar mesmo sem um núcleo por perto?
+          <span class="acc__icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
+        </button>
+        <div class="acc__panel"><div><p>Sim. Na modalidade por correspondência o material é enviado para qualquer endereço, em todo o Brasil e no exterior, permitindo estudar no seu próprio ritmo.</p></div></div>
+      </div>
+      <div class="acc__item">
+        <button class="acc__trigger">Como funciona o pagamento?
+          <span class="acc__icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
+        </button>
+        <div class="acc__panel"><div><p>A taxa de inscrição é única, no valor total de R$ 190,00 (matrícula R$ 40,00 + material didático R$ 150,00). O pagamento é feito via PIX após o envio do formulário de inscrição.</p></div></div>
+      </div>
+      <div class="acc__item">
+        <button class="acc__trigger">Quanto tempo dura cada disciplina?
+          <span class="acc__icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
+        </button>
+        <div class="acc__panel"><div><p>Cada disciplina dura aproximadamente 1 mês, com aulas semanais de 1h30 — cerca de 6 horas/aula por disciplina. A metodologia cíclica permite ingressar no início de qualquer matéria.</p></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CTA FINAL ================= -->
+<section class="section" id="consulta" style="border-top:0">
+  <div class="wrap">
+    <div class="card card--dark reveal" style="text-align:center;padding:var(--sp-20) var(--sp-8);position:relative;overflow:hidden">
+      <div class="hero__glyphs" style="position:absolute;inset:0;opacity:.5" id="glyphs2"></div>
+      <div style="position:relative;z-index:2">
+        <span class="eyebrow" style="color:var(--gold-400);justify-content:center;display:inline-flex">Comece hoje</span>
+        <h2 style="color:#fff;font-size:var(--text-5xl);margin:var(--sp-4) auto var(--sp-4);max-width:20ch">Pronto para aprofundar seu conhecimento bíblico?</h2>
+        <p style="color:var(--on-dark-soft);max-width:54ch;margin:0 auto var(--sp-8)">Inscreva-se no ITS e inicie sua formação teológica. Presencial na Grande São Paulo, ou por correspondência para qualquer lugar.</p>
+        <div style="display:flex;gap:var(--sp-4);justify-content:center;flex-wrap:wrap">
+          <a href="/inscricao" class="btn btn--gold btn--lg">Inscreva-se Agora</a>
+          <a href="/consulta" class="btn btn--outline btn--lg btn--on-dark">Consultar minha inscrição</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+</Base>

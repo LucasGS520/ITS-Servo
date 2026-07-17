@@ -1,0 +1,46 @@
+---
+// Navbar compartilhada do Site Institucional (multi-página).
+// "Consultar Inscrição" aponta para a Central (autosserviço por token).
+const path = Astro.url.pathname;
+const items = [
+  { href: '/', label: 'Início' },
+  { href: '/quem-somos', label: 'Quem Somos' },
+  { href: '/cursos', label: 'Cursos' },
+  { href: '/nucleos', label: 'Núcleos' },
+  { href: '/metodologia', label: 'Metodologia' },
+];
+const centralUrl = import.meta.env.PUBLIC_CENTRAL_URL ?? '';
+const consultaUrl = centralUrl ? `${centralUrl}/consulta` : '/consulta';
+const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
+---
+<header class="nav">
+  <div class="wrap nav__inner">
+    <a class="brand" href="/" aria-label="Instituto Teológico Servo">
+      <img class="brand__logo" src="/img/logo-its.jpeg" alt="Logo ITS" width="40" height="40" />
+      <span>
+        <span class="brand__name">ITS <span>Servo</span></span><br/>
+        <span class="brand__sub">Instituto Teológico Servo</span>
+      </span>
+    </a>
+    <nav class="nav__links">
+      {items.map((i) => (
+        <a href={i.href} aria-current={isActive(i.href) ? 'page' : undefined}>{i.label}</a>
+      ))}
+    </nav>
+    <div class="nav__actions">
+      <a class="btn btn--outline btn--sm btn--consulta" href={consultaUrl}>Consultar Inscrição</a>
+      <a class="btn btn--gold btn--sm" href="/inscricao">Inscreva-se</a>
+      <button class="nav__toggle" id="nav-toggle" aria-label="Abrir menu" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+    </div>
+  </div>
+  <span class="nav__progress" id="nav-progress" aria-hidden="true"></span>
+  <div class="mobile-menu" id="mobile-menu">
+    <div class="wrap">
+      {items.map((i) => <a href={i.href}>{i.label}</a>)}
+      <a href={consultaUrl}>Consultar Inscrição</a>
+      <a class="btn btn--gold" href="/inscricao">Inscreva-se</a>
+    </div>
+  </div>
+</header>

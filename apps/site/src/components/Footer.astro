@@ -1,0 +1,50 @@
+---
+// Footer compartilhado do Site Institucional.
+const centralUrl = import.meta.env.PUBLIC_CENTRAL_URL ?? '';
+const consultaUrl = centralUrl ? `${centralUrl}/consulta` : '/consulta';
+const ano = new Date().getFullYear();
+---
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer__grid">
+      <div>
+        <div class="brand" style="margin-bottom:var(--sp-4)">
+          <img class="brand__logo" src="/img/logo-its.jpeg" alt="Logo ITS" width="40" height="40" />
+          <span><span class="brand__name" style="color:#fff">Instituto <span style="color:var(--gold-400)">Teológico Servo</span></span></span>
+        </div>
+        <p style="font-size:var(--text-sm);max-width:34ch">Formando servos fiéis para o Reino de Deus, com ensino bíblico sólido, acessível e comprometido com a edificação da Igreja.</p>
+      </div>
+      <div>
+        <h4>Parcerias</h4>
+        <ul>
+          <li class="footer__partner"><span></span>Assembleia de Deus Ministério Família</li>
+          <li class="footer__partner"><span></span>CNMCB — Convenção Nacional dos Ministros de Cristo do Brasil</li>
+        </ul>
+      </div>
+      <div>
+        <h4>Links rápidos</h4>
+        <ul>
+          <li><a href="/">Início</a></li>
+          <li><a href="/quem-somos">Quem Somos</a></li>
+          <li><a href="/cursos">Cursos</a></li>
+          <li><a href="/nucleos">Núcleos</a></li>
+          <li><a href="/metodologia">Metodologia</a></li>
+          <li><a href="/inscricao">Inscrição</a></li>
+          <li><a href={consultaUrl}>Consultar Inscrição</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Contato</h4>
+        <ul>
+          <li>WhatsApp: (11) 97229-4009</li>
+          <li>institutoteologicoits@gmail.com</li>
+          <li>São Paulo — SP, Brasil</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <span>© {ano} Instituto Teológico Servo. Todos os direitos reservados.</span>
+      <span style="font-style:italic;font-family:var(--font-serif)">Soli Deo Gloria</span>
+    </div>
+  </div>
+</footer>

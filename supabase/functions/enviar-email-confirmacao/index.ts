@@ -1,82 +1,68 @@
 /**
- * Função Edge Supabase — enviar-email-confirmacao
+ * Edge function — enviar-email-confirmacao (disparada pela Central, admin)
  *
- * Descrição:
- *   Envia (prepara) o e-mail oficial de confirmação de matrícula após o
- *   pagamento/comprovação do comprovante. Inclui instruções diferentes para
- *   modalidades presenciais e por correspondência.
+ * Notifica o candidato que a matrícula foi confirmada. Só um admin pode chamar:
+ * valida o papel via JWT do chamador (rpc is_admin).
  *
- * Entrada (JSON, método POST):
- *   {
- *     "numero_inscricao": string,
- *     "nome": string,
- *     "email": string,
- *     "modalidade": "presencial" | "correspondencia",
- *     "nucleo"?: string
- *   }
- *
- * Resposta:
- *   - 200 JSON: { success: true, message: "Email queued (integration pending)" }
- *   - 500 JSON: { error: string }
- *
- * Responsabilidades:
- *   - Montar instruções específicas conforme a modalidade e núcleo escolhido.
- *   - Registrar (log) o conteúdo do e-mail que será enviado.
- *   - Garantir CORS e retornar status adequado ao frontend.
- *
- * Observações:
- *   - Mapeamento de núcleos presente em `nucleoInfo`.
- *   - Integração com provedor de e-mail e registros persistentes devem ser
- *     implementados em produção; hoje apenas fazemos logging.
+ * POST { numero_inscricao, nome, email, modalidade, nucleo? }
+ * → 200 { success: true }
  */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.97.0";
+import { json } from "../_shared/cors.ts";
+import { sendEmail, baseTemplate } from "../_shared/email.ts";
 
 const nucleoInfo: Record<string, string> = {
-  sede_jd_santa_monica: "Sede Jd. Santa Mônica - Barueri/SP",
-  engenho_novo: "Engenho Novo - Barueri/SP",
-  jd_conceicao: "Jd. Conceição - Osasco/SP",
-  ariston: "Ariston - Carapicuíba/SP",
-  maputo: "Maputo - Moçambique",
+  sede_jd_santa_monica: "Sede Jd. Santa Mônica — Barueri/SP",
+  engenho_novo: "Engenho Novo — Barueri/SP",
+  jd_conceicao: "Jd. Conceição — Osasco/SP",
+  ariston: "Ariston — Carapicuíba/SP",
+  maputo: "Maputo — Moçambique",
 };
 
+async function isAdmin(authHeader: string | null): Promise<boolean> {
+  if (!authHeader) return false;
+  const url = Deno.env.get("SUPABASE_URL")!;
+  const anon = Deno.env.get("SUPABASE_ANON_KEY")!;
+  const client = createClient(url, anon, {
+    global: { headers: { Authorization: authHeader } },
+    auth: { persistSession: false },
+  });
+  const { data, error } = await client.rpc("is_admin");
+  return !error && data === true;
+}
+
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const origin = req.headers.get("origin");
+  if (req.method === "OPTIONS") return json({}, 204, origin);
+  if (req.method !== "POST") return json({ error: "Método não permitido" }, 405, origin);
 
   try {
-    const { numero_inscricao, nome, email, modalidade, nucleo } = await req.json();
-    // TODO: Integrar com provedor de e-mail (Resend/SendGrid) e registrar
-    //       envios em sistema de observabilidade. Atualmente o e-mail é apenas
-    //       escrito nos logs para controle.
-
-    let instrucoes = "";
-    if (modalidade === "presencial" && nucleo) {
-      instrucoes = `Suas aulas serão no núcleo: ${nucleoInfo[nucleo] || nucleo}. Entre em contato para saber os horários das aulas.`;
-    } else {
-      instrucoes = "Você receberá o material por correspondência. Aguarde as instruções de envio/retirada.";
+    if (!(await isAdmin(req.headers.get("Authorization")))) {
+      return json({ error: "Acesso não autorizado." }, 403, origin);
     }
 
-    console.log("📧 E-mail de confirmação oficial:");
-    console.log(`Para: ${email}`);
-    console.log(`Assunto: Matrícula Confirmada! - ${numero_inscricao}`);
-    console.log(`Corpo: Parabéns ${nome}! Sua matrícula ${numero_inscricao} foi confirmada!`);
-    console.log(`Instruções: ${instrucoes}`);
-    console.log("Para dúvidas, entre em contato pelo telefone/WhatsApp do ITS.");
+    const { numero_inscricao, nome, email, modalidade, nucleo } = await req.json();
+    if (!numero_inscricao || !email) return json({ error: "Dados incompletos." }, 400, origin);
 
-    return new Response(
-      JSON.stringify({ success: true, message: "Email queued (integration pending)" }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    const detalhe =
+      modalidade === "presencial" && nucleo
+        ? `Suas aulas serão no núcleo: <strong>${nucleoInfo[nucleo] ?? nucleo}</strong>. Em breve você receberá os horários.`
+        : "Você receberá o material por correspondência. Aguarde as instruções de envio.";
+
+    await sendEmail(
+      email,
+      `Matrícula confirmada — ${numero_inscricao}`,
+      baseTemplate(
+        `Parabéns, ${String(nome ?? "").split(" ")[0] || "aluno(a)"}!`,
+        `<p>Sua matrícula (<strong>${numero_inscricao}</strong>) foi <strong>confirmada</strong>. Bem-vindo(a) ao Instituto Teológico Servo!</p>
+         <p>${detalhe}</p>`,
+      ),
     );
-  } catch (error) {
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+
+    return json({ success: true }, 200, origin);
+  } catch (e) {
+    console.error("enviar-email-confirmacao:", e);
+    return json({ error: (e as Error).message ?? "Erro interno" }, 500, origin);
   }
 });

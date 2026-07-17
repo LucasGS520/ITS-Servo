@@ -1,0 +1,21 @@
+{
+  "name": "@its-servo/site",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@its-servo/design-system": "workspace:*",
+    "@its-servo/supabase": "workspace:*",
+    "astro": "^4.16.0",
+    "leaflet": "^1.9.4"
+  },
+  "devDependencies": {
+    "@types/leaflet": "^1.9.12"
+  }
+}

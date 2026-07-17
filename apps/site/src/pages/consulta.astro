@@ -1,0 +1,25 @@
+---
+import Base from '../layouts/Base.astro';
+// A consulta/autosserviço vive na Central (acesso por token). Esta página do
+// Site apenas encaminha para lá (ou orienta o uso do link do e-mail).
+const centralUrl = import.meta.env.PUBLIC_CENTRAL_URL ?? '';
+const consultaUrl = centralUrl ? `${centralUrl}/consulta` : '';
+---
+<Base title="Consultar Inscrição — Instituto Teológico Servo">
+  <section class="section" style="min-height:60vh;display:flex;align-items:center">
+    <div class="wrap" style="max-width:44rem;text-align:center">
+      <div class="card__icon" style="margin-inline:auto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14z"/><path d="M21 21l-5-5"/></svg></div>
+      <h1 class="section__title">Consultar Inscrição</h1>
+      <p class="section__desc" style="margin-inline:auto">
+        O acompanhamento da sua inscrição (pagamento, comprovante e status) é feito
+        de forma segura, com o <strong>link exclusivo</strong> enviado ao seu e-mail
+        no momento da inscrição.
+      </p>
+      <div style="margin-top:var(--sp-8);display:flex;gap:var(--sp-4);justify-content:center;flex-wrap:wrap">
+        {consultaUrl && <a class="btn btn--gold btn--lg" href={consultaUrl}>Acessar minha inscrição</a>}
+        <a class="btn btn--outline btn--lg" href="/inscricao">Fazer nova inscrição</a>
+      </div>
+      <p class="field__hint" style="margin-top:var(--sp-6)">Não encontrou o e-mail? Fale conosco no WhatsApp (11) 97229-4009.</p>
+    </div>
+  </section>
+</Base>
