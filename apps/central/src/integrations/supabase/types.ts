@@ -105,6 +105,144 @@ export type Database = {
         }
         Relationships: []
       }
+      /**
+       * Alunos do financeiro — vinculados a uma inscrição confirmada ou
+       * cadastrados manualmente (legados da planilha)
+       */
+      alunos: {
+        Row: {
+          id: string /** Identificador único do aluno */
+          nome: string /** Nome do aluno */
+          unidade: string /** Slug do núcleo ou 'correspondencia' */
+          inscricao_id: string | null /** Inscrição de origem (null p/ legados) */
+          ativo: boolean /** Aluno ativo para lançamentos */
+          observacoes: string | null /** Observações livres */
+          created_at: string /** Data de criação do registro */
+          updated_at: string /** Data da última atualização */
+        }
+        Insert: {
+          id?: string
+          nome: string
+          unidade: string
+          inscricao_id?: string | null
+          ativo?: boolean
+          observacoes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          nome?: string
+          unidade?: string
+          inscricao_id?: string | null
+          ativo?: boolean
+          observacoes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alunos_inscricao_id_fkey"
+            columns: ["inscricao_id"]
+            isOneToOne: true
+            referencedRelation: "inscricoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      /** Categorias de entrada/saída do financeiro (gerenciáveis no painel) */
+      categorias_financeiras: {
+        Row: {
+          id: string /** Identificador único da categoria */
+          nome: string /** Nome da categoria */
+          tipo: string /** 'entrada' | 'saida' */
+          ativo: boolean /** Categoria disponível para novos lançamentos */
+          created_at: string /** Data de criação do registro */
+          updated_at: string /** Data da última atualização */
+        }
+        Insert: {
+          id?: string
+          nome: string
+          tipo: string
+          ativo?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          nome?: string
+          tipo?: string
+          ativo?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      /**
+       * Lançamentos financeiros (livro-caixa).
+       * data = dia real; competencia = mês de referência (sempre dia 1);
+       * unidade null = movimento geral/institucional
+       */
+      lancamentos_financeiros: {
+        Row: {
+          id: string /** Identificador único do lançamento */
+          tipo: string /** 'entrada' | 'saida' */
+          valor: number /** Valor sempre positivo; sentido vem de tipo */
+          data: string /** Dia real do movimento (DATE) */
+          competencia: string /** Mês de referência, dia 1 (DATE) */
+          unidade: string | null /** Slug da unidade ou null (geral) */
+          categoria_id: string /** Categoria do lançamento */
+          aluno_id: string | null /** Aluno (mensalidade/matrícula) ou null */
+          descricao: string | null /** Descrição livre */
+          created_by: string | null /** Usuário que lançou */
+          created_at: string /** Data de criação do registro */
+          updated_at: string /** Data da última atualização */
+        }
+        Insert: {
+          id?: string
+          tipo: string
+          valor: number
+          data?: string
+          competencia: string
+          unidade?: string | null
+          categoria_id: string
+          aluno_id?: string | null
+          descricao?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          tipo?: string
+          valor?: number
+          data?: string
+          competencia?: string
+          unidade?: string | null
+          categoria_id?: string
+          aluno_id?: string | null
+          descricao?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lancamentos_financeiros_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "categorias_financeiras"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lancamentos_financeiros_aluno_id_fkey"
+            columns: ["aluno_id"]
+            isOneToOne: false
+            referencedRelation: "alunos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

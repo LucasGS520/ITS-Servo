@@ -8,8 +8,10 @@ fundação compartilhada. Ver a definição completa em
   representa o instituto e converte visitantes. Só o formulário de inscrição toca
   o backend.
 - **Produto B — Central Operacional** (`apps/central`): interno (React + Vite +
-  Supabase), opera inscrições, financeiro, documentos e indicadores; expõe uma
-  superfície pública de autosserviço travada por token.
+  Supabase), opera inscrições, o **financeiro completo** (livro-caixa por
+  unidade, relatórios mensais imprimíveis, visão anual — substitui a planilha),
+  documentos e indicadores; expõe uma superfície pública de autosserviço travada
+  por token.
 
 ## Estrutura
 
@@ -48,3 +50,13 @@ O diretório `supabase/` (migrations + edge functions) é a verdade do dado. O
 acesso passa pelo pacote `@its-servo/supabase` (contrato tipado) — nenhum app
 fala com a tabela `inscricoes` diretamente. Regras e fluxos em
 [`docs/arquitetura.md`](docs/arquitetura.md).
+
+```bash
+supabase db start     # banco local (Docker)
+supabase db reset     # aplica migrations + seed (asserts conferem a planilha)
+supabase db push      # aplica migrations no projeto remoto
+```
+
+Secrets exigidos pelas edge functions no deploy (falham alto se ausentes):
+`ALLOWED_ORIGINS`, `SELF_SERVICE_URL`, `EMAIL_FROM`, `ADMIN_EMAIL`,
+`RESEND_API_KEY` — via `supabase secrets set`.

@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { maskCPF } from "@/lib/masks";
 import { useInscricoes, INSCRICOES_KEY } from "@/painel/hooks/useInscricoes";
+import { ALUNOS_KEY } from "@/painel/hooks/useFinanceiro";
 
 const statusLabels: Record<string, string> = {
   aguardando_pagamento: "Aguardando Pagamento",
@@ -88,6 +89,10 @@ const Inscricoes = () => {
       }
 
       await queryClient.invalidateQueries({ queryKey: INSCRICOES_KEY });
+      // Confirmação dispara o trigger que cria o aluno no financeiro
+      if (newStatus === "confirmada") {
+        await queryClient.invalidateQueries({ queryKey: ALUNOS_KEY });
+      }
       if (emailFalhou) {
         toast({
           title: "Status atualizado, mas o e-mail de confirmação NÃO foi enviado",

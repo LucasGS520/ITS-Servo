@@ -196,21 +196,29 @@ Eu produziria um documento de arquitetura funcional contendo:
 
 ---
 
-## Um último ponto
+## Estado atual (2026-07-27) — separação CONSOLIDADA
 
-Pela inspeção do repositório, **eu ainda não consigo afirmar que essa separação já foi consolidada na estrutura do código**. A documentação e os artefatos que consegui acessar continuam descrevendo um único produto. Isso significa que, antes de definir um roadmap detalhado, vale revisar a organização das pastas, rotas, layouts e módulos para verificar se a arquitetura implementada realmente acompanha a separação conceitual.
+A separação conceitual acima **já está implementada** no monorepo pnpm:
 
-Esse diagnóstico estrutural (pastas, módulos, dependências e fronteiras entre os dois produtos) seria o próximo passo mais útil antes de discutir novas funcionalidades.
+- `apps/site` — Produto A no ar (Astro, 7 páginas, tema manuscrito/mapa antigo).
+- `apps/central` — Produto B com Inscrições (funil completo com autosserviço por
+  token) e **Financeiro completo** (livro-caixa por unidade, alunos, categorias,
+  relatório mensal imprimível com 3 assinaturas e visão anual — a planilha Excel
+  foi substituída e seu histórico de 2026 importado com conferência automática).
+- `packages/design-system` + `packages/supabase` — kernel compartilhado.
+- Fronteiras, contratos e o modelo do financeiro documentados em
+  `docs/arquitetura.md` (fonte da verdade arquitetural).
+
+Próximos módulos continuam guiados pela lista "o que eu ainda evitaria" acima.
 
 
 
 ---
 
 
-## Ideais do Design - Alinhamento
+## Ideais do Design - Alinhamento (IMPLEMENTADOS)
 
-- Modelo ao invés de "estrelas" ou "celestes", ser **Escrituras, templos, mapa antigo** coisas mais voltadas para periodo biblico, e como era ensinamentos naquela epoca
-- Escritura 
-
-- Adicionar um Mapa, e campo para "Encontre o núcleo mais próximo de você", que ao adicionar seu endereço, mostre os nucleos mais próximos
-- Remover como núcleo "Maputo", manter apenas os presenciais no Brasil
+- ✔ Modelo **Escrituras, templos, mapa antigo** (período bíblico) em vez de "estrelas/celestes"
+- ✔ Mapa "Encontre o núcleo mais próximo de você" (Leaflet + geocoding por endereço)
+- ✔ "Maputo" removido como núcleo — apenas os presenciais no Brasil + correspondência
+  (a lista de núcleos agora tem fonte única em `packages/supabase/src/nucleos.ts`)

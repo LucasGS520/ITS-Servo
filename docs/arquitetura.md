@@ -89,19 +89,30 @@ trabalho administrativo. Não existe para impressionar visitantes.
 Equipe administrativa (admin autenticado) e, numa **superfície pública restrita
 por token**, o próprio candidato para autosserviço pós-inscrição.
 
-### Módulos (MVP atual)
-- **Cadastros:** inscrições (e, futuramente, alunos e núcleos).
-- **Financeiro:** pagamentos e situação financeira (mensalidades = futuro).
-- **Documentos:** comprovantes (armazenamento privado).
+### Módulos (atuais)
+- **Cadastros:** inscrições e alunos (aluno nasce automaticamente da inscrição
+  confirmada, ou é cadastrado à mão para legados).
+- **Financeiro:** livro-caixa completo — substitui a planilha anual do ITS.
+  Lançamentos de entrada/saída por unidade, categorias gerenciáveis, relatório
+  mensal imprimível (modelo assinado) e visão anual. Ver §6.
+- **Documentos:** comprovantes (armazenamento privado, signed URLs).
 - **Indicadores:** inscrições, receita (relatórios avançados = futuro).
 
 ### Entidades
 - `inscricoes` — registro do candidato e ciclo de vida (status, comprovante).
+- `alunos` — corpo discente do financeiro; vinculado à inscrição (`inscricao_id`
+  único) ou legado manual. Unidade = núcleo ou `correspondencia`.
+- `categorias_financeiras` — categorias de entrada/saída, gerenciáveis no painel.
+- `lancamentos_financeiros` — livro-caixa (tipo, valor, data, competência,
+  unidade, categoria, aluno opcional).
 - `user_roles` — papéis de acesso (admin).
 - Bucket `comprovantes` — arquivos de comprovante (privado, signed URLs).
 
 ### Fluxos
 - **Admin:** login (Supabase Auth) → Dashboard, Inscrições, Financeiro. Guarded.
+- **Fechamento mensal (financeiro):** lançar pagamentos/despesas ao longo do mês
+  → tab Relatório Mensal → imprimir o relatório de cada núcleo e o Geral →
+  colher as três assinaturas (Tesoureiro, Presidente, Vice-Presidente).
 - **Autosserviço do candidato (público + token):** Pagamento (dados PIX + envio
   de comprovante) e Consulta de status. Fora do guard admin; identidade provada
   pelo **token da inscrição**.
@@ -111,7 +122,7 @@ por token**, o próprio candidato para autosserviço pós-inscrição.
 ### Limites do escopo (o que NÃO pertence à Central agora)
 Institucional/marketing. E, mesmo dentro de operações, **adiar**: diário de
 classe, notas, frequência, AVA, mensagens internas, gestão pedagógica,
-mensalidades automáticas e relatórios/indicadores avançados.
+cobrança automática de mensalidades e relatórios/indicadores avançados.
 
 ---
 
@@ -175,7 +186,37 @@ a **correção dos riscos de segurança** (enumeração de PII e adulteração a
 
 ---
 
-## 6. Topologia do Repositório (alvo)
+## 6. Módulo Financeiro (Central)
+
+Substitui a planilha anual do ITS (aba GERAL + uma aba por unidade). Decisões
+estruturais:
+
+- **Unidade** de relatório = os 4 núcleos (slugs de `packages/supabase/src/nucleos.ts`)
+  + `correspondencia` (modalidade tratada como unidade, como na planilha).
+  `unidade NULL` num lançamento = movimento geral/institucional.
+- **`data` vs `competencia`:** `data` é o dia real do movimento (coluna DATA do
+  relatório impresso); `competencia` (sempre dia 1) é o mês em que o lançamento
+  aparece nos relatórios — uma mensalidade de junho paga em julho fecha em junho.
+- **Saldo inicial** = lançamento de ajuste (R$ 13.067,29, competência dez/2025,
+  categoria "Saldo inicial"). O "SALDO ANTERIOR" de qualquer mês é a soma
+  uniforme de tudo antes dele — sem caso especial no código.
+- **Inscrição → aluno:** trigger `criar_aluno_de_inscricao` no banco; quando o
+  status vira `confirmada`, o aluno é criado (idempotente). Vale para qualquer
+  caminho de confirmação, presente ou futuro.
+- **Acesso:** admin-only via RLS `is_admin()` nas três tabelas.
+- **Histórico 2026:** importado por migration de seed com `ASSERT`s que conferem
+  os totais mês a mês contra a planilha (a migration falha se divergir). A
+  planilha tinha um typo de R$ 2,00 no saldo anterior de maio; o sistema calcula
+  a cadeia correta, que converge no saldo real de junho (R$ 18.517,29).
+- **UI** (`/painel/financeiro`, tabs com `?tab=`): Lançamentos (CRUD + cards do
+  mês), Relatório Mensal (espelho do papel + impressão com 3 assinaturas),
+  Visão Anual (grade unidades × meses com rodapé encadeado ENTRADA MÊS → SALDO
+  ANTERIOR → TOTAL GERAL → SAÍDA → SALDO), Alunos, Categorias e Previsão
+  (receita potencial de taxas de inscrição — não é caixa).
+
+---
+
+## 7. Topologia do Repositório (alvo)
 
 ```
 its-servo/                       (repo raiz — pnpm monorepo)
