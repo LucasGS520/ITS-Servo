@@ -11,7 +11,8 @@ fundação compartilhada. Ver a definição completa em
   Supabase), opera inscrições, o **financeiro completo** (livro-caixa por
   unidade, relatórios mensais imprimíveis, visão anual — substitui a planilha),
   documentos e indicadores; expõe uma superfície pública de autosserviço travada
-  por token.
+  por token (`/inscricao/pagamento/:numero` e `/consulta`). **Não serve conteúdo
+  institucional** — rotas de marketing redirecionam para o Site (`VITE_SITE_URL`).
 
 ## Estrutura
 

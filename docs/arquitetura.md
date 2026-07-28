@@ -89,6 +89,19 @@ trabalho administrativo. Não existe para impressionar visitantes.
 Equipe administrativa (admin autenticado) e, numa **superfície pública restrita
 por token**, o próprio candidato para autosserviço pós-inscrição.
 
+### Rotas (escopo fechado — a Central NÃO serve conteúdo institucional)
+| Rota | Acesso |
+|---|---|
+| `/inscricao/pagamento/:numero` | público + token (autosserviço) |
+| `/consulta` | público + token (autosserviço) |
+| `/painel/*` | admin autenticado |
+| `/`, `/cursos`, `/nucleos`, `/quem-somos`, `/metodologia`, `/inscricao` | **redirect** para o Site (`VITE_SITE_URL`) |
+
+O autosserviço usa um layout enxuto (`AutoServicoLayout`) cuja única navegação
+é "Voltar ao site" — sem menu institucional. Toda página de marketing e o
+formulário de inscrição vivem no Produto A; duplicá-los aqui criaria um "site
+pior" e prenderia o visitante fora do Site.
+
 ### Módulos (atuais)
 - **Cadastros:** inscrições e alunos (aluno nasce automaticamente da inscrição
   confirmada, ou é cadastrado à mão para legados).
@@ -130,8 +143,8 @@ cobrança automática de mensalidades e relatórios/indicadores avançados.
 
 | Item | Site (A) | Central (B) | Compartilhado |
 |---|:---:|:---:|:---:|
-| Conteúdo institucional | ✔ | — | — |
-| Formulário de inscrição (UI) | ✔ | — | — |
+| Conteúdo institucional | ✔ | ✖ (redireciona) | — |
+| Formulário de inscrição (UI) | ✔ | ✖ (redireciona) | — |
 | Ciclo de vida de inscrição/status | — | ✔ | tabela `inscricoes` |
 | Pagamento / envio de comprovante | — | ✔ (público+token) | — |
 | Consulta de status | — | ✔ (público+token) | — |

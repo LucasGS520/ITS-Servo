@@ -1,7 +1,8 @@
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, FileText, DollarSign, LogOut, BookOpen } from "lucide-react";
+import { LayoutDashboard, FileText, DollarSign, LogOut, BookOpen, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { SITE_URL } from "@/shared/constants/urls";
 
 const navItems = [
   { to: "/painel", label: "Dashboard", icon: LayoutDashboard, end: true },
@@ -54,16 +55,24 @@ const PainelLayout = () => {
             ))}
           </nav>
 
-          {/* Logout */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleLogout}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <LogOut className="h-4 w-4" />
-            <span className="ml-1.5 hidden sm:inline">Sair</span>
-          </Button>
+          {/* Ações */}
+          <div className="flex items-center gap-1">
+            <Button asChild variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+              <a href={SITE_URL} target="_blank" rel="noopener noreferrer" title="Abrir o site institucional">
+                <ExternalLink className="h-4 w-4" />
+                <span className="ml-1.5 hidden lg:inline">Site</span>
+              </a>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLogout}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <LogOut className="h-4 w-4" />
+              <span className="ml-1.5 hidden sm:inline">Sair</span>
+            </Button>
+          </div>
         </div>
       </header>
 

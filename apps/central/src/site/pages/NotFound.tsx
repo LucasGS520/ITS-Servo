@@ -1,33 +1,35 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { SITE_URL } from "@/shared/constants/urls";
 
 /**
- * Componente NotFound
- * 
- * Exibe uma página de erro 404 quando o usuário tenta acessar uma rota inexistente.
- * Registra no console a rota que foi tentada.
+ * 404 da Central. Oferece as duas saídas reais: o Site Institucional (todo
+ * conteúdo público) e a consulta de inscrição (autosserviço).
  */
 const NotFound = () => {
-  // Obtém a localização atual da rota
   const location = useLocation();
 
-  // Efeito para registrar erros de rotas não encontradas
   useEffect(() => {
-    // Registra a tentativa de acesso à rota inexistente no console
-    console.error("404 Error: User attempted to access non-existent route:", location.pathname);
+    console.error("404: rota inexistente na Central:", location.pathname);
   }, [location.pathname]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted">
+    <div className="flex min-h-screen items-center justify-center bg-muted px-4">
       <div className="text-center">
-        {/* Título principal do erro 404 */}
-        <h1 className="mb-4 text-4xl font-bold">404</h1>
-        {/* Mensagem de descrição do erro */}
-        <p className="mb-4 text-xl text-muted-foreground">Oops! Page not found</p>
-        {/* Link para retornar à página inicial */}
-        <a href="/" className="text-primary underline hover:text-primary/90">
-          Return to Home
-        </a>
+        <h1 className="mb-2 text-4xl font-bold">404</h1>
+        <p className="mb-1 text-xl text-muted-foreground">Página não encontrada</p>
+        <p className="mb-6 text-sm text-muted-foreground">
+          Esta é a área operacional do ITS. O conteúdo do instituto está no site.
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <Button asChild>
+            <a href={SITE_URL}>Ir para o site do ITS</a>
+          </Button>
+          <Button asChild variant="outline">
+            <Link to="/consulta">Consultar minha inscrição</Link>
+          </Button>
+        </div>
       </div>
     </div>
   );

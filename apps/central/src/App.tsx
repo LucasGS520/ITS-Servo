@@ -5,23 +5,18 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 // Layouts
-import SiteLayout from "@/site/layout/SiteLayout";
+import AutoServicoLayout from "@/site/layout/AutoServicoLayout";
 import PainelLayout from "@/painel/layout/PainelLayout";
 
-// Site Institucional
-import Home from "@/site/pages/Home";
-import QuemSomos from "@/site/pages/QuemSomos";
-import Cursos from "@/site/pages/Cursos";
-import Nucleos from "@/site/pages/Nucleos";
-import Metodologia from "@/site/pages/Metodologia";
-import Inscricao from "@/site/pages/Inscricao";
+// Superfície pública de autosserviço (acesso por token da inscrição)
 import Pagamento from "@/site/pages/Pagamento";
 import ConsultaInscricao from "@/site/pages/ConsultaInscricao";
 import NotFound from "@/site/pages/NotFound";
 import ErrorBoundary from "@/shared/components/ErrorBoundary";
 import ProtectedRoute from "@/shared/components/ProtectedRoute";
+import RedirectToSite from "@/shared/components/RedirectToSite";
 
-// Painel Operacional
+// Painel Operacional (admin autenticado)
 import Login from "@/painel/pages/Login";
 import Dashboard from "@/painel/pages/Dashboard";
 import Inscricoes from "@/painel/pages/Inscricoes";
@@ -29,6 +24,16 @@ import Financeiro from "@/painel/pages/Financeiro";
 
 const queryClient = new QueryClient();
 
+/**
+ * Central Operacional (Produto B) — SEM conteúdo institucional.
+ *
+ * Escopo desta aplicação (ver docs/arquitetura.md §3 e §4):
+ *  1. Autosserviço público travado por token: pagamento e consulta.
+ *  2. Painel administrativo autenticado: /painel/*.
+ *
+ * Conteúdo institucional e o formulário de inscrição pertencem ao Site
+ * (Produto A) — as rotas antigas apenas redirecionam para lá.
+ */
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -36,33 +41,35 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <ErrorBoundary>
-        <Routes>
-          {/* ── Site Institucional ── */}
-          <Route element={<SiteLayout />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/quem-somos" element={<QuemSomos />} />
-            <Route path="/cursos" element={<Cursos />} />
-            <Route path="/nucleos" element={<Nucleos />} />
-            <Route path="/metodologia" element={<Metodologia />} />
-            <Route path="/inscricao" element={<Inscricao />} />
-            <Route path="/inscricao/pagamento/:numero" element={<Pagamento />} />
-            <Route path="/consulta" element={<ConsultaInscricao />} />
-          </Route>
+          <Routes>
+            {/* ── Autosserviço público (token da inscrição) ── */}
+            <Route element={<AutoServicoLayout />}>
+              <Route path="/inscricao/pagamento/:numero" element={<Pagamento />} />
+              <Route path="/consulta" element={<ConsultaInscricao />} />
+            </Route>
 
-          {/* ── Painel Operacional ── */}
-          <Route path="/painel/login" element={<Login />} />
-          <Route path="/painel" element={<ProtectedRoute><PainelLayout /></ProtectedRoute>}>
-            <Route index element={<Dashboard />} />
-            <Route path="inscricoes" element={<Inscricoes />} />
-            <Route path="financeiro" element={<Financeiro />} />
-          </Route>
+            {/* ── Painel Operacional ── */}
+            <Route path="/painel/login" element={<Login />} />
+            <Route path="/painel" element={<ProtectedRoute><PainelLayout /></ProtectedRoute>}>
+              <Route index element={<Dashboard />} />
+              <Route path="inscricoes" element={<Inscricoes />} />
+              <Route path="financeiro" element={<Financeiro />} />
+            </Route>
 
-          {/* Retrocompatibilidade */}
-          <Route path="/admin/login" element={<Navigate to="/painel/login" replace />} />
-          <Route path="/admin" element={<Navigate to="/painel" replace />} />
+            {/* ── Rotas institucionais → Site (Produto A) ── */}
+            <Route path="/" element={<RedirectToSite />} />
+            <Route path="/quem-somos" element={<RedirectToSite path="/quem-somos" />} />
+            <Route path="/cursos" element={<RedirectToSite path="/cursos" />} />
+            <Route path="/nucleos" element={<RedirectToSite path="/nucleos" />} />
+            <Route path="/metodologia" element={<RedirectToSite path="/metodologia" />} />
+            <Route path="/inscricao" element={<RedirectToSite path="/inscricao" />} />
 
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+            {/* Retrocompatibilidade do painel */}
+            <Route path="/admin/login" element={<Navigate to="/painel/login" replace />} />
+            <Route path="/admin" element={<Navigate to="/painel" replace />} />
+
+            <Route path="*" element={<NotFound />} />
+          </Routes>
         </ErrorBoundary>
       </BrowserRouter>
     </TooltipProvider>

@@ -165,7 +165,7 @@ const ConsultaInscricao = () => {
 
                     {resultado.status === "aguardando_pagamento" && (
                       <div className="flex flex-col gap-2 sm:flex-row">
-                        <Button onClick={() => navigate(`/inscricao/pagamento/${resultado.numero_inscricao}?token=${encodeURIComponent(token.trim())}`)} className="flex-1 bg-secondary text-secondary-foreground hover:bg-secondary/90">
+                        <Button onClick={() => navigate(`/inscricao/pagamento/${resultado.numero_inscricao}#token=${encodeURIComponent(token.trim())}`)} className="flex-1 bg-secondary text-secondary-foreground hover:bg-secondary/90">
                           Ir para Pagamento
                         </Button>
                         <Button variant="outline" onClick={() => setCancelOpen(true)} className="flex-1 border-destructive text-destructive hover:bg-destructive/10">
@@ -180,7 +180,7 @@ const ConsultaInscricao = () => {
                       <p className="text-sm text-center font-medium text-green-600">✓ Matrícula confirmada!</p>
                     )}
                     {resultado.status === "pagamento_nao_identificado" && (
-                      <Button onClick={() => navigate(`/inscricao/pagamento/${resultado.numero_inscricao}?token=${encodeURIComponent(token.trim())}`)} className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/90">
+                      <Button onClick={() => navigate(`/inscricao/pagamento/${resultado.numero_inscricao}#token=${encodeURIComponent(token.trim())}`)} className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/90">
                         <Upload className="mr-2 h-4 w-4" /> Reenviar Comprovante
                       </Button>
                     )}
