@@ -7,7 +7,8 @@
  * mágico enviado por e-mail (ou é colado manualmente). Ver docs/arquitetura.md §5.
  */
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { paramFromUrl } from "@/shared/lib/urlToken";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -42,10 +43,9 @@ const getStatus = (s: string) => statusLabels[s] ?? statusLabels.aguardando_paga
 const ConsultaInscricao = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [searchParams] = useSearchParams();
 
-  const [numero, setNumero] = useState(searchParams.get("numero") ?? "");
-  const [token, setToken] = useState(searchParams.get("token") ?? "");
+  const [numero, setNumero] = useState(() => paramFromUrl("numero") ?? "");
+  const [token, setToken] = useState(() => paramFromUrl("token") ?? "");
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<InscricaoResumo | null>(null);
   const [cancelOpen, setCancelOpen] = useState(false);
@@ -71,12 +71,12 @@ const ConsultaInscricao = () => {
     setLoading(false);
   }, [toast]);
 
-  // Se veio pelo link mágico (numero+token na URL), busca automaticamente.
+  // Se veio pelo link mágico (numero+token no fragment ou query), busca automaticamente.
   useEffect(() => {
-    const n = searchParams.get("numero");
-    const t = searchParams.get("token");
+    const n = paramFromUrl("numero");
+    const t = paramFromUrl("token");
     if (n && t) buscar(n, t);
-  }, [searchParams, buscar]);
+  }, [buscar]);
 
   const handleCancel = async () => {
     setCancelling(true);

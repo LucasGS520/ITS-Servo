@@ -37,8 +37,14 @@ const LancamentosTab = () => {
   const competencia = mesParaCompetencia(mes);
 
   const { totais, acumulado, linhas } = useMemo(() => {
-    const totais = totaisDoMes(lancamentos, competencia);
-    const acumulado = saldoAcumulado(lancamentos, competencia);
+    // Cards acompanham o filtro de unidade (senão o total geral parece ser o
+    // da unidade selecionada). "todas" = tudo; "geral" = só institucionais.
+    const escopo =
+      filtroUnidade === "todas"
+        ? lancamentos
+        : lancamentos.filter((l) => (filtroUnidade === "geral" ? l.unidade === null : l.unidade === filtroUnidade));
+    const totais = totaisDoMes(escopo, competencia);
+    const acumulado = saldoAcumulado(escopo, competencia);
     const termo = busca.trim().toLowerCase();
     const linhas = lancamentos.filter((l) => {
       if (l.competencia !== competencia) return false;
@@ -116,7 +122,9 @@ const LancamentosTab = () => {
               <p className="text-xs font-semibold uppercase tracking-wide text-primary">Saldo acumulado</p>
             </div>
             <p className="text-2xl font-bold text-primary">{formatBRL(acumulado)}</p>
-            <p className="mt-1 text-xs text-muted-foreground">Até o mês selecionado</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Até o mês selecionado{filtroUnidade !== "todas" ? " (unidade filtrada)" : ""}
+            </p>
           </CardContent>
         </Card>
       </div>

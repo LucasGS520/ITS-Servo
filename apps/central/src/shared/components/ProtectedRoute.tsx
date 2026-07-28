@@ -15,22 +15,28 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const check = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { navigate("/painel/login"); return; }
-      // UNIQUE é (user_id, role): um usuário pode ter várias roles. Filtrar
-      // direto por admin evita que uma segunda role derrube o `.single()`.
-      const { data: roles } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .eq("role", "admin")
-        .maybeSingle();
-      if (!roles || roles.role !== "admin") {
-        await supabase.auth.signOut();
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { navigate("/painel/login"); return; }
+        // UNIQUE é (user_id, role): um usuário pode ter várias roles. Filtrar
+        // direto por admin evita que uma segunda role derrube o `.single()`.
+        const { data: roles, error } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id)
+          .eq("role", "admin")
+          .maybeSingle();
+        if (error) throw error;
+        if (!roles || roles.role !== "admin") {
+          await supabase.auth.signOut();
+          navigate("/painel/login");
+          return;
+        }
+        setChecking(false);
+      } catch {
+        // Rede/erro inesperado: melhor voltar ao login do que spinner infinito.
         navigate("/painel/login");
-        return;
       }
-      setChecking(false);
     };
     check();
   }, [navigate]);

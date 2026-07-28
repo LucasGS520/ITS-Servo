@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "./client.ts";
 
 /**
  * Contrato de dados da plataforma. Único ponto de acesso à inscrição —

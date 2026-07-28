@@ -67,8 +67,11 @@ serve(async (req) => {
       .select("id, nome_completo, email, status, consulta_token_hash")
       .eq("numero_inscricao", numero)
       .single();
-    if (findErr || !insc) return json({ error: "Inscrição não encontrada." }, 404, origin);
-    if (insc.consulta_token_hash !== hash) return json({ error: "Acesso não autorizado." }, 403, origin);
+    // Resposta ÚNICA para "não existe" e "token errado": diferenciar permitiria
+    // enumerar números de inscrição válidos (são sequenciais).
+    if (findErr || !insc || insc.consulta_token_hash !== hash) {
+      return json({ error: "Inscrição não encontrada ou código de acesso inválido." }, 403, origin);
+    }
     if (!["aguardando_pagamento", "pagamento_nao_identificado"].includes(insc.status)) {
       return json({ error: `Não é possível enviar comprovante no status atual (${insc.status}).` }, 409, origin);
     }

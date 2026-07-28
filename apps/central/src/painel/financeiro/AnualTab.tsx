@@ -5,7 +5,7 @@ import { Loader2 } from "lucide-react";
 import { formatBRL } from "@/shared/constants/pricing";
 import { UNIDADES_FINANCEIRO } from "@/shared/constants/unidades";
 import { useLancamentos, type Lancamento } from "@/painel/hooks/useFinanceiro";
-import { sinal } from "./agregados";
+import { round2, sinal } from "./agregados";
 
 const MESES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
@@ -80,11 +80,11 @@ const AnualTab = () => {
     const saldoAnteriorMes: number[] = Array(12).fill(0);
     const totalGeralMes: number[] = Array(12).fill(0);
     const saldoMes: number[] = Array(12).fill(0);
-    let acumulado = antesDoAno;
+    let acumulado = round2(antesDoAno);
     for (let m = 0; m < 12; m++) {
       saldoAnteriorMes[m] = acumulado;
-      totalGeralMes[m] = acumulado + entradaMes[m];
-      saldoMes[m] = totalGeralMes[m] - saidaMes[m];
+      totalGeralMes[m] = round2(acumulado + entradaMes[m]);
+      saldoMes[m] = round2(totalGeralMes[m] - saidaMes[m]);
       acumulado = saldoMes[m];
     }
 

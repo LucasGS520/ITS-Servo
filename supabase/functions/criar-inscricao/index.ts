@@ -62,15 +62,53 @@ serve(async (req) => {
     const erro = validar(dto);
     if (erro) return json({ error: erro }, 400, origin);
 
+    const admin = adminClient();
+
+    // ---- Rate limit por IP (janela de 1h, endpoint público) ----
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      req.headers.get("cf-connecting-ip") ??
+      "desconhecido";
+    const janela = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    await admin.from("criar_inscricao_hits").delete().lt("created_at", janela);
+    const { count: hits, error: hitsErr } = await admin
+      .from("criar_inscricao_hits")
+      .select("*", { count: "exact", head: true })
+      .eq("ip", ip)
+      .gte("created_at", janela);
+    // Guard degrada aberto (inscrição > rate limit), mas NUNCA em silêncio.
+    if (hitsErr) console.error("criar-inscricao: rate limit indisponível:", hitsErr);
+    if ((hits ?? 0) >= 5) {
+      return json({ error: "Muitas tentativas deste endereço. Tente novamente em 1 hora." }, 429, origin);
+    }
+    const { error: hitInsErr } = await admin.from("criar_inscricao_hits").insert({ ip });
+    if (hitInsErr) console.error("criar-inscricao: falha ao registrar hit:", hitInsErr);
+
+    // ---- Uma inscrição ativa por CPF ----
+    const cpfLimpo = dto.cpf!.replace(/\D/g, "");
+    const { data: existente } = await admin
+      .from("inscricoes")
+      .select("id")
+      .eq("cpf", cpfLimpo)
+      .neq("status", "cancelado")
+      .limit(1)
+      .maybeSingle();
+    if (existente) {
+      return json(
+        { error: "Já existe uma inscrição ativa para este CPF. Use o link do e-mail ou a página de consulta para acompanhá-la." },
+        409,
+        origin,
+      );
+    }
+
     const token = generateToken();
     const consulta_token_hash = await sha256Hex(token);
 
-    const admin = adminClient();
     const { data, error } = await admin
       .from("inscricoes")
       .insert({
         nome_completo: dto.nome_completo!.trim(),
-        cpf: dto.cpf!.replace(/\D/g, ""),
+        cpf: cpfLimpo,
         telefone: dto.telefone!.replace(/\D/g, ""),
         email: dto.email!.trim(),
         data_nascimento: dto.data_nascimento,
@@ -87,7 +125,8 @@ serve(async (req) => {
 
     // A inscrição já está persistida: falha de e-mail não pode derrubar a resposta,
     // senão o usuário resubmete e cria duplicata sem nunca receber numero/token.
-    const link = `${SELF_SERVICE_URL}/inscricao/pagamento/${numero}?token=${token}`;
+    // Token no FRAGMENT (#): não trafega em Referer nem em logs de servidor.
+    const link = `${SELF_SERVICE_URL}/inscricao/pagamento/${numero}#token=${token}`;
     let email_enviado = false;
     try {
       email_enviado = await sendEmail(

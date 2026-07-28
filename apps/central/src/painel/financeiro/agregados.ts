@@ -5,6 +5,9 @@ import type { Lancamento } from "@/painel/hooks/useFinanceiro";
  * Competência é sempre "yyyy-mm-01"; comparações lexicográficas funcionam.
  */
 
+/** Arredonda para centavos — somas encadeadas em float acumulam resíduo binário. */
+export const round2 = (n: number) => Math.round(n * 100) / 100;
+
 export const sinal = (l: Lancamento) =>
   l.tipo === "entrada" ? Number(l.valor) : -Number(l.valor);
 
@@ -44,13 +47,13 @@ export function totaisDoMes(
     if (l.tipo === "entrada") entrada += Number(l.valor);
     else saida += Number(l.valor);
   }
-  return { entrada, saida, saldo: entrada - saida };
+  return { entrada: round2(entrada), saida: round2(saida), saldo: round2(entrada - saida) };
 }
 
 /** Saldo de tudo ANTES da competência (o "SALDO ANTERIOR" da planilha). */
 export const saldoAnterior = (lancs: Lancamento[], competencia: string) =>
-  lancs.reduce((s, l) => (l.competencia < competencia ? s + sinal(l) : s), 0);
+  round2(lancs.reduce((s, l) => (l.competencia < competencia ? s + sinal(l) : s), 0));
 
 /** Saldo acumulado ATÉ a competência, inclusive (o "SALDO" da planilha). */
 export const saldoAcumulado = (lancs: Lancamento[], competencia: string) =>
-  lancs.reduce((s, l) => (l.competencia <= competencia ? s + sinal(l) : s), 0);
+  round2(lancs.reduce((s, l) => (l.competencia <= competencia ? s + sinal(l) : s), 0));

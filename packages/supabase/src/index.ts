@@ -11,6 +11,7 @@
  * as RPCs/tabelas de ponta a ponta e substituir os tipos manuais de `contract.ts`.
  */
 export { createBrowserClient, type SupabaseClient } from "./client.ts";
+export type { Database, Tables, TablesInsert, TablesUpdate, Enums } from "./types.ts";
 export { NUCLEOS, NUCLEO_OPTIONS, NUCLEO_LABELS, type Nucleo } from "./nucleos.ts";
 export {
   criarInscricao,

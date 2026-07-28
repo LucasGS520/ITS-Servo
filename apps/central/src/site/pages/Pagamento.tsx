@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { buscarInscricao, enviarComprovante } from "@its-servo/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { PRICING, PIX, formatBRL } from "@/shared/constants/pricing";
+import { paramFromUrl } from "@/shared/lib/urlToken";
 
 /**
  * Componente Pagamento
@@ -21,8 +22,7 @@ import { PRICING, PIX, formatBRL } from "@/shared/constants/pricing";
 const Pagamento = () => {
   // Parâmetro da rota contendo o número da inscrição + token de posse (link mágico)
   const { numero } = useParams<{ numero: string }>();
-  const [searchParams] = useSearchParams();
-  const token = searchParams.get("token") ?? "";
+  const [token] = useState(() => paramFromUrl("token") ?? "");
   const { toast } = useToast();
   
   // Referência para o elemento input de arquivo
@@ -275,7 +275,7 @@ const Pagamento = () => {
                 </Button>
                 <p className="text-center text-sm text-muted-foreground">
                   <Link
-                    to={`/consulta?numero=${encodeURIComponent(numero ?? "")}&token=${encodeURIComponent(token)}`}
+                    to={`/consulta#numero=${encodeURIComponent(numero ?? "")}&token=${encodeURIComponent(token)}`}
                     className="text-primary hover:underline"
                   >
                     Acompanhar minha inscrição

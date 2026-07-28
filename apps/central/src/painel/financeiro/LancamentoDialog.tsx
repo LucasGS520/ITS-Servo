@@ -37,6 +37,12 @@ interface Props {
 
 const hoje = () => new Date().toISOString().slice(0, 10);
 
+/** Aceita "150", "150.50", "150,50" e "1.234,56". */
+const parseValor = (s: string) => {
+  const t = s.trim();
+  return Number(t.includes(",") ? t.replace(/\./g, "").replace(",", ".") : t);
+};
+
 const LancamentoDialog = ({ open, onOpenChange, lancamento }: Props) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -99,7 +105,7 @@ const LancamentoDialog = ({ open, onOpenChange, lancamento }: Props) => {
       unidade: unidade === "geral" ? null : unidade,
       categoria_id: categoriaId,
       aluno_id: tipo === "entrada" ? alunoId : null,
-      valor: Number(valor.replace(",", ".")),
+      valor: parseValor(valor),
       data,
       competencia,
       descricao: descricao.trim() || null,
@@ -237,14 +243,13 @@ const LancamentoDialog = ({ open, onOpenChange, lancamento }: Props) => {
 
           <div className="space-y-2">
             <Label>Valor (R$)</Label>
+            {/* type=text: input number rejeita vírgula decimal em locales estrangeiros */}
             <Input
-              type="number"
-              min="0.01"
-              step="0.01"
+              type="text"
               inputMode="decimal"
               placeholder="0,00"
               value={valor}
-              onChange={(e) => setValor(e.target.value)}
+              onChange={(e) => setValor(e.target.value.replace(/[^\d.,]/g, ""))}
             />
           </div>
 

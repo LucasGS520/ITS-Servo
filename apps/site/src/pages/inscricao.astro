@@ -105,10 +105,48 @@ const nucleos = NUCLEO_OPTIONS;
     }),
   );
 
+  // Máscaras de CPF/telefone (o servidor revalida — isto é só UX)
+  const cpfInput = document.getElementById('cpf') as HTMLInputElement;
+  const telInput = document.getElementById('telefone') as HTMLInputElement;
+  cpfInput.addEventListener('input', () => {
+    const d = cpfInput.value.replace(/\D/g, '').slice(0, 11);
+    cpfInput.value = d
+      .replace(/^(\d{3})(\d)/, '$1.$2')
+      .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+      .replace(/\.(\d{3})(\d{1,2})$/, '.$1-$2');
+  });
+  telInput.addEventListener('input', () => {
+    const d = telInput.value.replace(/\D/g, '').slice(0, 11);
+    telInput.value = d.length <= 10
+      ? d.replace(/^(\d{2})(\d)/, '($1) $2').replace(/(\d{4})(\d{1,4})$/, '$1-$2')
+      : d.replace(/^(\d{2})(\d)/, '($1) $2').replace(/(\d{5})(\d{1,4})$/, '$1-$2');
+  });
+
+  // Mesmo algoritmo de dígitos verificadores do servidor (_shared/cpf.ts)
+  function cpfValido(cpf: string): boolean {
+    const d = cpf.replace(/\D/g, '');
+    if (d.length !== 11 || /^(\d)\1{10}$/.test(d)) return false;
+    let s = 0;
+    for (let i = 0; i < 9; i++) s += parseInt(d[i]) * (10 - i);
+    let r = (s * 10) % 11;
+    if (r === 10) r = 0;
+    if (r !== parseInt(d[9])) return false;
+    s = 0;
+    for (let i = 0; i < 10; i++) s += parseInt(d[i]) * (11 - i);
+    r = (s * 10) % 11;
+    if (r === 10) r = 0;
+    return r === parseInt(d[10]);
+  }
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     msg.textContent = '';
     if (!url || !key) { msg.textContent = 'Configuração do servidor ausente. Tente novamente mais tarde.'; return; }
+    if (!cpfValido(cpfInput.value)) {
+      msg.textContent = 'CPF inválido — confira os dígitos.';
+      cpfInput.focus();
+      return;
+    }
 
     const fd = new FormData(form);
     const modalidade = String(fd.get('modalidade') || '');
@@ -131,7 +169,8 @@ const nucleos = NUCLEO_OPTIONS;
       const supabase = createBrowserClient(url, key);
       const { numero_inscricao, token, email_enviado } = await criarInscricao(supabase, dto);
       if (centralUrl) {
-        window.location.href = `${centralUrl}/inscricao/pagamento/${numero_inscricao}?token=${encodeURIComponent(token)}`;
+        // Token no fragment (#): não vaza em Referer/logs de servidor
+        window.location.href = `${centralUrl}/inscricao/pagamento/${numero_inscricao}#token=${encodeURIComponent(token)}`;
       } else {
         // Sem redirect, o numero+token exibidos aqui são o ÚNICO acesso do
         // usuário caso o e-mail não tenha saído — nunca descartar.

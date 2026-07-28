@@ -8,7 +8,7 @@ import { Loader2, Printer } from "lucide-react";
 import { formatBRL } from "@/shared/constants/pricing";
 import { UNIDADE_LABELS, UNIDADES_FINANCEIRO } from "@/shared/constants/unidades";
 import { useLancamentos } from "@/painel/hooks/useFinanceiro";
-import { formatCompetencia, formatData, mesParaCompetencia, saldoAnterior } from "./agregados";
+import { formatCompetencia, formatData, mesParaCompetencia, round2, saldoAnterior } from "./agregados";
 import { printRelatorioMensal, type LinhaRelatorio, type ResumoItem } from "./printRelatorio";
 
 /**
@@ -41,7 +41,7 @@ const MensalTab = () => {
       const isEntrada = l.tipo === "entrada";
       if (isEntrada) entrada += valor;
       else saida += valor;
-      saldo += isEntrada ? valor : -valor;
+      saldo = round2(saldo + (isEntrada ? valor : -valor));
       const base = l.aluno?.nome ?? l.descricao ?? l.categoria?.nome ?? "—";
       const nome = geral && l.unidade ? `${base} — ${UNIDADE_LABELS[l.unidade] ?? l.unidade}` : base;
       return {
@@ -70,7 +70,7 @@ const MensalTab = () => {
       linhas,
       resumo,
       saldoInicio: inicio,
-      totalGeral: inicio + entrada - saida,
+      totalGeral: round2(inicio + entrada - saida),
       unidadeLabel: geral ? "Geral (consolidado)" : UNIDADE_LABELS[unidade] ?? unidade,
       titulo: geral ? "RELATÓRIO FINANCEIRO GERAL" : "RELATÓRIO FINANCEIRO POR NÚCLEO",
     };
