@@ -1,22 +1,15 @@
 ---
 import Base from '../layouts/Base.astro';
-const nucleos = [
-  { value: 'sede_jd_santa_monica', label: 'Sede Jd. Santa Mônica (Barueri/SP)' },
-  { value: 'engenho_novo', label: 'Engenho Novo (Barueri/SP)' },
-  { value: 'jd_conceicao', label: 'Jd. Conceição (Osasco/SP)' },
-  { value: 'ariston', label: 'Ariston (Carapicuíba/SP)' },
-];
+import PageHero from '../components/PageHero.astro';
+import { NUCLEO_OPTIONS } from '@its-servo/supabase';
+const nucleos = NUCLEO_OPTIONS;
 ---
 <Base title="Inscrição — Instituto Teológico Servo">
-  <section class="section" style="background:linear-gradient(160deg,var(--navy-800),var(--navy-950));color:var(--on-dark);text-align:center">
-    <div class="wrap">
-      <span class="eyebrow" style="color:var(--gold-400);justify-content:center;display:inline-flex">Comece sua jornada</span>
-      <h1 style="color:#fff;font-size:var(--text-5xl);margin:var(--sp-4) 0 var(--sp-3)">Inscrição</h1>
-      <p style="color:var(--on-dark-soft);max-width:56ch;margin:0 auto;font-size:var(--text-lg)">
-        Preencha o formulário para se inscrever no Instituto Teológico Servo.
-      </p>
-    </div>
-  </section>
+  <PageHero
+    eyebrow="Comece sua jornada"
+    title="Inscrição"
+    subtitle="Preencha o formulário para se inscrever no Instituto Teológico Servo."
+  />
 
   <section class="section">
     <div class="wrap" style="max-width:44rem">
@@ -138,7 +131,7 @@ const nucleos = [
       const supabase = createBrowserClient(url, key);
       const { numero_inscricao, token } = await criarInscricao(supabase, dto);
       if (centralUrl) {
-        window.location.href = `${centralUrl}/inscricao/${numero_inscricao}?token=${encodeURIComponent(token)}`;
+        window.location.href = `${centralUrl}/inscricao/pagamento/${numero_inscricao}?token=${encodeURIComponent(token)}`;
       } else {
         msg.innerHTML = `Inscrição <strong>${numero_inscricao}</strong> criada! Enviamos um link de pagamento para o seu e-mail.`;
         form.reset();

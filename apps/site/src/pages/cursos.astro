@@ -1,5 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import CtaInscricao from '../components/CtaInscricao.astro';
 
 const gradeFundamental = [
   'Bibliologia', 'Administração Eclesiástica', 'Doutrina de Deus', 'Família Cristã',
@@ -25,15 +27,11 @@ const niveis = [
 ];
 ---
 <Base title="Grade Curricular — Instituto Teológico Servo">
-  <section class="section" style="background:linear-gradient(160deg,var(--navy-800),var(--navy-950));color:var(--on-dark);text-align:center">
-    <div class="wrap">
-      <span class="eyebrow" style="color:var(--gold-400);justify-content:center;display:inline-flex">Acadêmico</span>
-      <h1 style="color:#fff;font-size:var(--text-5xl);margin:var(--sp-4) 0 var(--sp-3)">Grade Curricular</h1>
-      <p style="color:var(--on-dark-soft);max-width:56ch;margin:0 auto;font-size:var(--text-lg)">
-        Nossa formação é dividida em três níveis progressivos: Fundamental, Básico e Médio.
-      </p>
-    </div>
-  </section>
+  <PageHero
+    eyebrow="Acadêmico"
+    title="Grade Curricular"
+    subtitle="Nossa formação é dividida em três níveis progressivos: Fundamental, Básico e Médio."
+  />
 
   {niveis.map((nivel, i) => (
     <section class={`section ${i % 2 === 1 ? 'section--tint' : ''}`}>
@@ -64,11 +62,5 @@ const niveis = [
     </div>
   </section>
 
-  <section class="section" style="background:linear-gradient(160deg,var(--navy-800),var(--navy-950));color:var(--on-dark);text-align:center">
-    <div class="wrap">
-      <h2 style="color:#fff;font-size:var(--text-4xl)">Quer fazer parte?</h2>
-      <p style="color:var(--on-dark-soft);max-width:48ch;margin:var(--sp-3) auto var(--sp-8)">Inscreva-se e inicie sua formação teológica no ITS.</p>
-      <a class="btn btn--gold btn--lg" href="/inscricao">Inscreva-se Agora</a>
-    </div>
-  </section>
+  <CtaInscricao />
 </Base>

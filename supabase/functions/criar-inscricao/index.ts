@@ -17,8 +17,15 @@ import { json } from "../_shared/cors.ts";
 import { adminClient } from "../_shared/admin.ts";
 import { generateToken, sha256Hex } from "../_shared/token.ts";
 import { sendEmail, baseTemplate, botao } from "../_shared/email.ts";
+import { validateCPF } from "../_shared/cpf.ts";
+import { NUCLEO_SLUGS } from "../_shared/nucleos.ts";
 
-const SELF_SERVICE_URL = Deno.env.get("SELF_SERVICE_URL") ?? "http://localhost:5173";
+// Sem fallback silencioso: link mágico apontando para localhost em produção é
+// pior do que falhar o deploy com mensagem clara.
+const SELF_SERVICE_URL = Deno.env.get("SELF_SERVICE_URL");
+if (!SELF_SERVICE_URL) {
+  throw new Error("SELF_SERVICE_URL não configurada (ex.: https://central.itsservo.org). Defina via `supabase secrets set`.");
+}
 
 interface Dto {
   nome_completo: string;
@@ -33,13 +40,15 @@ interface Dto {
 
 function validar(d: Partial<Dto>): string | null {
   if (!d.nome_completo || d.nome_completo.trim().length < 3) return "Nome inválido.";
-  if (!d.cpf || d.cpf.replace(/\D/g, "").length !== 11) return "CPF inválido.";
+  if (!d.cpf || !validateCPF(d.cpf)) return "CPF inválido.";
   if (!d.telefone || d.telefone.replace(/\D/g, "").length < 10) return "Telefone inválido.";
   if (!d.email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email)) return "E-mail inválido.";
   if (!d.data_nascimento || !/^\d{4}-\d{2}-\d{2}$/.test(d.data_nascimento)) return "Data de nascimento inválida.";
   if (!d.escolaridade) return "Escolaridade obrigatória.";
   if (d.modalidade !== "presencial" && d.modalidade !== "correspondencia") return "Modalidade inválida.";
-  if (d.modalidade === "presencial" && !d.nucleo) return "Selecione o núcleo para modalidade presencial.";
+  if (d.modalidade === "presencial" && (!d.nucleo || !NUCLEO_SLUGS.includes(d.nucleo))) {
+    return "Selecione um núcleo válido para modalidade presencial.";
+  }
   return null;
 }
 
@@ -76,20 +85,28 @@ serve(async (req) => {
     if (error) throw error;
     const numero = data.numero_inscricao as string;
 
-    const link = `${SELF_SERVICE_URL}/inscricao/${numero}?token=${token}`;
-    await sendEmail(
-      dto.email!.trim(),
-      `Inscrição recebida — ${numero}`,
-      baseTemplate(
-        `Olá, ${dto.nome_completo!.split(" ")[0]}!`,
-        `<p>Sua inscrição <strong>${numero}</strong> foi recebida com sucesso.</p>
-         <p>Para concluir, realize o pagamento e envie o comprovante nesta página segura:</p>
-         <p style="margin:20px 0">${botao(link, "Acessar minha inscrição")}</p>
-         <p style="font-size:13px;color:#5b6478">Guarde este link — é o acesso exclusivo à sua inscrição. Não o compartilhe.</p>`,
-      ),
-    );
+    // A inscrição já está persistida: falha de e-mail não pode derrubar a resposta,
+    // senão o usuário resubmete e cria duplicata sem nunca receber numero/token.
+    const link = `${SELF_SERVICE_URL}/inscricao/pagamento/${numero}?token=${token}`;
+    let email_enviado = true;
+    try {
+      await sendEmail(
+        dto.email!.trim(),
+        `Inscrição recebida — ${numero}`,
+        baseTemplate(
+          `Olá, ${dto.nome_completo!.split(" ")[0]}!`,
+          `<p>Sua inscrição <strong>${numero}</strong> foi recebida com sucesso.</p>
+           <p>Para concluir, realize o pagamento e envie o comprovante nesta página segura:</p>
+           <p style="margin:20px 0">${botao(link, "Acessar minha inscrição")}</p>
+           <p style="font-size:13px;color:#5b6478">Guarde este link — é o acesso exclusivo à sua inscrição. Não o compartilhe.</p>`,
+        ),
+      );
+    } catch (emailErr) {
+      email_enviado = false;
+      console.error("criar-inscricao: falha ao enviar e-mail de confirmação:", emailErr);
+    }
 
-    return json({ numero_inscricao: numero, token }, 200, origin);
+    return json({ numero_inscricao: numero, token, email_enviado }, 200, origin);
   } catch (e) {
     console.error("criar-inscricao:", e);
     return json({ error: (e as Error).message ?? "Erro interno" }, 500, origin);

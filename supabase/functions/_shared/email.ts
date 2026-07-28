@@ -10,12 +10,17 @@
  *   EMAIL_FROM       — remetente verificado, ex: "ITS Servo <no-reply@itsservo.org>"
  */
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-const EMAIL_FROM = Deno.env.get("EMAIL_FROM") ?? "ITS Servo <no-reply@example.org>";
+const EMAIL_FROM = Deno.env.get("EMAIL_FROM");
 
 export async function sendEmail(to: string, subject: string, html: string): Promise<void> {
   if (!RESEND_API_KEY) {
     console.warn(`[email] RESEND_API_KEY ausente — e-mail NÃO enviado. to=${to} subject="${subject}"`);
     return;
+  }
+  // Com a chave presente, remetente ausente é erro de configuração — enviar de
+  // um domínio placeholder falharia no Resend de forma opaca.
+  if (!EMAIL_FROM) {
+    throw new Error("EMAIL_FROM não configurado (remetente verificado, ex.: \"ITS Servo <no-reply@itsservo.org>\").");
   }
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -30,7 +35,13 @@ export async function sendEmail(to: string, subject: string, html: string): Prom
   }
 }
 
-/** Layout simples e sóbrio, alinhado à marca (pergaminho/azul-marinho/ouro). */
+/**
+ * Layout simples e sóbrio, alinhado à marca (pergaminho/azul-marinho/ouro).
+ * CÓPIA SINCRONIZADA dos tokens de packages/design-system/tokens.css — e-mail
+ * não enxerga CSS do workspace: #f5f1e8=--paper, #fffdf8=--surface,
+ * #e7ddc9=--line, #15223f=--navy-800, #f6e8c6=--gold-100, #14203a=--ink,
+ * #b8862f=--gold-600. Rebrand na paleta → atualizar aqui também.
+ */
 export function baseTemplate(titulo: string, corpoHtml: string): string {
   return `<div style="font-family:Arial,Helvetica,sans-serif;background:#f5f1e8;padding:24px">
     <div style="max-width:560px;margin:0 auto;background:#fffdf8;border:1px solid #e7ddc9;border-radius:14px;overflow:hidden">

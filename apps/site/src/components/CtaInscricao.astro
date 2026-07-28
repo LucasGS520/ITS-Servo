@@ -1,0 +1,18 @@
+---
+// CTA final padrão ("Inscreva-se Agora") usado no rodapé das páginas internas.
+interface Props {
+  title?: string;
+  text?: string;
+}
+const {
+  title = 'Quer fazer parte?',
+  text = 'Inscreva-se e inicie sua formação teológica no ITS.',
+} = Astro.props;
+---
+<section class="section" style="background:linear-gradient(160deg,var(--navy-800),var(--navy-950));color:var(--on-dark);text-align:center">
+  <div class="wrap">
+    <h2 style="color:#fff;font-size:var(--text-4xl)">{title}</h2>
+    <p style="color:var(--on-dark-soft);max-width:48ch;margin:var(--sp-3) auto var(--sp-8)">{text}</p>
+    <a class="btn btn--gold btn--lg" href="/inscricao">Inscreva-se Agora</a>
+  </div>
+</section>

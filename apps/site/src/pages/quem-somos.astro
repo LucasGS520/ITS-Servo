@@ -1,22 +1,20 @@
 ---
 import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import { NUCLEOS } from '@its-servo/supabase';
 const numeros = [
-  { valor: '6', label: 'Núcleos ativos' },
+  { valor: String(NUCLEOS.length), label: 'Núcleos ativos' },
   { valor: '2', label: 'Países' },
   { valor: '36', label: 'Disciplinas no currículo' },
   { valor: '3', label: 'Níveis de formação' },
 ];
 ---
 <Base title="Quem Somos — Instituto Teológico Servo">
-  <section class="section" style="background:linear-gradient(160deg,var(--navy-800),var(--navy-950));color:var(--on-dark);text-align:center">
-    <div class="wrap">
-      <span class="eyebrow" style="color:var(--gold-400);justify-content:center;display:inline-flex">Nossa instituição</span>
-      <h1 style="color:#fff;font-size:var(--text-5xl);margin:var(--sp-4) 0 var(--sp-3)">Quem Somos</h1>
-      <p style="color:var(--on-dark-soft);max-width:56ch;margin:0 auto;font-size:var(--text-lg)">
-        Conheça a história, a missão e os valores do Instituto Teológico Servo.
-      </p>
-    </div>
-  </section>
+  <PageHero
+    eyebrow="Nossa instituição"
+    title="Quem Somos"
+    subtitle="Conheça a história, a missão e os valores do Instituto Teológico Servo."
+  />
 
   <section class="section">
     <div class="wrap">
@@ -84,7 +82,7 @@ const numeros = [
     <div class="wrap">
       <div class="split">
         <figure class="split__media">
-          <img src="/img/mocambique1.png" alt="Entrega de certificado do ITS em Moçambique" loading="lazy" />
+          <img src="/img/mocambique1.webp" alt="Entrega de certificado do ITS em Moçambique" loading="lazy" />
           <span class="badge badge--gold split__badge"><span class="dot"></span>Missão internacional</span>
         </figure>
         <div>

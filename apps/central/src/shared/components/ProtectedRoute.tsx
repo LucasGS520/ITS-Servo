@@ -17,11 +17,14 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     const check = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { navigate("/painel/login"); return; }
+      // UNIQUE é (user_id, role): um usuário pode ter várias roles. Filtrar
+      // direto por admin evita que uma segunda role derrube o `.single()`.
       const { data: roles } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", user.id)
-        .single();
+        .eq("role", "admin")
+        .maybeSingle();
       if (!roles || roles.role !== "admin") {
         await supabase.auth.signOut();
         navigate("/painel/login");

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,7 @@ import { CheckCircle, Upload, Loader2, Copy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { buscarInscricao, enviarComprovante } from "@its-servo/supabase";
 import { useToast } from "@/hooks/use-toast";
-import { PRICING } from "@/shared/constants/pricing";
+import { PRICING, PIX, formatBRL } from "@/shared/constants/pricing";
 
 /**
  * Componente Pagamento
@@ -186,15 +186,15 @@ const Pagamento = () => {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Matrícula</span>
-                    <span className="font-semibold">R$ 40,00</span>
+                    <span className="font-semibold">{formatBRL(PRICING.MATRICULA)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Material (Apostila 3 matérias)</span>
-                    <span className="font-semibold">R$ 150,00</span>
+                    <span className="font-semibold">{formatBRL(PRICING.MATERIAL)}</span>
                   </div>
                   <div className="border-t pt-3 flex justify-between">
                     <span className="font-bold text-foreground">Total</span>
-                    <span className="font-bold text-foreground text-lg">{PRICING.TOTAL.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
+                    <span className="font-bold text-foreground text-lg">{formatBRL(PRICING.TOTAL)}</span>
                   </div>
                 </div>
               </CardContent>
@@ -209,19 +209,19 @@ const Pagamento = () => {
                 <div className="flex items-center justify-between rounded-lg bg-muted p-3">
                   <div>
                     <p className="text-xs text-muted-foreground">Chave PIX</p>
-                    <p className="font-mono text-sm font-semibold">20.424.935/0001-02</p>
+                    <p className="font-mono text-sm font-semibold">{PIX.CHAVE_EXIBICAO}</p>
                   </div>
-                  <Button variant="ghost" size="icon" onClick={() => copyToClipboard("20424935000102")}>
+                  <Button variant="ghost" size="icon" onClick={() => copyToClipboard(PIX.CHAVE_COPIA)}>
                     <Copy className="h-4 w-4" />
                   </Button>
                 </div>
                 <div className="rounded-lg bg-muted p-3">
                   <p className="text-xs text-muted-foreground">Favorecido</p>
-                  <p className="text-sm font-semibold">Instituto Teológico Servo</p>
+                  <p className="text-sm font-semibold">{PIX.FAVORECIDO}</p>
                 </div>
                 <div className="rounded-lg bg-muted p-3">
                   <p className="text-xs text-muted-foreground">Banco</p>
-                  <p className="text-sm font-semibold">Cora</p>
+                  <p className="text-sm font-semibold">{PIX.BANCO}</p>
                 </div>
               </CardContent>
             </Card>
@@ -260,6 +260,14 @@ const Pagamento = () => {
                 >
                   {uploading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Enviando...</> : "Enviar Comprovante"}
                 </Button>
+                <p className="text-center text-sm text-muted-foreground">
+                  <Link
+                    to={`/consulta?numero=${encodeURIComponent(numero ?? "")}&token=${encodeURIComponent(token)}`}
+                    className="text-primary hover:underline"
+                  >
+                    Acompanhar minha inscrição
+                  </Link>
+                </p>
               </CardContent>
             </Card>
           </div>

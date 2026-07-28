@@ -20,17 +20,11 @@ import { cn } from "@/lib/utils";
 import { z } from "zod";
 import { maskCPF, maskPhone, validateCPF } from "@/lib/masks";
 import { supabase } from "@/integrations/supabase/client";
-import { criarInscricao } from "@its-servo/supabase";
+import { criarInscricao, NUCLEO_OPTIONS } from "@its-servo/supabase";
 import { useToast } from "@/hooks/use-toast";
 
-// Lista de núcleos disponíveis para inscrição presencial
-const nucleos = [
-  { value: "sede_jd_santa_monica", label: "Sede Jd. Santa Mônica (Barueri/SP)" },
-  { value: "engenho_novo", label: "Engenho Novo (Barueri/SP)" },
-  { value: "jd_conceicao", label: "Jd. Conceição (Osasco/SP)" },
-  { value: "ariston", label: "Ariston (Carapicuíba/SP)" },
-  { value: "maputo", label: "Maputo (Moçambique)" },
-];
+// Lista de núcleos disponíveis para inscrição presencial (fonte única do monorepo)
+const nucleos = NUCLEO_OPTIONS;
 
 /**
  * Schema de validação para dados de inscrição

@@ -1,0 +1,18 @@
+---
+// Hero interno padrão das páginas (gradiente navy + eyebrow/h1/subtítulo).
+interface Props {
+  eyebrow: string;
+  title: string;
+  subtitle?: string;
+}
+const { eyebrow, title, subtitle } = Astro.props;
+---
+<section class="section" style="background:linear-gradient(160deg,var(--navy-800),var(--navy-950));color:var(--on-dark);text-align:center">
+  <div class="wrap">
+    <span class="eyebrow" style="color:var(--gold-400);justify-content:center;display:inline-flex">{eyebrow}</span>
+    <h1 style="color:#fff;font-size:var(--text-5xl);margin:var(--sp-4) 0 var(--sp-3)">{title}</h1>
+    {subtitle && (
+      <p style="color:var(--on-dark-soft);max-width:56ch;margin:0 auto;font-size:var(--text-lg)">{subtitle}</p>
+    )}
+  </div>
+</section>

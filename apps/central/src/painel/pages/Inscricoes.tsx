@@ -38,6 +38,27 @@ const Inscricoes = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selected, setSelected] = useState<any>(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [openingComprovante, setOpeningComprovante] = useState(false);
+
+  const handleOpenComprovante = async (comprovanteUrl: string) => {
+    // Linhas antigas guardam URL pública completa; as novas, um path no bucket privado.
+    if (/^https?:\/\//.test(comprovanteUrl)) {
+      window.open(comprovanteUrl, "_blank", "noopener,noreferrer");
+      return;
+    }
+    setOpeningComprovante(true);
+    try {
+      const { data, error } = await supabase.storage
+        .from("comprovantes")
+        .createSignedUrl(comprovanteUrl, 600);
+      if (error) throw error;
+      window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+    } catch (err: any) {
+      toast({ title: "Erro ao abrir comprovante", description: err.message, variant: "destructive" });
+    } finally {
+      setOpeningComprovante(false);
+    }
+  };
 
   const handleStatusChange = async (id: string, newStatus: string, inscricao: any) => {
     setUpdatingStatus(true);
@@ -48,9 +69,10 @@ const Inscricoes = () => {
         .eq("id", id);
       if (error) throw error;
 
+      let emailFalhou = false;
       if (newStatus === "confirmada") {
         try {
-          await supabase.functions.invoke("enviar-email-confirmacao", {
+          const { error: fnError } = await supabase.functions.invoke("enviar-email-confirmacao", {
             body: {
               numero_inscricao: inscricao.numero_inscricao,
               nome: inscricao.nome_completo,
@@ -59,11 +81,22 @@ const Inscricoes = () => {
               nucleo: inscricao.nucleo,
             },
           });
-        } catch {}
+          if (fnError) throw fnError;
+        } catch {
+          emailFalhou = true;
+        }
       }
 
       await queryClient.invalidateQueries({ queryKey: INSCRICOES_KEY });
-      toast({ title: "Status atualizado!" });
+      if (emailFalhou) {
+        toast({
+          title: "Status atualizado, mas o e-mail de confirmação NÃO foi enviado",
+          description: "Avise o inscrito por outro canal ou tente confirmar novamente.",
+          variant: "destructive",
+        });
+      } else {
+        toast({ title: "Status atualizado!" });
+      }
       setSelected(null);
     } catch (err: any) {
       toast({ title: "Erro", description: err.message, variant: "destructive" });
@@ -302,14 +335,18 @@ const Inscricoes = () => {
               {selected.comprovante_url && (
                 <div className="rounded-lg border bg-muted/40 px-4 py-3">
                   <p className="text-xs text-muted-foreground mb-1">Comprovante enviado</p>
-                  <a
-                    href={selected.comprovante_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center text-sm font-medium text-primary hover:underline"
+                  <button
+                    type="button"
+                    disabled={openingComprovante}
+                    onClick={() => handleOpenComprovante(selected.comprovante_url)}
+                    className="inline-flex items-center text-sm font-medium text-primary hover:underline disabled:opacity-50"
                   >
-                    Abrir comprovante <ExternalLink className="ml-1 h-3 w-3" />
-                  </a>
+                    {openingComprovante ? (
+                      <>Abrindo… <Loader2 className="ml-1 h-3 w-3 animate-spin" /></>
+                    ) : (
+                      <>Abrir comprovante <ExternalLink className="ml-1 h-3 w-3" /></>
+                    )}
+                  </button>
                 </div>
               )}
 

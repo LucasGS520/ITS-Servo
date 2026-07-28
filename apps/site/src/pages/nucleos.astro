@@ -1,24 +1,26 @@
 ---
 import Base from '../layouts/Base.astro';
 import NucleoMap from '../components/NucleoMap.astro';
+import PageHero from '../components/PageHero.astro';
+import CtaInscricao from '../components/CtaInscricao.astro';
+import { NUCLEOS } from '@its-servo/supabase';
 const nucleos = [
-  { nome: 'Sede Jd. Santa Mônica', cidade: 'Barueri — SP', ref: 'Assembleia de Deus Ministério Família', formato: 'Presencial', global: false },
-  { nome: 'Engenho Novo', cidade: 'Barueri — SP', ref: 'Assembleia de Deus Ministério Família', formato: 'Presencial', global: false },
-  { nome: 'Jd. Conceição', cidade: 'Osasco — SP', ref: 'Assembleia de Deus Ministério Família', formato: 'Presencial', global: false },
-  { nome: 'Ariston', cidade: 'Carapicuíba — SP', ref: 'Assembleia de Deus Ministério Família', formato: 'Presencial', global: false },
+  ...NUCLEOS.map((n) => ({
+    nome: n.nome,
+    cidade: n.cidade.replace('/', ' — '),
+    ref: n.ref,
+    formato: 'Presencial',
+    global: false,
+  })),
   { nome: 'Correspondência', cidade: 'Todo o Brasil e exterior', ref: 'Material enviado para qualquer endereço', formato: 'À distância', global: true },
 ];
 ---
 <Base title="Nossos Núcleos — Instituto Teológico Servo">
-  <section class="section" style="background:linear-gradient(160deg,var(--navy-800),var(--navy-950));color:var(--on-dark);text-align:center">
-    <div class="wrap">
-      <span class="eyebrow" style="color:var(--gold-400);justify-content:center;display:inline-flex">Onde estudar</span>
-      <h1 style="color:#fff;font-size:var(--text-5xl);margin:var(--sp-4) 0 var(--sp-3)">Nossos Núcleos</h1>
-      <p style="color:var(--on-dark-soft);max-width:56ch;margin:0 auto;font-size:var(--text-lg)">
-        O ITS está presente em diversas localidades, levando formação teológica de qualidade para onde há necessidade.
-      </p>
-    </div>
-  </section>
+  <PageHero
+    eyebrow="Onde estudar"
+    title="Nossos Núcleos"
+    subtitle="O ITS está presente em diversas localidades, levando formação teológica de qualidade para onde há necessidade."
+  />
 
   <section class="section">
     <div class="wrap">
@@ -48,11 +50,5 @@ const nucleos = [
 
   <NucleoMap />
 
-  <section class="section" style="background:linear-gradient(160deg,var(--navy-800),var(--navy-950));color:var(--on-dark);text-align:center">
-    <div class="wrap">
-      <h2 style="color:#fff;font-size:var(--text-4xl)">Estude no núcleo mais próximo de você</h2>
-      <p style="color:var(--on-dark-soft);max-width:48ch;margin:var(--sp-3) auto var(--sp-8)">Inscreva-se e inicie sua formação teológica no ITS.</p>
-      <a class="btn btn--gold btn--lg" href="/inscricao">Inscreva-se Agora</a>
-    </div>
-  </section>
+  <CtaInscricao title="Estude no núcleo mais próximo de você" />
 </Base>

@@ -157,15 +157,23 @@
   /* ---------- 9. Nav: estado ao rolar + barra de progresso ---------- */
   var nav = document.querySelector('.nav');
   var progress = document.getElementById('nav-progress');
+  /* scrollHeight força reflow — medir fora do handler de scroll e recalcular
+     só quando o layout muda (resize/load). */
+  var scrollRange = 0;
+  function measureScrollRange(){
+    scrollRange = document.documentElement.scrollHeight - window.innerHeight;
+  }
   function onScroll(){
     var y = window.scrollY || window.pageYOffset;
     if(nav) nav.classList.toggle('is-scrolled', y > 24);
     if(progress){
-      var h = document.documentElement.scrollHeight - window.innerHeight;
-      progress.style.width = (h > 0 ? (y / h) * 100 : 0) + '%';
+      progress.style.width = (scrollRange > 0 ? (y / scrollRange) * 100 : 0) + '%';
     }
   }
   window.addEventListener('scroll', onScroll, { passive:true });
+  window.addEventListener('resize', function(){ measureScrollRange(); onScroll(); }, { passive:true });
+  window.addEventListener('load', function(){ measureScrollRange(); onScroll(); });
+  measureScrollRange();
   onScroll();
 
   /* ---------- 10. Spotlight que segue o cursor nos cartões ---------- */

@@ -4,12 +4,17 @@
 @tailwind utilities;
 
 /* Fontes da marca (compartilhadas com o Site): Fraunces (títulos) + Raleway (UI) */
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,900&family=Raleway:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,900&family=Raleway:wght@400;500;600;700&display=swap');
+
+/* Tokens da marca (fonte única). Os hex ficam disponíveis como var(--navy-*),
+ * var(--gold-*) etc. em toda a Central. */
+@import '@its-servo/design-system/tokens.css';
 
 /* ------------------------------------------------------------------ *
- * Tokens da marca ITS-Servo mapeados para o tema shadcn (HSL).
- * Fonte de verdade das cores: packages/design-system (pergaminho + azul-
- * marinho + ouro). Ver docs/arquitetura.md §4 (design system compartilhado).
+ * PONTE shadcn/Tailwind: o Tailwind compõe alpha via `hsl(var(--x) / a)`,
+ * o que exige triplas HSL CRUAS — não dá para derivar de var() hex aqui.
+ * Cada linha abaixo ESPELHA um token de packages/design-system/tokens.css
+ * (anotado ao lado). Ao mudar a paleta lá, atualizar este bloco junto.
  * ------------------------------------------------------------------ */
 @layer base {
   :root {

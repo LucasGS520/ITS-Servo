@@ -6,7 +6,7 @@ import {
   Quote, MapPin, Mail, CheckCircle, GraduationCap,
 } from "lucide-react";
 import logoIts from "@/assets/logo-its.jpeg";
-import mocambique2 from "@/assets/mocambique2.png";
+import mocambique2 from "@/assets/mocambique2.webp";
 
 const disciplinas = [
   { title: "Bibliologia", desc: "Estudo sobre a Bíblia, sua inspiração, formação e autoridade." },

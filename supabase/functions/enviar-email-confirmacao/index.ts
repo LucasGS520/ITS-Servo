@@ -8,27 +8,14 @@
  * → 200 { success: true }
  */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.97.0";
 import { json } from "../_shared/cors.ts";
 import { sendEmail, baseTemplate } from "../_shared/email.ts";
-
-const nucleoInfo: Record<string, string> = {
-  sede_jd_santa_monica: "Sede Jd. Santa Mônica — Barueri/SP",
-  engenho_novo: "Engenho Novo — Barueri/SP",
-  jd_conceicao: "Jd. Conceição — Osasco/SP",
-  ariston: "Ariston — Carapicuíba/SP",
-  maputo: "Maputo — Moçambique",
-};
+import { callerClient } from "../_shared/admin.ts";
+import { NUCLEO_LABELS } from "../_shared/nucleos.ts";
 
 async function isAdmin(authHeader: string | null): Promise<boolean> {
   if (!authHeader) return false;
-  const url = Deno.env.get("SUPABASE_URL")!;
-  const anon = Deno.env.get("SUPABASE_ANON_KEY")!;
-  const client = createClient(url, anon, {
-    global: { headers: { Authorization: authHeader } },
-    auth: { persistSession: false },
-  });
-  const { data, error } = await client.rpc("is_admin");
+  const { data, error } = await callerClient(authHeader).rpc("is_admin");
   return !error && data === true;
 }
 
@@ -47,7 +34,7 @@ serve(async (req) => {
 
     const detalhe =
       modalidade === "presencial" && nucleo
-        ? `Suas aulas serão no núcleo: <strong>${nucleoInfo[nucleo] ?? nucleo}</strong>. Em breve você receberá os horários.`
+        ? `Suas aulas serão no núcleo: <strong>${NUCLEO_LABELS[nucleo] ?? nucleo}</strong>. Em breve você receberá os horários.`
         : "Você receberá o material por correspondência. Aguarde as instruções de envio.";
 
     await sendEmail(

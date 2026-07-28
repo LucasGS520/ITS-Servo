@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Target, Eye, Heart, Globe, BookOpen } from "lucide-react";
-import mocambique1 from "@/assets/mocambique1.png";
+import mocambique1 from "@/assets/mocambique1.webp";
 
 /**
  * Componente da página "Quem Somos"

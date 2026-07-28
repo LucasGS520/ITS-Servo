@@ -12,3 +12,19 @@ export function adminClient(): SupabaseClient {
   }
   return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 }
+
+/**
+ * Client no contexto do CHAMADOR (anon key + Authorization repassado) —
+ * respeita RLS e permite RPCs como `is_admin` avaliarem o usuário real.
+ */
+export function callerClient(authHeader: string): SupabaseClient {
+  const url = Deno.env.get("SUPABASE_URL");
+  const anon = Deno.env.get("SUPABASE_ANON_KEY");
+  if (!url || !anon) {
+    throw new Error("SUPABASE_URL / SUPABASE_ANON_KEY ausentes no ambiente da função.");
+  }
+  return createClient(url, anon, {
+    global: { headers: { Authorization: authHeader } },
+    auth: { persistSession: false },
+  });
+}

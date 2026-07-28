@@ -28,7 +28,8 @@ export type Database = {
        */
       inscricoes: {
         Row: {
-          comprovante_url: string | null /** URL do comprovante de inscrição (opcional) */
+          comprovante_url: string | null /** Path do comprovante no bucket privado (linhas antigas: URL pública) */
+          consulta_token_hash: string | null /** SHA-256 do token de autosserviço (nunca exposto ao client) */
           cpf: string /** CPF do candidato */
           created_at: string /** Data de criação do registro */
           data_nascimento: string /** Data de nascimento do candidato */
@@ -44,7 +45,8 @@ export type Database = {
           updated_at: string /** Data da última atualização */
         }
         Insert: {
-          comprovante_url?: string | null /** URL do comprovante de inscrição (opcional) */
+          comprovante_url?: string | null /** Path do comprovante no bucket privado (opcional) */
+          consulta_token_hash?: string | null /** SHA-256 do token de autosserviço */
           cpf: string /** CPF do candidato */
           created_at?: string /** Data de criação do registro (preenchido automaticamente) */
           data_nascimento: string /** Data de nascimento do candidato */
@@ -60,7 +62,8 @@ export type Database = {
           updated_at?: string /** Data da última atualização (preenchido automaticamente) */
         }
         Update: {
-          comprovante_url?: string | null /** URL do comprovante de inscrição (opcional) */
+          comprovante_url?: string | null /** Path do comprovante no bucket privado (opcional) */
+          consulta_token_hash?: string | null /** SHA-256 do token de autosserviço */
           cpf?: string /** CPF do candidato */
           created_at?: string /** Data de criação do registro (não deve ser atualizado) */
           data_nascimento?: string /** Data de nascimento do candidato */
@@ -123,6 +126,29 @@ export type Database = {
       }
       /** Verifica se o usuário logado é administrador */
       is_admin: { Args: never; Returns: boolean }
+      /** Autosserviço: lê a própria inscrição mediante token de posse (SECURITY DEFINER) */
+      buscar_inscricao: {
+        Args: { p_numero: string; p_token: string }
+        Returns: {
+          numero_inscricao: string
+          nome_completo: string
+          email: string
+          telefone: string
+          cpf: string
+          data_nascimento: string
+          escolaridade: string
+          modalidade: string
+          nucleo: string | null
+          status: string
+          comprovante_url: string | null
+          created_at: string
+        }[]
+      }
+      /** Autosserviço: cancela a própria inscrição pendente mediante token (SECURITY DEFINER) */
+      cancelar_inscricao: {
+        Args: { p_numero: string; p_token: string }
+        Returns: boolean
+      }
     }
     Enums: {
       /** Papéis disponíveis no sistema */

@@ -1,5 +1,8 @@
 ---
 import Base from '../layouts/Base.astro';
+import { NUCLEOS } from '@its-servo/supabase';
+const numNucleos = NUCLEOS.length;
+const numCidades = new Set(NUCLEOS.map((n) => n.cidade.split('/')[0])).size;
 ---
 <Base>
 
@@ -41,8 +44,8 @@ import Base from '../layouts/Base.astro';
       <a href="/quem-somos" class="btn btn--outline btn--lg">Conheça o ITS</a>
     </div>
     <div class="hero__stats">
-      <div><div class="stat__num"><span data-count="5">0</span></div><div class="stat__label">Núcleos ativos</div></div>
-      <div><div class="stat__num"><span data-count="3">0</span></div><div class="stat__label">Cidades atendidas</div></div>
+      <div><div class="stat__num"><span data-count={numNucleos}>0</span></div><div class="stat__label">Núcleos ativos</div></div>
+      <div><div class="stat__num"><span data-count={numCidades}>0</span></div><div class="stat__label">Cidades atendidas</div></div>
       <div><div class="stat__num"><span data-count="36">0</span></div><div class="stat__label">Disciplinas no currículo</div></div>
       <div><div class="stat__num"><span data-count="3">0</span></div><div class="stat__label">Níveis de formação</div></div>
     </div>
@@ -164,26 +167,16 @@ import Base from '../layouts/Base.astro';
     <div class="section__head section__head--center reveal">
       <span class="eyebrow">Presença</span>
       <h2 class="section__title">Onde estudar?</h2>
-      <p class="section__desc">5 núcleos ativos — presencial na Grande São Paulo, ou por correspondência em qualquer lugar.</p>
+      <p class="section__desc">{numNucleos} núcleos ativos — presencial na Grande São Paulo, ou por correspondência em qualquer lugar.</p>
     </div>
 
     <div class="grid cols-3">
-      <div class="nucleo reveal">
-        <span class="nucleo__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.2-7-11a7 7 0 0 1 14 0c0 5.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
-        <div><p class="nucleo__name">Sede Jd. Santa Mônica</p><p class="nucleo__city">Barueri/SP</p></div>
-      </div>
-      <div class="nucleo reveal" data-delay="1">
-        <span class="nucleo__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.2-7-11a7 7 0 0 1 14 0c0 5.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
-        <div><p class="nucleo__name">Engenho Novo</p><p class="nucleo__city">Barueri/SP</p></div>
-      </div>
-      <div class="nucleo reveal" data-delay="2">
-        <span class="nucleo__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.2-7-11a7 7 0 0 1 14 0c0 5.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
-        <div><p class="nucleo__name">Jd. Conceição</p><p class="nucleo__city">Osasco/SP</p></div>
-      </div>
-      <div class="nucleo reveal">
-        <span class="nucleo__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.2-7-11a7 7 0 0 1 14 0c0 5.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
-        <div><p class="nucleo__name">Ariston</p><p class="nucleo__city">Carapicuíba/SP</p></div>
-      </div>
+      {NUCLEOS.map((n, i) => (
+        <div class="nucleo reveal" data-delay={i % 3 || undefined}>
+          <span class="nucleo__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.2-7-11a7 7 0 0 1 14 0c0 5.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
+          <div><p class="nucleo__name">{n.nome}</p><p class="nucleo__city">{n.cidade}</p></div>
+        </div>
+      ))}
       <div class="nucleo reveal" data-delay="1">
         <span class="nucleo__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="m22 6-10 7L2 6"/></svg></span>
         <div><p class="nucleo__name">Correspondência</p><p class="nucleo__city">Todo o Brasil e exterior</p></div>
@@ -307,7 +300,7 @@ import Base from '../layouts/Base.astro';
         <a class="btn btn--primary" href="/quem-somos">Conheça nossa história</a>
       </div>
       <figure class="split__media reveal" data-anim="right">
-        <img src="/img/mocambique2.png" alt="Formatura de alunos do ITS em Moçambique" loading="lazy" />
+        <img src="/img/mocambique2.webp" alt="Formatura de alunos do ITS em Moçambique" loading="lazy" />
         <span class="badge badge--gold split__badge"><span class="dot"></span>Missão internacional</span>
       </figure>
     </div>

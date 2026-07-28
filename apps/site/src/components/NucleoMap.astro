@@ -3,13 +3,9 @@
 // Leaflet + OpenStreetMap + Nominatim (geocoding) — grátis, sem API key.
 // Coordenadas APROXIMADAS por bairro — TODO: refinar com endereços reais.
 import 'leaflet/dist/leaflet.css';
+import { NUCLEOS } from '@its-servo/supabase';
 
-const nucleos = [
-  { nome: 'Sede Jd. Santa Mônica', cidade: 'Barueri/SP', lat: -23.509, lng: -46.876 },
-  { nome: 'Engenho Novo', cidade: 'Barueri/SP', lat: -23.523, lng: -46.869 },
-  { nome: 'Jd. Conceição', cidade: 'Osasco/SP', lat: -23.532, lng: -46.792 },
-  { nome: 'Ariston', cidade: 'Carapicuíba/SP', lat: -23.528, lng: -46.836 },
-];
+const nucleos = NUCLEOS.map(({ nome, cidade, lat, lng }) => ({ nome, cidade, lat, lng }));
 ---
 <section class="section" id="encontrar">
   <div class="wrap">

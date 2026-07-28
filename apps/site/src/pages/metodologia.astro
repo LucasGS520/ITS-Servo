@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
 const estrutura = [
   { title: 'Módulos Temáticos', desc: 'O conteúdo é organizado em módulos progressivos, permitindo que o aluno avance gradualmente no aprendizado teológico.' },
   { title: 'Carga Horária', desc: 'Cada disciplina tem duração de aproximadamente 1 mês, com aulas semanais de 1h30 — totalizando cerca de 6 horas/aula por disciplina.' },
@@ -8,15 +9,11 @@ const estrutura = [
 ];
 ---
 <Base title="Metodologia — Instituto Teológico Servo">
-  <section class="section" style="background:linear-gradient(160deg,var(--navy-800),var(--navy-950));color:var(--on-dark);text-align:center">
-    <div class="wrap">
-      <span class="eyebrow" style="color:var(--gold-400);justify-content:center;display:inline-flex">Como ensinamos</span>
-      <h1 style="color:#fff;font-size:var(--text-5xl);margin:var(--sp-4) 0 var(--sp-3)">Metodologia e Material Didático</h1>
-      <p style="color:var(--on-dark-soft);max-width:56ch;margin:0 auto;font-size:var(--text-lg)">
-        Entenda como funciona o ensino no Instituto Teológico Servo.
-      </p>
-    </div>
-  </section>
+  <PageHero
+    eyebrow="Como ensinamos"
+    title="Metodologia e Material Didático"
+    subtitle="Entenda como funciona o ensino no Instituto Teológico Servo."
+  />
 
   <section class="section">
     <div class="wrap" style="max-width:62ch">

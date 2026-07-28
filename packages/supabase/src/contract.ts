@@ -31,13 +31,29 @@ export interface InscricaoResumo {
   created_at: string;
 }
 
+/**
+ * Erros de edge function chegam como FunctionsHttpError genérico ("non-2xx");
+ * a mensagem real ({ error }) fica no Response em `error.context`. Sem isso,
+ * todo 400/403/409 vira um toast opaco para o usuário.
+ */
+async function comMensagemDoServidor(error: unknown): Promise<never> {
+  const ctx = (error as { context?: Response }).context;
+  if (ctx && typeof ctx.clone === "function") {
+    const body = await ctx.clone().json().catch(() => null);
+    if (body && typeof body.error === "string" && body.error) {
+      throw new Error(body.error);
+    }
+  }
+  throw error;
+}
+
 /** Site → cria a inscrição. Retorna o número e o token de autosserviço (mostrar/guardar uma vez). */
 export async function criarInscricao(
   client: SupabaseClient,
   dto: InscricaoDTO,
 ): Promise<{ numero_inscricao: string; token: string }> {
   const { data, error } = await client.functions.invoke("criar-inscricao", { body: dto });
-  if (error) throw error;
+  if (error) await comMensagemDoServidor(error);
   return data as { numero_inscricao: string; token: string };
 }
 
@@ -75,11 +91,10 @@ export async function enviarComprovante(
       numero: params.numero,
       token: params.token,
       file_base64,
-      filename: params.file.name,
       content_type: params.file.type,
     },
   });
-  if (error) throw error;
+  if (error) await comMensagemDoServidor(error);
 }
 
 function fileToBase64(file: File): Promise<string> {
