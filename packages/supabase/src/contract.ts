@@ -51,10 +51,10 @@ async function comMensagemDoServidor(error: unknown): Promise<never> {
 export async function criarInscricao(
   client: SupabaseClient,
   dto: InscricaoDTO,
-): Promise<{ numero_inscricao: string; token: string }> {
+): Promise<{ numero_inscricao: string; token: string; email_enviado: boolean }> {
   const { data, error } = await client.functions.invoke("criar-inscricao", { body: dto });
   if (error) await comMensagemDoServidor(error);
-  return data as { numero_inscricao: string; token: string };
+  return data as { numero_inscricao: string; token: string; email_enviado: boolean };
 }
 
 /** Autosserviço → lê a própria inscrição mediante token (RPC SECURITY DEFINER). */

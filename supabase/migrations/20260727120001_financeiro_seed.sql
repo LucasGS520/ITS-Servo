@@ -34,22 +34,27 @@ INSERT INTO public.categorias_financeiras (nome, tipo) VALUES
   ('Aquisição de materiais',   'saida'),
   ('Ajuda de custo Professor', 'saida'),
   ('Devolução Matrícula/Livros','saida'),
-  ('Contabilidade Lobato',     'saida');
+  ('Contabilidade Lobato',     'saida')
+ON CONFLICT (nome, tipo) DO NOTHING;
 
 -- ----------------------------------------------------------------------------
 -- 2) Saldo inicial (transportado da gestão anterior)
 -- ----------------------------------------------------------------------------
 INSERT INTO public.lancamentos_financeiros (tipo, valor, data, competencia, unidade, categoria_id, descricao)
-VALUES (
+SELECT
   'entrada', 13067.29, DATE '2025-12-31', DATE '2025-12-01', NULL,
   (SELECT id FROM public.categorias_financeiras WHERE nome = 'Saldo inicial' AND tipo = 'entrada'),
   'Saldo transportado da planilha (anterior a jan/2026)'
+WHERE NOT EXISTS (
+  SELECT 1 FROM public.lancamentos_financeiros WHERE descricao LIKE 'Saldo transportado%'
 );
 
 -- ----------------------------------------------------------------------------
 -- 3) Alunos legados (nomes das abas; sem inscricao_id)
+--    Idempotente: só insere se ainda não existe nenhum aluno legado.
 -- ----------------------------------------------------------------------------
-INSERT INTO public.alunos (nome, unidade) VALUES
+INSERT INTO public.alunos (nome, unidade)
+SELECT v.nome, v.unidade FROM (VALUES
   -- ENGENHO NOVO (13)
   ('LUCAS SILVA DE LIMA',            'engenho_novo'),
   ('ALMERISO DOS SANTOS',            'engenho_novo'),
@@ -117,7 +122,9 @@ INSERT INTO public.alunos (nome, unidade) VALUES
   ('FABRICIO MIRANDA DO L.',         'correspondencia'),
   ('INARA BRENDA',                   'correspondencia'),
   ('IRANEIDE DOS SANTOS BARBOSA',    'correspondencia'),
-  ('GERALDO LOPES DA SILVA',         'correspondencia');
+  ('GERALDO LOPES DA SILVA',         'correspondencia')
+) AS v(nome, unidade)
+WHERE NOT EXISTS (SELECT 1 FROM public.alunos WHERE inscricao_id IS NULL);
 
 -- ----------------------------------------------------------------------------
 -- 4) Pagamentos de alunos jan–jun/2026 (células não-zero das abas por unidade)
@@ -128,6 +135,12 @@ DECLARE
   esperado INT;
   inserido INT;
 BEGIN
+  -- Idempotente: lote já importado → pula.
+  IF EXISTS (SELECT 1 FROM public.lancamentos_financeiros WHERE descricao = 'Importado da planilha 2026') THEN
+    RAISE NOTICE 'Seed de pagamentos já aplicado — pulando.';
+    RETURN;
+  END IF;
+
   WITH pagamentos (nome, unidade, mes, valor) AS (
     VALUES
       -- ENGENHO NOVO
@@ -213,14 +226,18 @@ END $$;
 --    Aquisição de materiais, saída de R$ 1.000,00 em junho.
 -- ----------------------------------------------------------------------------
 INSERT INTO public.lancamentos_financeiros (tipo, valor, data, competencia, unidade, categoria_id, descricao)
-VALUES (
+SELECT
   'saida', 1000.00, DATE '2026-06-01', DATE '2026-06-01', NULL,
   (SELECT id FROM public.categorias_financeiras WHERE nome = 'Aquisição de materiais' AND tipo = 'saida'),
   'Importado da planilha 2026 (aba GERAL)'
+WHERE NOT EXISTS (
+  SELECT 1 FROM public.lancamentos_financeiros WHERE descricao = 'Importado da planilha 2026 (aba GERAL)'
 );
 
 -- ----------------------------------------------------------------------------
--- 6) Conferência contra a aba GERAL — falha a migration se divergir
+-- 6) Conferência contra a aba GERAL — falha a migration se a transcrição
+--    divergir. Escopada ao LOTE IMPORTADO (descricao do seed), para não quebrar
+--    caso já existam alunos/lançamentos reais no banco no momento do push.
 -- ----------------------------------------------------------------------------
 DO $$
 DECLARE
@@ -228,46 +245,53 @@ DECLARE
   soma NUMERIC;
   m INT;
 BEGIN
-  -- total de alunos importados
-  SELECT count(*) INTO soma FROM public.alunos;
-  ASSERT soma = 63, format('Esperados 63 alunos, encontrados %s', soma);
+  -- total de alunos LEGADOS importados (os do trigger têm inscricao_id)
+  SELECT count(*) INTO soma FROM public.alunos WHERE inscricao_id IS NULL;
+  ASSERT soma = 63, format('Esperados 63 alunos legados, encontrados %s', soma);
 
-  -- ENTRADA MÊS por mês (exclui saldo inicial, que é competência 2025-12)
+  -- ENTRADA MÊS por mês (somente o lote importado)
   FOR m IN 1..6 LOOP
     SELECT COALESCE(sum(valor), 0) INTO soma
       FROM public.lancamentos_financeiros
-      WHERE tipo = 'entrada' AND competencia = make_date(2026, m, 1);
+      WHERE tipo = 'entrada' AND competencia = make_date(2026, m, 1)
+        AND descricao LIKE 'Importado da planilha 2026%';
     ASSERT soma = esperado_mes[m],
       format('ENTRADA MÊS %s: esperado %s, obtido %s', m, esperado_mes[m], soma);
   END LOOP;
 
-  -- SAÍDA de junho
+  -- SAÍDA de junho (lote importado)
   SELECT COALESCE(sum(valor), 0) INTO soma
     FROM public.lancamentos_financeiros
-    WHERE tipo = 'saida' AND competencia = DATE '2026-06-01';
+    WHERE tipo = 'saida' AND competencia = DATE '2026-06-01'
+      AND descricao LIKE 'Importado da planilha 2026%';
   ASSERT soma = 1000, format('SAÍDA jun: esperado 1000, obtido %s', soma);
 
-  -- amostras por unidade (rodapés das abas)
+  -- amostras por unidade (rodapés das abas; lote importado)
   SELECT COALESCE(sum(valor), 0) INTO soma FROM public.lancamentos_financeiros
-    WHERE unidade = 'engenho_novo' AND tipo = 'entrada' AND competencia = DATE '2026-03-01';
+    WHERE unidade = 'engenho_novo' AND tipo = 'entrada' AND competencia = DATE '2026-03-01'
+      AND descricao LIKE 'Importado da planilha 2026%';
   ASSERT soma = 1040, format('Engenho Novo mar: esperado 1040, obtido %s', soma);
 
   SELECT COALESCE(sum(valor), 0) INTO soma FROM public.lancamentos_financeiros
-    WHERE unidade = 'ariston' AND tipo = 'entrada';
+    WHERE unidade = 'ariston' AND tipo = 'entrada'
+      AND descricao LIKE 'Importado da planilha 2026%';
   ASSERT soma = 1500, format('Ariston total: esperado 1500, obtido %s', soma);
 
   SELECT COALESCE(sum(valor), 0) INTO soma FROM public.lancamentos_financeiros
-    WHERE unidade = 'jd_conceicao' AND tipo = 'entrada' AND competencia = DATE '2026-01-01';
+    WHERE unidade = 'jd_conceicao' AND tipo = 'entrada' AND competencia = DATE '2026-01-01'
+      AND descricao LIKE 'Importado da planilha 2026%';
   ASSERT soma = 390, format('Osasco jan: esperado 390, obtido %s', soma);
 
   SELECT COALESCE(sum(valor), 0) INTO soma FROM public.lancamentos_financeiros
-    WHERE unidade = 'correspondencia' AND tipo = 'entrada' AND competencia = DATE '2026-03-01';
+    WHERE unidade = 'correspondencia' AND tipo = 'entrada' AND competencia = DATE '2026-03-01'
+      AND descricao LIKE 'Importado da planilha 2026%';
   ASSERT soma = 490, format('Correspondência mar: esperado 490, obtido %s', soma);
 
-  -- SALDO acumulado até jun/2026 (saldo inicial + entradas - saídas) = célula G23
+  -- SALDO acumulado até jun/2026 do lote (saldo inicial + importados) = G23
   SELECT COALESCE(sum(CASE WHEN tipo = 'entrada' THEN valor ELSE -valor END), 0) INTO soma
     FROM public.lancamentos_financeiros
-    WHERE competencia <= DATE '2026-06-01';
+    WHERE competencia <= DATE '2026-06-01'
+      AND (descricao LIKE 'Importado da planilha 2026%' OR descricao LIKE 'Saldo transportado%');
   ASSERT soma = 18517.29, format('Saldo até jun/2026: esperado 18517.29, obtido %s', soma);
 
   RAISE NOTICE 'Seed financeiro conferido com a planilha: OK';

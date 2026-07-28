@@ -88,9 +88,9 @@ serve(async (req) => {
     // A inscrição já está persistida: falha de e-mail não pode derrubar a resposta,
     // senão o usuário resubmete e cria duplicata sem nunca receber numero/token.
     const link = `${SELF_SERVICE_URL}/inscricao/pagamento/${numero}?token=${token}`;
-    let email_enviado = true;
+    let email_enviado = false;
     try {
-      await sendEmail(
+      email_enviado = await sendEmail(
         dto.email!.trim(),
         `Inscrição recebida — ${numero}`,
         baseTemplate(
@@ -102,7 +102,6 @@ serve(async (req) => {
         ),
       );
     } catch (emailErr) {
-      email_enviado = false;
       console.error("criar-inscricao: falha ao enviar e-mail de confirmação:", emailErr);
     }
 

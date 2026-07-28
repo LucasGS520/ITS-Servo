@@ -129,11 +129,17 @@ const nucleos = NUCLEO_OPTIONS;
     btn.textContent = 'Enviando…';
     try {
       const supabase = createBrowserClient(url, key);
-      const { numero_inscricao, token } = await criarInscricao(supabase, dto);
+      const { numero_inscricao, token, email_enviado } = await criarInscricao(supabase, dto);
       if (centralUrl) {
         window.location.href = `${centralUrl}/inscricao/pagamento/${numero_inscricao}?token=${encodeURIComponent(token)}`;
       } else {
-        msg.innerHTML = `Inscrição <strong>${numero_inscricao}</strong> criada! Enviamos um link de pagamento para o seu e-mail.`;
+        // Sem redirect, o numero+token exibidos aqui são o ÚNICO acesso do
+        // usuário caso o e-mail não tenha saído — nunca descartar.
+        const aviso = email_enviado
+          ? 'Enviamos um link de pagamento para o seu e-mail.'
+          : '<strong>Não foi possível enviar o e-mail.</strong> Guarde os dados abaixo — eles são o seu acesso à inscrição.';
+        msg.innerHTML = `Inscrição <strong>${numero_inscricao}</strong> criada! ${aviso}<br>
+          Número: <strong>${numero_inscricao}</strong> — Código de acesso: <code>${token}</code>`;
         form.reset();
         nucleoWrap.style.display = 'none';
       }

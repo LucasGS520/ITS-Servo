@@ -157,11 +157,14 @@ const Inscricoes = () => {
     const matchStatus = filterStatus === "todos" || i.status === filterStatus;
     if (!searchTerm.trim()) return matchStatus;
     const term = searchTerm.toLowerCase();
+    // Só comparar com CPF quando o termo tem dígitos — includes("") é sempre
+    // true e anularia a busca por nome/e-mail.
+    const digits = term.replace(/\D/g, "");
     return (
       matchStatus &&
       (i.nome_completo?.toLowerCase().includes(term) ||
         i.numero_inscricao?.toLowerCase().includes(term) ||
-        i.cpf?.includes(term.replace(/\D/g, "")) ||
+        (digits !== "" && i.cpf?.includes(digits)) ||
         i.email?.toLowerCase().includes(term))
     );
   });

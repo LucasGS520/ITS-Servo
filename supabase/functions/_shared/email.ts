@@ -12,10 +12,16 @@
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const EMAIL_FROM = Deno.env.get("EMAIL_FROM");
 
-export async function sendEmail(to: string, subject: string, html: string): Promise<void> {
+/**
+ * @returns `true` se o e-mail foi de fato enviado; `false` quando o provider
+ * não está configurado (RESEND_API_KEY ausente — modo "código pronto, chave
+ * depois"). Falha de envio real lança. Callers NÃO devem reportar sucesso de
+ * e-mail quando receberem `false`.
+ */
+export async function sendEmail(to: string, subject: string, html: string): Promise<boolean> {
   if (!RESEND_API_KEY) {
     console.warn(`[email] RESEND_API_KEY ausente — e-mail NÃO enviado. to=${to} subject="${subject}"`);
-    return;
+    return false;
   }
   // Com a chave presente, remetente ausente é erro de configuração — enviar de
   // um domínio placeholder falharia no Resend de forma opaca.
@@ -33,6 +39,7 @@ export async function sendEmail(to: string, subject: string, html: string): Prom
   if (!res.ok) {
     throw new Error(`Resend falhou (${res.status}): ${await res.text()}`);
   }
+  return true;
 }
 
 /**

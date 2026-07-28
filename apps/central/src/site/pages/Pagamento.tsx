@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CheckCircle, Upload, Loader2, Copy } from "lucide-react";
+import { CheckCircle, Upload, Loader2, Copy, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { buscarInscricao, enviarComprovante } from "@its-servo/supabase";
 import { useToast } from "@/hooks/use-toast";
@@ -44,10 +44,9 @@ const Pagamento = () => {
       try {
         // Contrato: leitura só com token de posse (RPC). Sem token → sem acesso.
         const insc = await buscarInscricao(supabase, numero!, token);
-        if (insc) {
-          setInscricao(insc);
-          if (insc.status !== "aguardando_pagamento" && insc.status !== "pagamento_nao_identificado") setEnviado(true);
-        }
+        // A tela certa é derivada do status real (cancelada/confirmada/em
+        // análise); `enviado` fica só para o upload feito nesta sessão.
+        if (insc) setInscricao(insc);
       } catch {
         // não encontrada / token inválido → inscricao permanece null
       }
@@ -126,29 +125,43 @@ const Pagamento = () => {
     );
   }
 
-  if (enviado) {
+  // Telas terminais/estado — derivadas do status real da inscrição
+  if (inscricao.status === "cancelado") {
     return (
-      <>
-        <section className="py-24 md:py-32">
-          <div className="container">
-            <div className="mx-auto max-w-md text-center">
-              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-secondary/10">
-                <CheckCircle className="h-10 w-10 text-secondary" />
-              </div>
-              <h1 className="text-2xl font-bold text-foreground md:text-3xl">Comprovante Enviado!</h1>
-              <p className="mt-4 text-lg text-muted-foreground">
-                Seu pagamento está em análise. Você receberá um e-mail com a confirmação em breve.
-              </p>
-              <Card className="mt-8 text-left">
-                <CardContent className="p-6">
-                  <p className="text-sm text-muted-foreground"><strong>Número da inscrição:</strong> {numero}</p>
-                  <p className="text-sm text-muted-foreground mt-1"><strong>Aluno:</strong> {inscricao.nome_completo}</p>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </section>
-      </>
+      <StatusScreen
+        icone={<XCircle className="h-10 w-10 text-destructive" />}
+        iconeBg="bg-destructive/10"
+        titulo="Inscrição cancelada"
+        texto="Esta inscrição foi cancelada e não aceita mais pagamentos. Se desejar estudar no ITS, faça uma nova inscrição."
+        numero={numero}
+        nome={inscricao.nome_completo}
+      />
+    );
+  }
+
+  if (inscricao.status === "confirmada") {
+    return (
+      <StatusScreen
+        icone={<CheckCircle className="h-10 w-10 text-secondary" />}
+        iconeBg="bg-secondary/10"
+        titulo="Matrícula confirmada!"
+        texto="Seu pagamento foi confirmado. Bem-vindo(a) ao Instituto Teológico Servo — você receberá as orientações por e-mail."
+        numero={numero}
+        nome={inscricao.nome_completo}
+      />
+    );
+  }
+
+  if (enviado || inscricao.status === "comprovante_enviado") {
+    return (
+      <StatusScreen
+        icone={<CheckCircle className="h-10 w-10 text-secondary" />}
+        iconeBg="bg-secondary/10"
+        titulo="Comprovante Enviado!"
+        texto="Seu pagamento está em análise. Você receberá um e-mail com a confirmação em breve."
+        numero={numero}
+        nome={inscricao.nome_completo}
+      />
     );
   }
 
@@ -276,5 +289,40 @@ const Pagamento = () => {
     </>
   );
 };
+
+/** Tela terminal do autosserviço (cancelada / confirmada / em análise). */
+const StatusScreen = ({
+  icone,
+  iconeBg,
+  titulo,
+  texto,
+  numero,
+  nome,
+}: {
+  icone: React.ReactNode;
+  iconeBg: string;
+  titulo: string;
+  texto: string;
+  numero?: string;
+  nome: string;
+}) => (
+  <section className="py-24 md:py-32">
+    <div className="container">
+      <div className="mx-auto max-w-md text-center">
+        <div className={`mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full ${iconeBg}`}>
+          {icone}
+        </div>
+        <h1 className="text-2xl font-bold text-foreground md:text-3xl">{titulo}</h1>
+        <p className="mt-4 text-lg text-muted-foreground">{texto}</p>
+        <Card className="mt-8 text-left">
+          <CardContent className="p-6">
+            <p className="text-sm text-muted-foreground"><strong>Número da inscrição:</strong> {numero}</p>
+            <p className="text-sm text-muted-foreground mt-1"><strong>Aluno:</strong> {nome}</p>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  </section>
+);
 
 export default Pagamento;

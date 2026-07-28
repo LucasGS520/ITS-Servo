@@ -43,8 +43,17 @@ serve(async (req) => {
 
   try {
     const { numero, token, file_base64, content_type } = await req.json();
-    if (!numero || !token || !file_base64) return json({ error: "Dados incompletos." }, 400, origin);
+    if (!numero || !token || typeof file_base64 !== "string" || !file_base64) {
+      return json({ error: "Dados incompletos." }, 400, origin);
+    }
     if (!(content_type in ALLOWED)) return json({ error: "Formato inválido. Use JPG, PNG, WebP ou PDF." }, 400, origin);
+
+    // Rejeitar pelo TAMANHO DA STRING antes do atob: decodificar primeiro
+    // permitiria a um anônimo alocar dezenas de MB na memória do worker.
+    // base64 infla ~4/3, então 5MB ≈ 6,67M chars (+ margem de header/padding).
+    if (file_base64.length > Math.ceil((MAX_BYTES * 4) / 3) + 2048) {
+      return json({ error: "Arquivo muito grande (máx 5MB)." }, 400, origin);
+    }
 
     const bytes = b64ToBytes(file_base64);
     if (bytes.byteLength > MAX_BYTES) return json({ error: "Arquivo muito grande (máx 5MB)." }, 400, origin);
