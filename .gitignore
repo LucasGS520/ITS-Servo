@@ -23,3 +23,6 @@ Thumbs.db
 *.suo
 *.sw?
 supabase/.temp/
+
+# Artefatos locais gerados pelo Graphify (mapa e cache de análise)
+graphify-out/
