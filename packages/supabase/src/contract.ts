@@ -1,8 +1,10 @@
 import type { SupabaseClient } from "./client.ts";
 
 /**
- * Contrato de dados da plataforma. Único ponto de acesso à inscrição —
- * nenhum app fala com a tabela `inscricoes` diretamente. Ver docs/arquitetura.md §5.
+ * Contrato público de inscrição da plataforma. O Site usa esta fronteira para
+ * solicitar uma inscrição; a Central é dona do ciclo de vida operacional.
+ * Acesso público nunca fala diretamente com `inscricoes`. Consultas administrativas
+ * autenticadas continuam protegidas por RLS. Ver docs/arquitetura.md §5.
  */
 
 export interface InscricaoDTO {
@@ -47,8 +49,12 @@ async function comMensagemDoServidor(error: unknown): Promise<never> {
   throw error;
 }
 
-/** Site → cria a inscrição. Retorna o número e o token de autosserviço (mostrar/guardar uma vez). */
-export async function criarInscricao(
+/**
+ * Site → solicita uma inscrição à Central. Retorna somente o necessário para
+ * encaminhar o candidato ao autosserviço; o registro e seu estado pertencem
+ * ao backend operacional.
+ */
+export async function solicitarInscricao(
   client: SupabaseClient,
   dto: InscricaoDTO,
 ): Promise<{ numero_inscricao: string; token: string; email_enviado: boolean }> {
@@ -56,6 +62,9 @@ export async function criarInscricao(
   if (error) await comMensagemDoServidor(error);
   return data as { numero_inscricao: string; token: string; email_enviado: boolean };
 }
+
+/** @deprecated Use `solicitarInscricao`, que explicita a fronteira Site → Central. */
+export const criarInscricao = solicitarInscricao;
 
 /** Autosserviço → lê a própria inscrição mediante token (RPC SECURITY DEFINER). */
 export async function buscarInscricao(

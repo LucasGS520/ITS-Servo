@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Loader2, Printer } from "lucide-react";
 import { formatBRL } from "@/shared/constants/pricing";
 import { UNIDADE_LABELS, UNIDADES_FINANCEIRO } from "@/shared/constants/unidades";
-import { useLancamentos } from "@/painel/hooks/useFinanceiro";
+import { useLancamentos } from "@/service/financeiro/hooks/useFinanceiro";
 import { formatCompetencia, formatData, mesParaCompetencia, round2, saldoAnterior } from "./agregados";
 import { printRelatorioMensal, type LinhaRelatorio, type ResumoItem } from "./printRelatorio";
 

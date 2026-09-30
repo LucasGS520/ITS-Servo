@@ -15,9 +15,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { formatBRL } from "@/shared/constants/pricing";
 import { UNIDADE_LABELS, UNIDADES_FINANCEIRO } from "@/shared/constants/unidades";
-import { LANCAMENTOS_KEY, useLancamentos, type Lancamento } from "@/painel/hooks/useFinanceiro";
+import { LANCAMENTOS_KEY, useLancamentos, type Lancamento } from "@/service/financeiro/hooks/useFinanceiro";
 import { formatData, mesParaCompetencia, saldoAcumulado, totaisDoMes } from "./agregados";
 import LancamentoDialog from "./LancamentoDialog";
+import { getErrorMessage } from "@/shared/lib/errors";
 
 const LancamentosTab = () => {
   const { toast } = useToast();
@@ -69,8 +70,8 @@ const LancamentosTab = () => {
       await queryClient.invalidateQueries({ queryKey: LANCAMENTOS_KEY });
       toast({ title: "Lançamento excluído." });
       setExcluindo(null);
-    } catch (err: any) {
-      toast({ title: "Erro ao excluir", description: err.message, variant: "destructive" });
+    } catch (error: unknown) {
+      toast({ title: "Erro ao excluir", description: getErrorMessage(error), variant: "destructive" });
     } finally {
       setDeleting(false);
     }

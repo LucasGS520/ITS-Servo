@@ -1,4 +1,4 @@
-import type { Lancamento } from "@/painel/hooks/useFinanceiro";
+import type { Lancamento } from "@/service/financeiro/hooks/useFinanceiro";
 
 /**
  * Agregações puras sobre lançamentos (pensadas para useMemo).

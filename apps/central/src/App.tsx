@@ -5,22 +5,22 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 // Layouts
-import AutoServicoLayout from "@/site/layout/AutoServicoLayout";
 import PainelLayout from "@/painel/layout/PainelLayout";
 
 // Superfície pública de autosserviço (acesso por token da inscrição)
-import Pagamento from "@/site/pages/Pagamento";
-import ConsultaInscricao from "@/site/pages/ConsultaInscricao";
-import NotFound from "@/site/pages/NotFound";
+import InscricaoLayout from "@/service/inscricao/layout/InscricaoLayout";
+import Pagamento from "@/service/inscricao/pages/Pagamento";
+import ConsultaInscricao from "@/service/inscricao/pages/ConsultaInscricao";
+import Inscricoes from "@/service/inscricao/pages/Inscricoes";
+import Financeiro from "@/service/financeiro/pages/Financeiro";
+import Dashboard from "@/service/indicadores/pages/Dashboard";
+import NotFound from "@/shared/pages/NotFound";
 import ErrorBoundary from "@/shared/components/ErrorBoundary";
 import ProtectedRoute from "@/shared/components/ProtectedRoute";
 import RedirectToSite from "@/shared/components/RedirectToSite";
 
 // Painel Operacional (admin autenticado)
 import Login from "@/painel/pages/Login";
-import Dashboard from "@/painel/pages/Dashboard";
-import Inscricoes from "@/painel/pages/Inscricoes";
-import Financeiro from "@/painel/pages/Financeiro";
 
 const queryClient = new QueryClient();
 
@@ -43,7 +43,7 @@ const App = () => (
         <ErrorBoundary>
           <Routes>
             {/* ── Autosserviço público (token da inscrição) ── */}
-            <Route element={<AutoServicoLayout />}>
+            <Route element={<InscricaoLayout />}>
               <Route path="/inscricao/pagamento/:numero" element={<Pagamento />} />
               <Route path="/consulta" element={<ConsultaInscricao />} />
             </Route>

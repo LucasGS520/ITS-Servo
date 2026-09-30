@@ -12,7 +12,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ArrowDownCircle, ArrowUpCircle, Loader2, Pencil, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { CATEGORIAS_KEY, useCategorias, type Categoria } from "@/painel/hooks/useFinanceiro";
+import { CATEGORIAS_KEY, useCategorias, type Categoria } from "@/service/financeiro/hooks/useFinanceiro";
+import { getErrorCode, getErrorMessage } from "@/shared/lib/errors";
 
 const CategoriasTab = () => {
   const { toast } = useToast();
@@ -49,10 +50,10 @@ const CategoriasTab = () => {
       await queryClient.invalidateQueries({ queryKey: CATEGORIAS_KEY });
       toast({ title: editando ? "Categoria atualizada!" : "Categoria criada!" });
       setDialogOpen(false);
-    } catch (err: any) {
-      const msg = err.code === "23505"
+    } catch (error: unknown) {
+      const msg = getErrorCode(error) === "23505"
         ? "Já existe uma categoria com este nome e tipo."
-        : err.message;
+        : getErrorMessage(error);
       toast({ title: "Erro ao salvar", description: msg, variant: "destructive" });
     } finally {
       setSaving(false);

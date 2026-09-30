@@ -1,11 +1,11 @@
 import { useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import LancamentosTab from "@/painel/financeiro/LancamentosTab";
-import MensalTab from "@/painel/financeiro/MensalTab";
-import AnualTab from "@/painel/financeiro/AnualTab";
-import AlunosTab from "@/painel/financeiro/AlunosTab";
-import CategoriasTab from "@/painel/financeiro/CategoriasTab";
-import PrevisaoTab from "@/painel/financeiro/PrevisaoTab";
+import LancamentosTab from "@/service/financeiro/components/LancamentosTab";
+import MensalTab from "@/service/financeiro/components/MensalTab";
+import AnualTab from "@/service/financeiro/components/AnualTab";
+import AlunosTab from "@/service/financeiro/components/AlunosTab";
+import CategoriasTab from "@/service/financeiro/components/CategoriasTab";
+import PrevisaoTab from "@/service/financeiro/components/PrevisaoTab";
 
 const TABS = ["lancamentos", "mensal", "anual", "alunos", "categorias", "previsao"] as const;
 type Tab = (typeof TABS)[number];

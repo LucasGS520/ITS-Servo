@@ -6,10 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CheckCircle, Upload, Loader2, Copy, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { buscarInscricao, enviarComprovante } from "@its-servo/supabase";
+import { buscarInscricao, enviarComprovante, type InscricaoResumo } from "@its-servo/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { PRICING, PIX, formatBRL } from "@/shared/constants/pricing";
 import { paramFromUrl } from "@/shared/lib/urlToken";
+import { getErrorMessage } from "@/shared/lib/errors";
+import { validarComprovante } from "@/service/inscricao/lib/comprovante";
 
 /**
  * Componente Pagamento
@@ -29,7 +31,7 @@ const Pagamento = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Estados do componente
-  const [inscricao, setInscricao] = useState<any>(null); // Dados da inscrição
+  const [inscricao, setInscricao] = useState<InscricaoResumo | null>(null);
   const [loading, setLoading] = useState(true); // Carregamento inicial dos dados
   const [uploading, setUploading] = useState(false); // Estado de envio do arquivo
   const [file, setFile] = useState<File | null>(null); // Arquivo selecionado
@@ -65,15 +67,13 @@ const Pagamento = () => {
   const handleUpload = async () => {
     if (!file || !inscricao) return;
 
-    // Validação de tamanho máximo (5MB)
-    if (file.size > 5 * 1024 * 1024) {
+    const validacao = validarComprovante(file);
+    if (!validacao.valido && validacao.motivo === "tamanho") {
       toast({ title: "Arquivo muito grande", description: "O limite é 5MB.", variant: "destructive" });
       return;
     }
 
-    // Validação de tipo de arquivo
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
-    if (!allowedTypes.includes(file.type)) {
+    if (!validacao.valido && validacao.motivo === "tipo") {
       toast({ title: "Formato inválido", description: "Use JPG, PNG, WebP ou PDF.", variant: "destructive" });
       return;
     }
@@ -87,8 +87,8 @@ const Pagamento = () => {
 
       setEnviado(true);
       toast({ title: "Comprovante enviado!", description: "Seu pagamento está em análise." });
-    } catch (err: any) {
-      toast({ title: "Erro ao enviar", description: err.message, variant: "destructive" });
+    } catch (error: unknown) {
+      toast({ title: "Erro ao enviar", description: getErrorMessage(error), variant: "destructive" });
     } finally {
       setUploading(false);
     }

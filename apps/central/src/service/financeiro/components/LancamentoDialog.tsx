@@ -14,8 +14,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { UNIDADES_FINANCEIRO } from "@/shared/constants/unidades";
-import { LANCAMENTOS_KEY, useAlunos, useCategorias, type Lancamento } from "@/painel/hooks/useFinanceiro";
+import { LANCAMENTOS_KEY, useAlunos, useCategorias, type Lancamento } from "@/service/financeiro/hooks/useFinanceiro";
 import { competenciaParaMes, mesParaCompetencia } from "./agregados";
+import { getErrorMessage } from "@/shared/lib/errors";
 
 const schema = z.object({
   tipo: z.enum(["entrada", "saida"]),
@@ -130,8 +131,8 @@ const LancamentoDialog = ({ open, onOpenChange, lancamento }: Props) => {
       await queryClient.invalidateQueries({ queryKey: LANCAMENTOS_KEY });
       toast({ title: lancamento ? "Lançamento atualizado!" : "Lançamento registrado!" });
       onOpenChange(false);
-    } catch (err: any) {
-      toast({ title: "Erro ao salvar", description: err.message, variant: "destructive" });
+    } catch (error: unknown) {
+      toast({ title: "Erro ao salvar", description: getErrorMessage(error), variant: "destructive" });
     } finally {
       setSaving(false);
     }

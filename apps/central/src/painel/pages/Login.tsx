@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { getErrorMessage } from "@/shared/lib/errors";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -37,8 +38,8 @@ const Login = () => {
       }
 
       navigate("/painel");
-    } catch (err: any) {
-      toast({ title: "Erro no login", description: err.message, variant: "destructive" });
+    } catch (error: unknown) {
+      toast({ title: "Erro no login", description: getErrorMessage(error), variant: "destructive" });
     } finally {
       setLoading(false);
     }

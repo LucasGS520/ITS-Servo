@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2 } from "lucide-react";
 import { formatBRL } from "@/shared/constants/pricing";
 import { UNIDADES_FINANCEIRO } from "@/shared/constants/unidades";
-import { useLancamentos, type Lancamento } from "@/painel/hooks/useFinanceiro";
+import { useLancamentos, type Lancamento } from "@/service/financeiro/hooks/useFinanceiro";
 import { round2, sinal } from "./agregados";
 
 const MESES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];

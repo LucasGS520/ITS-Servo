@@ -30,7 +30,13 @@ const envGuard = () => ({
   hooks: {
     'astro:build:start': () => {
       const env = lerEnv();
-      const obrigatorias = ['PUBLIC_SUPABASE_URL', 'PUBLIC_SUPABASE_ANON_KEY'];
+      // A conversão termina na Central: o Site nunca deve oferecer um fluxo
+      // alternativo que exponha número ou token de inscrição.
+      const obrigatorias = [
+        'PUBLIC_SUPABASE_URL',
+        'PUBLIC_SUPABASE_ANON_KEY',
+        'PUBLIC_CENTRAL_URL',
+      ];
       const problemas = obrigatorias.filter((k) => {
         const v = env[k] ?? '';
         return !v || v.includes('COLE_A') || v.includes('placeholder');
@@ -41,11 +47,6 @@ const envGuard = () => ({
             'Preencha apps/site/.env (ver .env.example).',
         );
       }
-      if (!env.PUBLIC_CENTRAL_URL) {
-        console.warn(
-          '[its-env-guard] PUBLIC_CENTRAL_URL ausente: o pós-inscrição exibirá numero+token na página em vez de redirecionar para a Central.',
-        );
-      }
     },
   },
 });
@@ -54,4 +55,11 @@ const envGuard = () => ({
 export default defineConfig({
   // site: 'https://itsservo.org',  // definir no deploy (Fase 6)
   integrations: [envGuard()],
+  // Em workspaces sincronizados (por exemplo, OneDrive), o cache padrão do Vite
+  // em node_modules/.vite pode ficar bloqueado. Mantemos ambos os caches em um
+  // diretório do app já ignorado pelo Git.
+  cacheDir: './.astro',
+  vite: {
+    cacheDir: './.astro/vite',
+  },
 });

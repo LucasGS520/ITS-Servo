@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Users, DollarSign, Clock, AlertTriangle, TrendingUp, MapPin, BookOpen } from "lucide-react";
-import { useInscricoes } from "@/painel/hooks/useInscricoes";
+import { useInscricoes } from "@/service/inscricao/hooks/useInscricoes";
 import { PRICING } from "@/shared/constants/pricing";
 
 const statusLabels: Record<string, string> = {

@@ -11,8 +11,12 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { maskCPF } from "@/lib/masks";
-import { useInscricoes, INSCRICOES_KEY } from "@/painel/hooks/useInscricoes";
-import { ALUNOS_KEY } from "@/painel/hooks/useFinanceiro";
+import { useInscricoes, INSCRICOES_KEY } from "@/service/inscricao/hooks/useInscricoes";
+import { ALUNOS_KEY } from "@/service/financeiro/hooks/useFinanceiro";
+import type { Tables } from "@/integrations/supabase/types";
+import { getErrorMessage } from "@/shared/lib/errors";
+
+type Inscricao = Tables<"inscricoes">;
 
 const statusLabels: Record<string, string> = {
   aguardando_pagamento: "Aguardando Pagamento",
@@ -37,7 +41,7 @@ const Inscricoes = () => {
 
   const [filterStatus, setFilterStatus] = useState<string>("todos");
   const [searchTerm, setSearchTerm] = useState("");
-  const [selected, setSelected] = useState<any>(null);
+  const [selected, setSelected] = useState<Inscricao | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [openingComprovante, setOpeningComprovante] = useState(false);
 
@@ -54,14 +58,14 @@ const Inscricoes = () => {
         .createSignedUrl(comprovanteUrl, 600);
       if (error) throw error;
       window.open(data.signedUrl, "_blank", "noopener,noreferrer");
-    } catch (err: any) {
-      toast({ title: "Erro ao abrir comprovante", description: err.message, variant: "destructive" });
+    } catch (error: unknown) {
+      toast({ title: "Erro ao abrir comprovante", description: getErrorMessage(error), variant: "destructive" });
     } finally {
       setOpeningComprovante(false);
     }
   };
 
-  const handleStatusChange = async (id: string, newStatus: string, inscricao: any) => {
+  const handleStatusChange = async (id: string, newStatus: string, inscricao: Inscricao) => {
     setUpdatingStatus(true);
     try {
       const { error } = await supabase
@@ -103,17 +107,17 @@ const Inscricoes = () => {
         toast({ title: "Status atualizado!" });
       }
       setSelected(null);
-    } catch (err: any) {
-      toast({ title: "Erro", description: err.message, variant: "destructive" });
+    } catch (error: unknown) {
+      toast({ title: "Erro", description: getErrorMessage(error), variant: "destructive" });
     } finally {
       setUpdatingStatus(false);
     }
   };
 
-  const handlePrint = (inscricao: any) => {
+  const handlePrint = (inscricao: Inscricao) => {
     const win = window.open("", "_blank");
     if (!win) return;
-    const esc = (s: string) =>
+    const esc = (s: unknown) =>
       String(s ?? "")
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")

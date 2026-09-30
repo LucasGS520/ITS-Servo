@@ -36,13 +36,14 @@ Os dois produtos têm **naturezas opostas**, e é isso que justifica separá-los
 | SEO / velocidade | Críticos | Irrelevantes |
 | Conteúdo | Quase estático | Dinâmico (CRUD, dashboards) |
 | Stack | Estático/SSG | React SPA + Supabase |
-| Relação com o dado | Só **escreve** um lead | **Possui** todo o ciclo de vida |
+| Relação com o dado | Inicia uma **solicitação**; não possui o registro | **Possui** todo o ciclo de vida |
 
-**Como se relacionam:** o Site captura um lead (inscrição) e entrega o visitante
-à Central por meio de um **contrato fino** — uma única operação `criarInscricao`.
-Tudo que acontece depois da inscrição (pagamento, envio de comprovante, consulta
-de status, confirmação) é **responsabilidade da Central**, mesmo quando exposto
-publicamente ao candidato.
+**Como se relacionam:** o Site captura o interesse e envia uma **solicitação de
+inscrição** à Central por meio de um contrato fino — `solicitarInscricao`
+(`criarInscricao` permanece como alias técnico compatível). A Central cria o
+registro oficial, número, token e status inicial. Tudo que ocorre daí em diante
+(pagamento, comprovante, consulta de status e confirmação) é responsabilidade da
+Central, mesmo quando exposto publicamente ao candidato.
 
 **Pergunta que decide a fronteira:** _"Isso ajuda alguém que ainda não conhece o
 ITS a confiar na instituição?"_ Se sim → Site. Se é operar/administrar → Central.
@@ -52,8 +53,8 @@ ITS a confiar na instituição?"_ Se sim → Site. Se é operar/administrar → 
 ## 2. Especificação — Produto A: Site Institucional
 
 ### Missão
-Representar o instituto e **converter** visitantes em inscritos. Não administra,
-não controla pagamentos, não gerencia alunos.
+Adquirir, informar e **converter** visitantes em solicitações de inscrição. Não
+administra inscrições, não controla pagamentos e não gerencia alunos.
 
 ### Público-alvo
 Visitante externo que ainda não conhece (ou está avaliando) o ITS.
@@ -61,16 +62,18 @@ Visitante externo que ainda não conhece (ou está avaliando) o ITS.
 ### Escopo (fechado)
 - **Institucional:** Home, História, Missão, Visão, Valores, Liderança.
 - **Acadêmico:** Matérias, Modalidades, Núcleos, Metodologia.
-- **Conversão:** Inscrição (formulário), Contato, FAQ.
+- **Conversão:** solicitação de inscrição (formulário), Contato, FAQ.
 
 ### Funcionalidades
 - Páginas de conteúdo estáticas (renderizadas em build — SSG).
-- **Formulário de inscrição** — a única funcionalidade que toca o backend, via a
-  operação de contrato `criarInscricao`. Após o envio, redireciona o candidato
-  para a superfície de autosserviço da Central (link também enviado por e-mail).
+- **Formulário de solicitação** — a única funcionalidade que toca o backend, via
+  `solicitarInscricao`. Após o envio, encaminha obrigatoriamente o candidato à
+  superfície de autosserviço da Central; o Site não exibe PIX, token, status ou
+  comprovante.
 
 ### Limites do escopo (o que NÃO pertence ao Site)
-- Qualquer leitura/escrita de status operacional, comprovantes, financeiro.
+- Qualquer criação/gestão do registro oficial, leitura/escrita de status,
+  token, comprovantes ou financeiro.
 - Qualquer área autenticada ou administrativa.
 - Conhecimento do schema do banco (fala apenas com o contrato).
 
@@ -97,7 +100,7 @@ por token**, o próprio candidato para autosserviço pós-inscrição.
 | `/painel/*` | admin autenticado |
 | `/`, `/cursos`, `/nucleos`, `/quem-somos`, `/metodologia`, `/inscricao` | **redirect** para o Site (`VITE_SITE_URL`) |
 
-O autosserviço usa um layout enxuto (`AutoServicoLayout`) cuja única navegação
+O autosserviço usa o layout de inscrição (`InscricaoLayout`) cuja única navegação
 é "Voltar ao site" — sem menu institucional. Toda página de marketing e o
 formulário de inscrição vivem no Produto A; duplicá-los aqui criaria um "site
 pior" e prenderia o visitante fora do Site.
@@ -110,6 +113,27 @@ pior" e prenderia o visitante fora do Site.
   mensal imprimível (modelo assinado) e visão anual. Ver §6.
 - **Documentos:** comprovantes (armazenamento privado, signed URLs).
 - **Indicadores:** inscrições, receita (relatórios avançados = futuro).
+
+### Organização do código da Central
+
+`apps/central/src/service/` concentra os domínios que a Central realmente
+opera. `painel/` não é um domínio de negócio: contém apenas autenticação e a
+casca de navegação do administrador. `shared/` contém recursos técnicos e de
+interface reutilizáveis, sem regras de um serviço específico.
+
+```text
+service/
+├── inscricao/     # consulta por token, PIX, comprovante e gestão de inscrições
+├── financeiro/    # alunos financeiros, categorias, lançamentos e relatórios
+└── indicadores/   # visão consolidada para a operação
+
+painel/            # login e layout autenticado
+shared/            # rotas, componentes e utilitários transversais
+```
+
+Um serviço pode conter suas próprias `pages/`, `components/`, `hooks/`, `lib/`
+e `layout/`. Uma dependência entre serviços deve ser explícita: por exemplo,
+`financeiro` consulta inscrições somente por meio do hook de `inscricao`.
 
 ### Entidades
 - `inscricoes` — registro do candidato e ciclo de vida (status, comprovante).
@@ -144,22 +168,23 @@ cobrança automática de mensalidades e relatórios/indicadores avançados.
 | Item | Site (A) | Central (B) | Compartilhado |
 |---|:---:|:---:|:---:|
 | Conteúdo institucional | ✔ | ✖ (redireciona) | — |
-| Formulário de inscrição (UI) | ✔ | ✖ (redireciona) | — |
+| Formulário de solicitação (UI) | ✔ | ✖ (redireciona) | — |
+| Criação do registro, número, token e status inicial | — | ✔ | edge function + banco |
 | Ciclo de vida de inscrição/status | — | ✔ | tabela `inscricoes` |
 | Pagamento / envio de comprovante | — | ✔ (público+token) | — |
 | Consulta de status | — | ✔ (público+token) | — |
 | Financeiro / Indicadores / admin | — | ✔ | — |
 | Autenticação admin | — | ✔ | `user_roles` / `is_admin` |
 | Design system / tokens | usa | usa | `packages/design-system` |
-| Acesso a dados | via `criarInscricao` | wrappers | `packages/supabase` |
+| Acesso a dados | via `solicitarInscricao` | RLS admin + wrappers/RPC | `packages/supabase` |
 
 ### O que é compartilhado (kernel)
 - **`packages/design-system`** — tokens da marca (cores pergaminho/azul-marinho/
   ouro, tipografia Fraunces/Raleway, espaçamento, sombras). Fonte única de
   identidade para ambos os produtos.
 - **`packages/supabase`** — client, tipos gerados e os **wrappers tipados do
-  contrato** (as chamadas às RPC/edge functions). Nenhum app fala com a tabela
-  diretamente.
+  contrato** (as chamadas às RPC/edge functions). O acesso público não fala com
+  a tabela diretamente; o painel administrativo autenticado é protegido por RLS.
 - **Backend (`supabase/`)** — migrações, policies e edge functions. Verdade do
   dado e das regras de acesso.
 - **Autenticação** — `user_roles` + `is_admin()`.
@@ -174,16 +199,16 @@ cobrança automática de mensalidades e relatórios/indicadores avançados.
 
 ## 5. Contrato de Inscrição (a fronteira crítica)
 
-O Site conhece **apenas** esta superfície — nunca o schema:
+O Site conhece apenas esta superfície — nunca o schema nem o ciclo de vida:
 
 ```
-criarInscricao(dto) → { numero_inscricao, token }
+solicitarInscricao(dto) → { numero_inscricao, token }
 ```
 
-- **Onde vive:** edge function `criar-inscricao` (valida os dados, insere a
-  linha, gera o `numero_inscricao` e um `token` cujo hash é gravado, e dispara o
-  e-mail de inscrição com o **link mágico** para a Central). Servidor valida —
-  nada de confiança no client.
+- **Onde vive:** a operação da Central usa a edge function `criar-inscricao`
+  (valida os dados, cria o registro oficial, gera `numero_inscricao` e um `token`
+  cujo hash é gravado, e dispara e-mail com o **link mágico** para a Central).
+  O servidor valida; o Site apenas inicia a solicitação, sem confiança no client.
 - **Pós-inscrição (superfície da Central, público + token):**
   - `buscarInscricao(numero, token)` — RPC `SECURITY DEFINER`; retorna apenas
     campos seguros (sem PII sensível além do necessário) mediante token válido.

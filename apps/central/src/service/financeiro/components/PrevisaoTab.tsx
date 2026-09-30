@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Loader2, DollarSign, TrendingUp, Clock, XCircle } from "lucide-react";
-import { useInscricoes } from "@/painel/hooks/useInscricoes";
+import { useInscricoes } from "@/service/inscricao/hooks/useInscricoes";
 import { PRICING } from "@/shared/constants/pricing";
 
 const fmt = (n: number) =>

@@ -30,6 +30,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { buscarInscricao, cancelarInscricao, type InscricaoResumo } from "@its-servo/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { maskCPF } from "@/lib/masks";
+import { getErrorMessage } from "@/shared/lib/errors";
 
 const statusLabels: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
   aguardando_pagamento: { label: "Aguardando Pagamento", icon: <Clock className="h-4 w-4" />, color: "text-yellow-600 bg-yellow-50 border-yellow-200" },
@@ -65,8 +66,8 @@ const ConsultaInscricao = () => {
       } else {
         setResultado(insc);
       }
-    } catch (e: any) {
-      toast({ title: "Erro na consulta", description: e.message, variant: "destructive" });
+    } catch (error: unknown) {
+      toast({ title: "Erro na consulta", description: getErrorMessage(error), variant: "destructive" });
     }
     setLoading(false);
   }, [toast]);
@@ -88,8 +89,8 @@ const ConsultaInscricao = () => {
       } else {
         toast({ title: "Não foi possível cancelar", description: "A inscrição pode não estar mais pendente.", variant: "destructive" });
       }
-    } catch (e: any) {
-      toast({ title: "Erro ao cancelar", description: e.message, variant: "destructive" });
+    } catch (error: unknown) {
+      toast({ title: "Erro ao cancelar", description: getErrorMessage(error), variant: "destructive" });
     }
     setCancelling(false);
     setCancelOpen(false);

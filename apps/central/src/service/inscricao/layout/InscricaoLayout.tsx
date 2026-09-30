@@ -11,7 +11,7 @@ import { SITE_URL } from "@/shared/constants/urls";
  * conteúdo de marketing pertence ao Produto A. O único caminho de navegação
  * daqui é voltar ao Site (link externo). Ver docs/arquitetura.md §2 e §4.
  */
-const AutoServicoLayout = () => (
+const InscricaoLayout = () => (
   <div className="flex min-h-screen flex-col">
     <header className="border-b bg-card">
       <div className="container flex h-16 items-center justify-between">
@@ -50,4 +50,4 @@ const AutoServicoLayout = () => (
   </div>
 );
 
-export default AutoServicoLayout;
+export default InscricaoLayout;

@@ -14,7 +14,8 @@ import { Loader2, Pencil, Plus, Search, UserRound } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { UNIDADE_LABELS, UNIDADES_FINANCEIRO } from "@/shared/constants/unidades";
-import { ALUNOS_KEY, useAlunos, type Aluno } from "@/painel/hooks/useFinanceiro";
+import { ALUNOS_KEY, useAlunos, type Aluno } from "@/service/financeiro/hooks/useFinanceiro";
+import { getErrorMessage } from "@/shared/lib/errors";
 
 const AlunosTab = () => {
   const { toast } = useToast();
@@ -71,8 +72,8 @@ const AlunosTab = () => {
       await queryClient.invalidateQueries({ queryKey: ALUNOS_KEY });
       toast({ title: editando ? "Aluno atualizado!" : "Aluno cadastrado!" });
       setDialogOpen(false);
-    } catch (err: any) {
-      toast({ title: "Erro ao salvar", description: err.message, variant: "destructive" });
+    } catch (error: unknown) {
+      toast({ title: "Erro ao salvar", description: getErrorMessage(error), variant: "destructive" });
     } finally {
       setSaving(false);
     }

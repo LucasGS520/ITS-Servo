@@ -1,14 +1,14 @@
-/* Importações do Tailwind CSS - fornece estilos base, componentes e utilitários */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 /* Fontes da marca (compartilhadas com o Site): Fraunces (títulos) + Raleway (UI) */
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,900&family=Raleway:wght@400;500;600;700&display=swap');
 
 /* Tokens da marca (fonte única). Os hex ficam disponíveis como var(--navy-*),
  * var(--gold-*) etc. em toda a Central. */
 @import '@its-servo/design-system/tokens.css';
+
+/* Importações do Tailwind CSS - fornece estilos base, componentes e utilitários */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* ------------------------------------------------------------------ *
  * PONTE shadcn/Tailwind: o Tailwind compõe alpha via `hsl(var(--x) / a)`,

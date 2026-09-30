@@ -1,10 +1,10 @@
 /**
  * Edge function — criar-inscricao  (CONTRATO: entrada do funil)
  *
- * Ponto único pelo qual o Site Institucional cria uma inscrição. Valida no
- * servidor, insere via service_role (RLS não expõe INSERT ao anon), gera o
- * token de autosserviço (guarda só o hash) e dispara o e-mail com o link
- * mágico para a superfície de autosserviço da Central.
+ * Ponto único pelo qual o Site Institucional envia uma solicitação à
+ * Central. O contrato operacional valida no servidor, cria o registro via
+ * service_role (RLS não expõe INSERT ao anon), gera o token de autosserviço
+ * (guarda só o hash) e dispara o e-mail com o link mágico da Central.
  *
  * POST { nome_completo, cpf, telefone, email, data_nascimento, escolaridade,
  *        modalidade, nucleo? }
