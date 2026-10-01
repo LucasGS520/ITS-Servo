@@ -2,7 +2,7 @@
 
 Monorepo da plataforma do Instituto Teológico Servo — **dois produtos** sobre uma
 fundação compartilhada. Ver a definição completa em
-[`docs/arquitetura.md`](docs/arquitetura.md).
+[`docs/DESENHO_CONTROLE_OPERACIONAL.md`](docs/DESENHO_CONTROLE_OPERACIONAL.md).
 
 - **Produto A — Site Institucional** (`apps/site`): público, estático (Astro),
   adquire, informa e converte visitantes. O formulário apenas **solicita** uma
@@ -36,7 +36,7 @@ its-servo/
 │   ├── design-system/   # tokens da marca + estilos (fonte única) + referência (ds1.html)
 │   └── supabase/        # client + types + contrato tipado (RPC/edge)
 ├── supabase/            # migrations + edge functions (backend)
-├── docs/arquitetura.md  # visão, especificações, mapa de fronteiras, contrato
+├── docs/DESENHO_CONTROLE_OPERACIONAL.md # estado atual, avaliação e arquitetura-alvo
 ├── design_ideal.md      # referência de copy/layout do Site
 └── pnpm-workspace.yaml
 ```
@@ -149,7 +149,7 @@ pnpm build:central    # só a Central
 O diretório `supabase/` (migrations + edge functions) é a verdade do dado. O
 acesso público passa pelo pacote `@its-servo/supabase` (contrato tipado), sem
 acesso anônimo direto a `inscricoes`; o painel administrativo usa RLS. Regras e fluxos em
-[`docs/arquitetura.md`](docs/arquitetura.md).
+[`docs/DESENHO_CONTROLE_OPERACIONAL.md`](docs/DESENHO_CONTROLE_OPERACIONAL.md).
 
 - `packages/supabase`: contrato público, tipos e funções compartilhadas.
 - `packages/design-system`: design system.

@@ -207,7 +207,7 @@ A separação conceitual acima **já está implementada** no monorepo pnpm:
   foi substituída e seu histórico de 2026 importado com conferência automática).
 - `packages/design-system` + `packages/supabase` — kernel compartilhado.
 - Fronteiras, contratos e o modelo do financeiro documentados em
-  `docs/arquitetura.md` (fonte da verdade arquitetural).
+  `docs/DESENHO_CONTROLE_OPERACIONAL.md` (fonte da verdade arquitetural).
 
 Próximos módulos continuam guiados pela lista "o que eu ainda evitaria" acima.
 
