@@ -73,22 +73,32 @@ Ela possui duas superfícies:
 
 Rotas institucionais abertas na Central, como `/`, `/cursos` e `/quem-somos`, redirecionam para o Site. Isso evita que ela se torne um segundo site institucional.
 
-A definição de rotas está em [App.tsx](C:/Users/marke/OneDrive/Desktop/ITS-Servo/apps/central/src/App.tsx:1).
+A composição das rotas está em `apps/central/src/app/routes/AppRoutes.tsx`.
 
-### Serviços internos da Central
+### Features da Central
 
-A regra atual é: tudo que representa uma capacidade operacional fica em `apps/central/src/service/`.
+A regra atual é: capacidades operacionais ficam em `apps/central/src/features/`.
+As experiências do candidato e da equipe são nomeadas pelo propósito:
+`autosservico` e `gestao`.
 
 ```text
-service/
-├── inscricao/
+features/
+├── autenticacao/gestao/
+├── inscricoes/
+│   ├── api/
+│   ├── model/
+│   ├── autosservico/
+│   └── gestao/
 ├── financeiro/
-└── indicadores/
+│   ├── api/
+│   ├── model/
+│   └── gestao/
+└── indicadores/gestao/
 ```
 
-#### `service/inscricao`
+#### `features/inscricoes`
 
-É o serviço mais completo hoje.
+É a feature mais completa hoje.
 
 Responsável por:
 
@@ -100,9 +110,12 @@ Responsável por:
 - Abertura segura de comprovantes.
 - Disparo de e-mail de confirmação.
 
-O antigo diretório `autosservico` foi absorvido por este domínio. O arquivo correto de validação agora é `service/inscricao/lib/comprovante.ts`; a aba antiga do IDE aponta para um caminho que já foi movido.
+`autosservico/` contém pagamento e consulta do candidato; `gestao/` contém a
+operação da equipe. Regras puras ficam em `model/` e acesso a dados em `api/`.
+Páginas, componentes e layouts não importam o client Supabase diretamente;
+essa fronteira também é validada pelo ESLint.
 
-#### `service/financeiro`
+#### `features/financeiro`
 
 Responsável pelo caixa e pelos cadastros necessários para ele:
 
@@ -113,9 +126,9 @@ Responsável pelo caixa e pelos cadastros necessários para ele:
 - Previsão financeira.
 - Cadastro e uso de alunos no contexto financeiro.
 
-Hoje, `alunos` está dentro do financeiro porque é utilizado como pagador/vínculo de lançamentos. Caso o ITS passe a operar vida acadêmica — turmas, disciplinas, frequência, notas — será adequado criar um futuro `service/alunos` ou `service/academico`.
+Hoje, `alunos` está dentro do financeiro porque é utilizado como pagador/vínculo de lançamentos. Caso o ITS passe a operar vida acadêmica — turmas, disciplinas, frequência, notas — será adequado criar uma futura feature `alunos` ou `academico`.
 
-#### `service/indicadores`
+#### `features/indicadores`
 
 Responsável pelo Dashboard operacional:
 
@@ -125,7 +138,7 @@ Responsável pelo Dashboard operacional:
 - Quantidade de alunos ativos.
 - Receita estimada.
 
-Diagnóstico importante: a “receita confirmada” atual é uma estimativa baseada em inscrições confirmadas × valor padrão, não necessariamente no caixa real. O próximo amadurecimento deveria usar os lançamentos efetivos do `service/financeiro`.
+Diagnóstico importante: a “receita confirmada” atual é uma estimativa baseada em inscrições confirmadas × valor padrão, não necessariamente no caixa real. O próximo amadurecimento deverá usar os lançamentos efetivos da feature `financeiro`.
 
 ---
 

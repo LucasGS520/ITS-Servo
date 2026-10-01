@@ -83,26 +83,28 @@ do Supabase.
 
 ```text
 apps/central/src/
-├── service/
-│   ├── inscricao/       # autosserviço e operação administrativa
+├── app/                 # providers, rotas, layouts e páginas sistêmicas
+├── features/
+│   ├── autenticacao/    # acesso da equipe à gestão
+│   ├── inscricoes/      # autosserviço e gestão da inscrição
 │   ├── financeiro/      # livro-caixa, alunos, categorias e relatórios
-│   └── indicadores/     # dashboard operacional
-├── painel/              # login e shell de navegação autenticada
-├── shared/              # componentes e utilitários transversais
+│   └── indicadores/     # dashboard da gestão
+├── shared/              # constantes e utilitários transversais
 ├── integrations/        # client Supabase da aplicação
 └── components/ui/       # primitives visuais
 ```
 
-`painel/` é uma casca técnica, não um domínio de negócio. As capacidades de
-negócio ficam corretamente em `service/`. Essa separação deve ser preservada.
+`app/` compõe a aplicação, mas não contém regras de negócio. As capacidades
+ficam em `features/`; quando uma capacidade participa das duas experiências,
+ela separa a UI em `autosservico/` e `gestao/`.
 
 Dependências atuais relevantes:
 
-- `indicadores` consome `useInscricoes` de `inscricao`;
+- `indicadores` consome a API pública de `inscricoes`;
 - `financeiro/previsao` também interpreta dados de inscrições;
 - a confirmação de uma inscrição aciona no banco a criação de um aluno;
-- páginas e componentes ainda executam parte das mutações diretamente pelo
-  client Supabase.
+- queries, commands e mutations encapsulam o client Supabase nas APIs das
+  features; páginas, componentes e layouts não acessam o client diretamente.
 
 ### 3.3 Superfícies e rotas
 
@@ -296,33 +298,37 @@ acadêmica (notas, frequência, turmas ou AVA).
 
 ### 8.2 Estrutura interna recomendada
 
-Sem introduzir camadas cerimoniais, cada serviço deve expor uma API interna
-clara:
+Sem introduzir camadas cerimoniais, cada feature expõe entrypoints explícitos e
+separa regras, dados e experiências:
 
 ```text
-service/inscricao/
-├── domain.ts            # tipos, estados, transições e rótulos canônicos
-├── api.ts               # chamadas ao backend/repositório
-├── queries.ts           # hooks de leitura
-├── mutations.ts         # hooks de comando e invalidação de cache
+app/
+├── layouts/
 ├── pages/
-├── components/
-└── lib/
+├── providers/
+└── routes/
 
-service/financeiro/
-├── domain.ts
-├── api.ts
-├── queries.ts
-├── mutations.ts
-├── pages/
-└── components/
+features/inscricoes/
+├── api/                 # queries e commands
+├── model/               # tipos, estados e regras puras
+├── autosservico/        # jornada do candidato
+├── gestao/              # operação da equipe
+└── index.ts             # API pública para outras features
+
+features/financeiro/
+├── api/
+├── model/
+├── gestao/
+└── index.ts
 ```
 
 Regras de dependência:
 
-- páginas não devem montar queries Supabase complexas nem decidir transições;
-- outros serviços importam somente a API pública do serviço, não arquivos
+- páginas e componentes não importam o client Supabase; consomem a API da
+  própria feature;
+- outras features importam somente a API pública da feature, não arquivos
   internos de UI;
+- `autosservico` e `gestao` não importam componentes um do outro;
 - `packages/supabase` concentra client e tipos do banco/contrato;
 - validações de segurança e invariantes permanecem no backend, ainda que a UI
   também valide para melhorar a experiência.
@@ -376,7 +382,8 @@ Adicionar apenas quando a etapa correspondente for implementada:
 
 - [x] consolidar o desenho arquitetural e restaurar um caminho compatível para
   referências antigas;
-- [ ] centralizar estados, rótulos e transições de inscrição;
+- [x] centralizar estados, rótulos e a política de transição atualmente
+  permissiva da inscrição;
 - [ ] criar comando transacional de alteração de status com histórico;
 - [ ] impedir exclusão física de lançamento e implementar estorno;
 - [ ] separar no Dashboard “receita prevista” de “receita realizada”;
@@ -385,7 +392,7 @@ Adicionar apenas quando a etapa correspondente for implementada:
 ### P1 — Organização e operação diária
 
 - [ ] consolidar o client/tipos Supabase em `packages/supabase`;
-- [ ] extrair queries e mutations das páginas/componentes;
+- [x] extrair queries, commands e mutations das páginas/componentes;
 - [ ] adicionar responsáveis, motivos e fila de pendências;
 - [ ] tornar falhas na criação automática do aluno visíveis no painel;
 - [ ] implementar retentativa e visibilidade das notificações.
@@ -425,7 +432,8 @@ Uma nova funcionalidade só deve entrar quando responder claramente:
 | Manter Supabase como backend | Atende ao porte atual e já concentra dados e segurança |
 | Manter monólito modular | Menor custo operacional e fronteiras de domínio suficientes |
 | Preservar autosserviço sem conta | Token por inscrição reduz atrito sem abrir PII |
-| Tratar `service/` como fronteira de negócio | Evita organizar o sistema por telas genéricas |
+| Tratar `features/` como fronteira de negócio | Evita organizar o sistema por telas genéricas |
+| Nomear experiências como `autosservico` e `gestao` | Expressa propósito sem conflitar com `public/` |
 | Adiar domínio acadêmico | Não ataca os gargalos operacionais prioritários |
 | Evoluir o financeiro para trilha imutável | Prestação de contas exige histórico de correções |
 
@@ -433,12 +441,13 @@ Uma nova funcionalidade só deve entrar quando responder claramente:
 
 Principais pontos do código usados neste mapeamento:
 
-- rotas e superfícies: `apps/central/src/App.tsx`;
-- módulos: `apps/central/src/service/`;
-- autenticação: `painel/pages/Login.tsx` e `shared/components/ProtectedRoute.tsx`;
+- rotas e superfícies: `apps/central/src/app/routes/AppRoutes.tsx`;
+- composição: `apps/central/src/app/`;
+- módulos: `apps/central/src/features/`;
+- autenticação: `features/autenticacao/gestao/`;
 - contrato público: `packages/supabase/src/contract.ts`;
 - dados e RLS: `supabase/migrations/`;
 - operações públicas: `supabase/functions/criar-inscricao/` e
   `supabase/functions/enviar-comprovante/`;
-- dashboard: `service/indicadores/pages/Dashboard.tsx`;
-- financeiro: `service/financeiro/`.
+- dashboard: `features/indicadores/gestao/pages/DashboardPage.tsx`;
+- financeiro: `features/financeiro/`.
