@@ -36,6 +36,9 @@ interface Dto {
   escolaridade: string;
   modalidade: "presencial" | "correspondencia";
   nucleo?: string | null;
+  destino?: "curso" | "simposio";
+  curso_codigo?: "teologico" | "capacitacao_obreiros";
+  edicao_simposio_id?: string | null;
 }
 
 function validar(d: Partial<Dto>): string | null {
@@ -49,6 +52,11 @@ function validar(d: Partial<Dto>): string | null {
   if (d.modalidade === "presencial" && (!d.nucleo || !NUCLEO_SLUGS.includes(d.nucleo))) {
     return "Selecione um núcleo válido para modalidade presencial.";
   }
+  if (d.destino && !["curso", "simposio"].includes(d.destino)) return "Destino inválido.";
+  if ((d.destino ?? "curso") === "curso" && d.curso_codigo && !["teologico", "capacitacao_obreiros"].includes(d.curso_codigo)) {
+    return "Curso inválido.";
+  }
+  if ((d.destino ?? "curso") === "simposio" && !d.edicao_simposio_id) return "Selecione uma edição de simpósio.";
   return null;
 }
 
@@ -84,13 +92,47 @@ serve(async (req) => {
     const { error: hitInsErr } = await admin.from("criar_inscricao_hits").insert({ ip });
     if (hitInsErr) console.error("criar-inscricao: falha ao registrar hit:", hitInsErr);
 
-    // ---- Uma inscrição ativa por CPF ----
+    const destino = dto.destino ?? "curso";
+    const cursoCodigo = dto.curso_codigo ?? "teologico";
+    let cursoId: string | null = null;
+    let edicaoId: string | null = null;
+    let valor: number | null = null;
+    let referente = "";
+    let categoriaNome = "";
+    if (destino === "curso") {
+      const { data: curso } = await admin.from("cursos").select("id,nome,valor").eq("codigo", cursoCodigo).eq("ativo", true).eq("publico", true).maybeSingle();
+      if (!curso) return json({ error: "Este curso não está disponível para inscrição." }, 409, origin);
+      cursoId = curso.id;
+      valor = curso.valor;
+      referente = curso.nome;
+      categoriaNome = curso.nome;
+    } else {
+      const { data: edicao } = await admin.from("edicoes_simposio").select("id,nome,valor").eq("id", dto.edicao_simposio_id!).eq("ativo", true).eq("publico", true).maybeSingle();
+      if (!edicao) return json({ error: "Esta edição de simpósio não está disponível." }, 409, origin);
+      edicaoId = edicao.id;
+      valor = edicao.valor;
+      referente = edicao.nome;
+      categoriaNome = "Simpósio";
+    }
+    if (valor == null || valor <= 0) return json({ error: "O valor desta atividade ainda não foi configurado." }, 409, origin);
+
+    // ---- Uma participação ativa por pessoa e destino ----
     const cpfLimpo = dto.cpf!.replace(/\D/g, "");
+    const { data: pessoa, error: pessoaErr } = await admin
+      .from("pessoas")
+      .upsert({
+        cpf: cpfLimpo, nome_completo: dto.nome_completo!.trim(), telefone: dto.telefone!.replace(/\D/g, ""),
+        email: dto.email!.trim(), data_nascimento: dto.data_nascimento, escolaridade: dto.escolaridade,
+      }, { onConflict: "cpf" })
+      .select("id")
+      .single();
+    if (pessoaErr) throw pessoaErr;
     const { data: existente } = await admin
       .from("inscricoes")
       .select("id")
-      .eq("cpf", cpfLimpo)
+      .eq("pessoa_id", pessoa.id)
       .neq("status", "cancelado")
+      .eq(destino === "curso" ? "curso_id" : "edicao_simposio_id", destino === "curso" ? cursoId : edicaoId)
       .limit(1)
       .maybeSingle();
     if (existente) {
@@ -116,12 +158,35 @@ serve(async (req) => {
         modalidade: dto.modalidade,
         nucleo: dto.modalidade === "presencial" ? dto.nucleo : null,
         consulta_token_hash,
+        pessoa_id: pessoa.id,
+        curso_id: cursoId,
+        edicao_simposio_id: edicaoId,
+        destino,
       })
-      .select("numero_inscricao")
+      .select("id, numero_inscricao")
       .single();
 
     if (error) throw error;
     const numero = data.numero_inscricao as string;
+
+    const { data: categoria, error: categoriaErr } = await admin
+      .from("categorias_financeiras")
+      .select("id")
+      .eq("nome", categoriaNome)
+      .eq("tipo", "entrada")
+      .maybeSingle();
+    if (categoriaErr || !categoria) throw categoriaErr ?? new Error("Categoria financeira não configurada.");
+
+    const { error: cobrancaErr } = await admin.from("cobrancas").insert({
+      pessoa_id: pessoa.id,
+      inscricao_id: data.id,
+      curso_id: cursoId,
+      edicao_simposio_id: edicaoId,
+      categoria_id: categoria.id,
+      referente,
+      valor_devido: valor,
+    });
+    if (cobrancaErr) throw cobrancaErr;
 
     // A inscrição já está persistida: falha de e-mail não pode derrubar a resposta,
     // senão o usuário resubmete e cria duplicata sem nunca receber numero/token.

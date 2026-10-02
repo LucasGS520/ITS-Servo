@@ -7,7 +7,7 @@ import {
   useInscricoes,
   type StatusInscricao,
 } from "@/modules/inscricoes";
-import { PRICING } from "@/common/constants/pricing";
+import { useLancamentos } from "@/modules/financeiro/api";
 
 const statusColors: Record<StatusInscricao, string> = {
   aguardando_pagamento: "bg-yellow-50 border-yellow-200 text-yellow-800",
@@ -22,6 +22,7 @@ const fmt = (n: number) =>
 
 const DashboardPage = () => {
   const { data: inscricoes = [], isLoading } = useInscricoes();
+  const { data: registros = [] } = useLancamentos();
 
   const stats = useMemo(() => {
     const agora = new Date();
@@ -32,7 +33,10 @@ const DashboardPage = () => {
       (i) => new Date(i.created_at) >= inicioDeMes && i.status !== "cancelado"
     );
     const pendentesAnalise = inscricoes.filter((i) => i.status === "comprovante_enviado");
-    const receitaConfirmada = ativas.length * PRICING.TOTAL;
+    const receitaRealizada = registros.reduce(
+      (total, registro) => total + (registro.tipo === "entrada" ? Number(registro.valor) : -Number(registro.valor)),
+      0,
+    );
 
     const porStatus = STATUS_INSCRICAO.reduce<Record<string, number>>((acc, key) => {
       acc[key] = inscricoes.filter((i) => i.status === key).length;
@@ -57,12 +61,12 @@ const DashboardPage = () => {
       ativas: ativas.length,
       novasMes: novasMes.length,
       pendentesAnalise: pendentesAnalise.length,
-      receitaConfirmada,
+      receitaRealizada,
       porStatus,
       porModalidade,
       nucleosOrdenados,
     };
-  }, [inscricoes]);
+  }, [inscricoes, registros]);
 
   if (isLoading) {
     return (
@@ -126,8 +130,8 @@ const DashboardPage = () => {
               <DollarSign className="h-5 w-5 text-green-700" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Receita confirmada</p>
-              <p className="text-2xl font-bold text-foreground">{fmt(stats.receitaConfirmada)}</p>
+              <p className="text-xs text-muted-foreground">Receita realizada</p>
+              <p className="text-2xl font-bold text-foreground">{fmt(stats.receitaRealizada)}</p>
             </div>
           </CardContent>
         </Card>

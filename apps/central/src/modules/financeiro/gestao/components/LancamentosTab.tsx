@@ -64,9 +64,11 @@ const LancamentosTab = () => {
 
   const handleDelete = async () => {
     if (!excluindo) return;
+    const motivo = window.prompt("Informe o motivo da correção:");
+    if (!motivo?.trim()) return;
     try {
-      await excluirLancamento.mutateAsync(excluindo.id);
-      toast({ title: "Lançamento excluído." });
+      await excluirLancamento.mutateAsync({ id: excluindo.id, motivo: motivo.trim() });
+      toast({ title: "Correção registrada.", description: "O registro original foi preservado na auditoria." });
       setExcluindo(null);
     } catch (error: unknown) {
       toast({ title: "Erro ao excluir", description: getErrorMessage(error), variant: "destructive" });
@@ -169,7 +171,7 @@ const LancamentosTab = () => {
           </div>
         </div>
         <Button onClick={() => { setEditando(null); setDialogOpen(true); }}>
-          <Plus className="mr-2 h-4 w-4" /> Novo lançamento
+          <Plus className="mr-2 h-4 w-4" /> Nova movimentação
         </Button>
       </div>
 
@@ -219,12 +221,13 @@ const LancamentosTab = () => {
                       <TableCell>
                         <div className="flex justify-end gap-1">
                           <Button
-                            variant="ghost" size="icon" title="Editar"
-                            onClick={() => { setEditando(l); setDialogOpen(true); }}
+                            variant="ghost" size="icon" title="Registro imutável"
+                            aria-label="Registro imutável"
+                            disabled
                           >
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" title="Excluir" onClick={() => setExcluindo(l)}>
+                          <Button variant="ghost" size="icon" title="Corrigir registro" aria-label="Corrigir registro" onClick={() => setExcluindo(l)}>
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         </div>
@@ -243,10 +246,10 @@ const LancamentosTab = () => {
       <AlertDialog open={!!excluindo} onOpenChange={(o) => !o && setExcluindo(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir lançamento?</AlertDialogTitle>
+            <AlertDialogTitle>Corrigir movimentação?</AlertDialogTitle>
             <AlertDialogDescription>
               {excluindo && (
-                <>Será excluído: <strong>{excluindo.aluno?.nome ?? excluindo.descricao ?? excluindo.categoria?.nome}</strong> — {formatBRL(Number(excluindo.valor))} ({excluindo.tipo}). Esta ação não pode ser desfeita.</>
+                <>O registro original será preservado e um estorno auditável será criado para <strong>{excluindo.aluno?.nome ?? excluindo.descricao ?? excluindo.categoria?.nome}</strong> — {formatBRL(Number(excluindo.valor))} ({excluindo.tipo}).</>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -254,7 +257,7 @@ const LancamentosTab = () => {
             <AlertDialogCancel disabled={excluirLancamento.isPending}>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} disabled={excluirLancamento.isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               {excluirLancamento.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Excluir
+              Corrigir
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

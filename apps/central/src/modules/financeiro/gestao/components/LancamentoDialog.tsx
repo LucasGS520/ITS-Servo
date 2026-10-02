@@ -35,7 +35,7 @@ const schema = z.object({
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Presente = edição; ausente = novo lançamento */
+  /** Presente = legado somente leitura; ausente = nova movimentação. */
   lancamento?: Lancamento | null;
 }
 
@@ -136,7 +136,7 @@ const LancamentoDialog = ({ open, onOpenChange, lancamento }: Props) => {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{lancamento ? "Editar lançamento" : "Novo lançamento"}</DialogTitle>
+          <DialogTitle>{lancamento ? "Registro financeiro" : "Nova movimentação"}</DialogTitle>
         </DialogHeader>
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -260,14 +260,8 @@ const LancamentoDialog = ({ open, onOpenChange, lancamento }: Props) => {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>Mês de referência</Label>
-            <Input type="month" value={competencia} onChange={(e) => setCompetencia(e.target.value)} />
-            <p className="text-xs text-muted-foreground">Mês em que o lançamento aparece nos relatórios.</p>
-          </div>
-
           <div className="space-y-2 sm:col-span-2">
-            <Label>Descrição (opcional)</Label>
+            <Label>Referente / observação (opcional)</Label>
             <Textarea rows={2} value={descricao} onChange={(e) => setDescricao(e.target.value)} />
           </div>
         </div>
@@ -278,7 +272,7 @@ const LancamentoDialog = ({ open, onOpenChange, lancamento }: Props) => {
           </Button>
           <Button onClick={handleSave} disabled={salvarLancamento.isPending}>
             {salvarLancamento.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            {lancamento ? "Salvar alterações" : "Registrar"}
+            {lancamento ? "Registro imutável" : "Registrar"}
           </Button>
         </div>
       </DialogContent>

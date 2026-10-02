@@ -57,6 +57,17 @@ const nucleos = NUCLEO_OPTIONS;
         </div>
 
         <div style="border-top:1px solid var(--line);padding-top:var(--sp-6)">
+          <h2 style="font-size:var(--text-xl);margin-bottom:var(--sp-4)">Atividade</h2>
+          <div class="field">
+            <label for="destino_publico">Curso ou simpósio *</label>
+            <select class="input" id="destino_publico" name="destino_publico" required>
+              <option value="curso:teologico">Curso Teológico</option>
+            </select>
+            <span class="field__hint">Mostramos apenas atividades abertas para inscrição.</span>
+          </div>
+        </div>
+
+        <div style="border-top:1px solid var(--line);padding-top:var(--sp-6)">
           <h2 style="font-size:var(--text-xl);margin-bottom:var(--sp-4)">Dados Acadêmicos</h2>
           <div class="field">
             <label>Modalidade *</label>
@@ -84,7 +95,7 @@ const nucleos = NUCLEO_OPTIONS;
 </Base>
 
 <script>
-  import { createBrowserClient, solicitarInscricao } from '@its-servo/supabase';
+  import { createBrowserClient, listarDestinosPublicos, solicitarInscricao } from '@its-servo/supabase';
 
   const url = import.meta.env.PUBLIC_SUPABASE_URL;
   const key = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
@@ -95,6 +106,20 @@ const nucleos = NUCLEO_OPTIONS;
   const msg = document.getElementById('form-msg') as HTMLParagraphElement;
   const nucleoWrap = document.getElementById('nucleo-wrap') as HTMLDivElement;
   const nucleoSel = document.getElementById('nucleo') as HTMLSelectElement;
+  const destinoSel = document.getElementById('destino_publico') as HTMLSelectElement;
+
+  if (url && key) {
+    const client = createBrowserClient(url, key);
+    listarDestinosPublicos(client).then((destinos) => {
+      destinoSel.innerHTML = '';
+      destinos.forEach((destino) => {
+        const option = document.createElement('option');
+        option.value = destino.tipo === 'curso' ? `curso:${destino.codigo}` : `simposio:${destino.id}`;
+        option.textContent = destino.valor == null ? destino.nome : `${destino.nome} — ${destino.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+        destinoSel.appendChild(option);
+      });
+    }).catch(() => { /* mantém Curso Teológico disponível durante indisponibilidade temporária */ });
+  }
 
   // Mostra/oculta o núcleo conforme a modalidade
   form.querySelectorAll('input[name="modalidade"]').forEach((el) =>
@@ -151,6 +176,8 @@ const nucleos = NUCLEO_OPTIONS;
 
     const fd = new FormData(form);
     const modalidade = String(fd.get('modalidade') || '');
+    const destinoSelecionado = String(fd.get('destino_publico') || 'curso:teologico');
+    const [destino, destinoId] = destinoSelecionado.split(':');
     const dto = {
       nome_completo: String(fd.get('nome_completo') || ''),
       cpf: String(fd.get('cpf') || ''),
@@ -160,6 +187,9 @@ const nucleos = NUCLEO_OPTIONS;
       escolaridade: String(fd.get('escolaridade') || ''),
       modalidade: modalidade as 'presencial' | 'correspondencia',
       nucleo: modalidade === 'presencial' ? String(fd.get('nucleo') || '') : null,
+      destino: destino as 'curso' | 'simposio',
+      curso_codigo: destino === 'curso' ? destinoId as 'teologico' | 'capacitacao_obreiros' : undefined,
+      edicao_simposio_id: destino === 'simposio' ? destinoId : null,
     };
 
     const btn = form.querySelector('button[type="submit"]') as HTMLButtonElement;

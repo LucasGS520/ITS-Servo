@@ -43,6 +43,10 @@ export type Database = {
           status: string /** Status da inscrição */
           telefone: string /** Telefone do candidato */
           updated_at: string /** Data da última atualização */
+          pessoa_id: string | null
+          curso_id: string | null
+          edicao_simposio_id: string | null
+          destino: string
         }
         Insert: {
           comprovante_url?: string | null /** Path do comprovante no bucket privado (opcional) */
@@ -60,6 +64,10 @@ export type Database = {
           status?: string /** Status da inscrição (preenchido automaticamente) */
           telefone: string /** Telefone do candidato */
           updated_at?: string /** Data da última atualização (preenchido automaticamente) */
+          pessoa_id?: string | null
+          curso_id?: string | null
+          edicao_simposio_id?: string | null
+          destino?: string
         }
         Update: {
           comprovante_url?: string | null /** Path do comprovante no bucket privado (opcional) */
@@ -77,6 +85,10 @@ export type Database = {
           status?: string /** Status da inscrição */
           telefone?: string /** Telefone do candidato */
           updated_at?: string /** Data da última atualização (preenchido automaticamente) */
+          pessoa_id?: string | null
+          curso_id?: string | null
+          edicao_simposio_id?: string | null
+          destino?: string
         }
         Relationships: []
       }
@@ -197,6 +209,13 @@ export type Database = {
           created_by: string | null /** Usuário que lançou */
           created_at: string /** Data de criação do registro */
           updated_at: string /** Data da última atualização */
+          pagamento_id: string | null
+          cobranca_id: string | null
+          curso_id: string | null
+          edicao_simposio_id: string | null
+          estorno_de_id: string | null
+          motivo: string | null
+          origem: string
         }
         Insert: {
           id?: string
@@ -211,6 +230,13 @@ export type Database = {
           created_by?: string | null
           created_at?: string
           updated_at?: string
+          pagamento_id?: string | null
+          cobranca_id?: string | null
+          curso_id?: string | null
+          edicao_simposio_id?: string | null
+          estorno_de_id?: string | null
+          motivo?: string | null
+          origem?: string
         }
         Update: {
           id?: string
@@ -225,6 +251,13 @@ export type Database = {
           created_by?: string | null
           created_at?: string
           updated_at?: string
+          pagamento_id?: string | null
+          cobranca_id?: string | null
+          curso_id?: string | null
+          edicao_simposio_id?: string | null
+          estorno_de_id?: string | null
+          motivo?: string | null
+          origem?: string
         }
         Relationships: [
           {
@@ -242,6 +275,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      pessoas: {
+        Row: { id: string; cpf: string; nome_completo: string; telefone: string | null; email: string | null; data_nascimento: string | null; escolaridade: string | null; created_at: string; updated_at: string }
+        Insert: { id?: string; cpf: string; nome_completo: string; telefone?: string | null; email?: string | null; data_nascimento?: string | null; escolaridade?: string | null; created_at?: string; updated_at?: string }
+        Update: { id?: string; cpf?: string; nome_completo?: string; telefone?: string | null; email?: string | null; data_nascimento?: string | null; escolaridade?: string | null; updated_at?: string }
+        Relationships: []
+      }
+      cursos: {
+        Row: { id: string; codigo: string; nome: string; valor: number | null; ativo: boolean; publico: boolean; created_at: string; updated_at: string }
+        Insert: { id?: string; codigo: string; nome: string; valor?: number | null; ativo?: boolean; publico?: boolean; created_at?: string; updated_at?: string }
+        Update: { id?: string; codigo?: string; nome?: string; valor?: number | null; ativo?: boolean; publico?: boolean; updated_at?: string }
+        Relationships: []
+      }
+      edicoes_simposio: {
+        Row: { id: string; nome: string; inicio: string | null; fim: string | null; valor: number | null; ativo: boolean; publico: boolean; created_at: string; updated_at: string }
+        Insert: { id?: string; nome: string; inicio?: string | null; fim?: string | null; valor?: number | null; ativo?: boolean; publico?: boolean; created_at?: string; updated_at?: string }
+        Update: { id?: string; nome?: string; inicio?: string | null; fim?: string | null; valor?: number | null; ativo?: boolean; publico?: boolean; updated_at?: string }
+        Relationships: []
+      }
+      cobrancas: {
+        Row: { id: string; pessoa_id: string; inscricao_id: string | null; curso_id: string | null; edicao_simposio_id: string | null; categoria_id: string | null; referente: string; valor_devido: number; vencimento: string | null; status: string; created_by: string | null; created_at: string; updated_at: string }
+        Insert: { id?: string; pessoa_id: string; inscricao_id?: string | null; curso_id?: string | null; edicao_simposio_id?: string | null; categoria_id?: string | null; referente: string; valor_devido: number; vencimento?: string | null; status?: string; created_by?: string | null; created_at?: string; updated_at?: string }
+        Update: { status?: string; vencimento?: string | null; referente?: string; valor_devido?: number; categoria_id?: string | null; updated_at?: string }
+        Relationships: []
+      }
+      pagamentos: {
+        Row: { id: string; cobranca_id: string | null; inscricao_id: string | null; valor: number | null; data_recebimento: string | null; comprovante_url: string | null; status: string; conciliado_por: string | null; conciliado_em: string | null; created_at: string; updated_at: string }
+        Insert: { id?: string; cobranca_id?: string | null; inscricao_id?: string | null; valor?: number | null; data_recebimento?: string | null; comprovante_url?: string | null; status?: string; created_at?: string; updated_at?: string }
+        Update: { valor?: number | null; data_recebimento?: string | null; comprovante_url?: string | null; status?: string; conciliado_por?: string | null; conciliado_em?: string | null; updated_at?: string }
+        Relationships: []
+      }
+      auditoria_operacional: {
+        Row: { id: string; entidade: string; entidade_id: string; acao: string; motivo: string | null; dados: Json; executado_por: string | null; created_at: string }
+        Insert: { id?: string; entidade: string; entidade_id: string; acao: string; motivo?: string | null; dados?: Json; executado_por?: string | null; created_at?: string }
+        Update: never
+        Relationships: []
+      }
+      relatorios_mensais_versoes: {
+        Row: { id: string; periodo: string; versao: number; status: string; dados: Json; emitido_por: string | null; created_at: string }
+        Insert: { id?: string; periodo: string; versao: number; status?: string; dados?: Json; emitido_por?: string | null; created_at?: string }
+        Update: { status?: string; dados?: Json }
+        Relationships: []
       }
     }
     Views: {
@@ -287,6 +362,13 @@ export type Database = {
         Args: { p_numero: string; p_token: string }
         Returns: boolean
       }
+      criar_registro_financeiro: {
+        Args: { p_tipo: string; p_valor: number; p_data: string; p_categoria_id: string; p_unidade?: string | null; p_aluno_id?: string | null; p_descricao?: string | null; p_motivo?: string | null; p_curso_id?: string | null; p_edicao_simposio_id?: string | null }
+        Returns: string
+      }
+      conciliar_pagamento: { Args: { p_pagamento_id: string; p_valor: number; p_data: string }; Returns: string }
+      corrigir_registro_financeiro: { Args: { p_registro_id: string; p_motivo: string }; Returns: string }
+      emitir_relatorio_mensal: { Args: { p_periodo: string; p_dados?: Json }; Returns: string }
     }
     Enums: {
       /** Papéis disponíveis no sistema */

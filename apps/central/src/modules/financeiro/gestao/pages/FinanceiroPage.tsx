@@ -6,8 +6,9 @@ import AnualTab from "@/modules/financeiro/gestao/components/AnualTab";
 import AlunosTab from "@/modules/financeiro/gestao/components/AlunosTab";
 import CategoriasTab from "@/modules/financeiro/gestao/components/CategoriasTab";
 import PrevisaoTab from "@/modules/financeiro/gestao/components/PrevisaoTab";
+import CobrancasTab from "@/modules/financeiro/gestao/components/CobrancasTab";
 
-const TABS = ["lancamentos", "mensal", "anual", "alunos", "categorias", "previsao"] as const;
+const TABS = ["lancamentos", "cobrancas", "mensal", "anual", "alunos", "categorias", "previsao"] as const;
 type Tab = (typeof TABS)[number];
 
 /**
@@ -22,15 +23,16 @@ const FinanceiroPage = () => {
   return (
     <div className="container space-y-6 py-8">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Financeiro</h1>
+        <h1 className="text-2xl font-bold text-foreground">Registro Financeiro</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Entradas e saídas por unidade — mensalidades, cursos e despesas do ITS.
+          Movimentações realizadas, cobranças e despesas do ITS.
         </p>
       </div>
 
       <Tabs value={tab} onValueChange={(v) => setSearchParams({ tab: v }, { replace: true })}>
         <TabsList>
-          <TabsTrigger value="lancamentos">Lançamentos</TabsTrigger>
+          <TabsTrigger value="lancamentos">Movimentações</TabsTrigger>
+          <TabsTrigger value="cobrancas">Cobranças</TabsTrigger>
           <TabsTrigger value="mensal">Relatório Mensal</TabsTrigger>
           <TabsTrigger value="anual">Visão Anual</TabsTrigger>
           <TabsTrigger value="alunos">Alunos</TabsTrigger>
@@ -39,6 +41,9 @@ const FinanceiroPage = () => {
         </TabsList>
         <TabsContent value="lancamentos" className="mt-6">
           <LancamentosTab />
+        </TabsContent>
+        <TabsContent value="cobrancas" className="mt-6">
+          <CobrancasTab />
         </TabsContent>
         <TabsContent value="mensal" className="mt-6">
           <MensalTab />

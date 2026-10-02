@@ -8,6 +8,8 @@ import { ConsultaInscricaoPage, PagamentoPage } from "@/modules/inscricoes/autos
 import { InscricoesPage } from "@/modules/inscricoes/gestao";
 import { FinanceiroPage } from "@/modules/financeiro/gestao";
 import { DashboardPage } from "@/modules/indicadores/gestao";
+import { PessoasPage } from "@/modules/pessoas/gestao";
+import { CursosPage, SimposioPage } from "@/modules/atividades/gestao/pages/AtividadesPages";
 
 const AppRoutes = () => (
   <Routes>
@@ -26,6 +28,10 @@ const AppRoutes = () => (
       )}
     >
       <Route index element={<DashboardPage />} />
+      <Route path="pessoas" element={<PessoasPage />} />
+      <Route path="cursos" element={<CursosPage />} />
+      <Route path="simposio" element={<SimposioPage />} />
+      <Route path="relatorios" element={<Navigate to="/painel/financeiro?tab=mensal" replace />} />
       <Route path="inscricoes" element={<InscricoesPage />} />
       <Route path="financeiro" element={<FinanceiroPage />} />
     </Route>

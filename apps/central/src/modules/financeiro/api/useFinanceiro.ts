@@ -5,6 +5,8 @@ import type { Tables } from "@/services/supabase/types";
 export const ALUNOS_KEY = ["alunos"] as const;
 export const CATEGORIAS_KEY = ["categorias_financeiras"] as const;
 export const LANCAMENTOS_KEY = ["lancamentos_financeiros"] as const;
+export const COBRANCAS_KEY = ["cobrancas"] as const;
+export const PAGAMENTOS_KEY = ["pagamentos"] as const;
 
 export type Aluno = Tables<"alunos">;
 export type Categoria = Tables<"categorias_financeiras">;
@@ -12,6 +14,8 @@ export type Lancamento = Tables<"lancamentos_financeiros"> & {
   aluno: { nome: string } | null;
   categoria: { nome: string; tipo: string } | null;
 };
+export type Cobranca = Tables<"cobrancas">;
+export type Pagamento = Tables<"pagamentos">;
 
 export const useAlunos = () =>
   useQuery({
@@ -61,4 +65,24 @@ export const useLancamentos = () =>
       return (data ?? []) as Lancamento[];
     },
     staleTime: 10_000,
+  });
+
+export const useCobrancas = () =>
+  useQuery({
+    queryKey: COBRANCAS_KEY,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("cobrancas").select("*").order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+export const usePagamentos = () =>
+  useQuery({
+    queryKey: PAGAMENTOS_KEY,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("pagamentos").select("*").order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
   });

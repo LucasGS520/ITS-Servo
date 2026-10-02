@@ -72,7 +72,7 @@ serve(async (req) => {
     if (findErr || !insc || insc.consulta_token_hash !== hash) {
       return json({ error: "Inscrição não encontrada ou código de acesso inválido." }, 403, origin);
     }
-    if (!["aguardando_pagamento", "pagamento_nao_identificado"].includes(insc.status)) {
+    if (!["aguardando_pagamento", "pagamento_nao_identificado", "comprovante_enviado"].includes(insc.status)) {
       return json({ error: `Não é possível enviar comprovante no status atual (${insc.status}).` }, 409, origin);
     }
 
@@ -87,6 +87,24 @@ serve(async (req) => {
       .update({ comprovante_url: path, status: "comprovante_enviado" })
       .eq("id", insc.id);
     if (updErr) throw updErr;
+
+    // Cada envio é um pagamento pendente separado. Isso permite pagamentos
+    // parciais sem substituir comprovantes anteriores; a tesouraria concilia
+    // cada registro e só então ele vira entrada realizada.
+    const { data: cobranca, error: cobrancaErr } = await admin
+      .from("cobrancas")
+      .select("id")
+      .eq("inscricao_id", insc.id)
+      .eq("status", "aberta")
+      .order("created_at")
+      .limit(1)
+      .maybeSingle();
+    if (cobrancaErr || !cobranca) throw cobrancaErr ?? new Error("Cobrança não encontrada para esta inscrição.");
+
+    const { error: pagamentoErr } = await admin
+      .from("pagamentos")
+      .insert({ inscricao_id: insc.id, cobranca_id: cobranca.id, comprovante_url: path, status: "pendente" });
+    if (pagamentoErr) throw pagamentoErr;
 
     // Upload e status já persistidos: falha de e-mail não derruba a resposta.
     try {

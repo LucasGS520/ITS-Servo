@@ -1,0 +1,1 @@
+export { usePessoasComHistorico } from "./usePessoas";

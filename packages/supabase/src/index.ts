@@ -20,6 +20,8 @@ export {
   buscarInscricao,
   cancelarInscricao,
   enviarComprovante,
+  listarDestinosPublicos,
   type InscricaoDTO,
   type InscricaoResumo,
+  type DestinoPublico,
 } from "./contract.ts";

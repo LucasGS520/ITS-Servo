@@ -3,9 +3,12 @@ import {
   ALUNOS_KEY,
   CATEGORIAS_KEY,
   LANCAMENTOS_KEY,
+  COBRANCAS_KEY,
+  PAGAMENTOS_KEY,
 } from "./useFinanceiro";
 import {
   excluirLancamento,
+  conciliarPagamento,
   salvarAluno,
   salvarCategoria,
   salvarLancamento,
@@ -33,3 +36,15 @@ export const useSalvarLancamento = () =>
 
 export const useExcluirLancamento = () =>
   useInvalidatingMutation(excluirLancamento, LANCAMENTOS_KEY);
+
+export const useConciliarPagamento = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: conciliarPagamento,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PAGAMENTOS_KEY });
+      queryClient.invalidateQueries({ queryKey: COBRANCAS_KEY });
+      queryClient.invalidateQueries({ queryKey: LANCAMENTOS_KEY });
+    },
+  });
+};

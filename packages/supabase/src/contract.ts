@@ -16,6 +16,10 @@ export interface InscricaoDTO {
   escolaridade: string;
   modalidade: "presencial" | "correspondencia";
   nucleo?: string | null;
+  /** Curso escolhido ou edição pública de simpósio. O fluxo legado assume Curso Teológico. */
+  destino?: "curso" | "simposio";
+  curso_codigo?: "teologico" | "capacitacao_obreiros";
+  edicao_simposio_id?: string | null;
 }
 
 export interface InscricaoResumo {
@@ -31,6 +35,30 @@ export interface InscricaoResumo {
   status: string;
   comprovante_url: string | null;
   created_at: string;
+}
+
+export interface DestinoPublico {
+  id: string;
+  tipo: "curso" | "simposio";
+  codigo?: "teologico" | "capacitacao_obreiros";
+  nome: string;
+  valor: number | null;
+}
+
+/** Catálogo mínimo e seguro para o Site: só devolve cursos e edições publicados. */
+export async function listarDestinosPublicos(client: SupabaseClient): Promise<DestinoPublico[]> {
+  const [cursos, edicoes] = await Promise.all([
+    client.from("cursos").select("id,codigo,nome,valor").eq("ativo", true).eq("publico", true),
+    client.from("edicoes_simposio").select("id,nome,valor").eq("ativo", true).eq("publico", true),
+  ]);
+  if (cursos.error) throw cursos.error;
+  if (edicoes.error) throw edicoes.error;
+  return [
+    ...(cursos.data ?? []).map((curso) => ({
+      id: curso.id, tipo: "curso" as const, codigo: curso.codigo as DestinoPublico["codigo"], nome: curso.nome, valor: curso.valor,
+    })),
+    ...(edicoes.data ?? []).map((edicao) => ({ id: edicao.id, tipo: "simposio" as const, nome: edicao.nome, valor: edicao.valor })),
+  ];
 }
 
 /**

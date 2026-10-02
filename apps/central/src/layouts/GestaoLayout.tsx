@@ -1,13 +1,17 @@
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { Button } from "@/common/ui/button";
-import { LayoutDashboard, FileText, DollarSign, LogOut, BookOpen, ExternalLink } from "lucide-react";
+import { LayoutDashboard, FileText, DollarSign, LogOut, BookOpen, ExternalLink, Users, GraduationCap, CalendarDays, BarChart3 } from "lucide-react";
 import { sairDaGestao } from "@/modules/autenticacao";
 import { SITE_URL } from "@/common/constants/urls";
 
 const navItems = [
   { to: "/painel", label: "Dashboard", icon: LayoutDashboard, end: true },
-  { to: "/painel/inscricoes", label: "Inscrições", icon: FileText, end: false },
-  { to: "/painel/financeiro", label: "Financeiro", icon: DollarSign, end: false },
+  { to: "/painel/pessoas", label: "Pessoas", icon: Users, end: false },
+  { to: "/painel/inscricoes", label: "Matrículas", icon: FileText, end: false },
+  { to: "/painel/cursos", label: "Cursos", icon: GraduationCap, end: false },
+  { to: "/painel/simposio", label: "Simpósio", icon: CalendarDays, end: false },
+  { to: "/painel/financeiro", label: "Registro Financeiro", icon: DollarSign, end: false },
+  { to: "/painel/relatorios", label: "Relatórios", icon: BarChart3, end: false },
 ];
 
 const GestaoLayout = () => {

@@ -51,18 +51,40 @@ export const salvarLancamento = async ({
   id,
   values,
 }: SalvarInput<LancamentoValues>) => {
-  const { error } = id
-    ? await supabase.from("lancamentos_financeiros").update(values).eq("id", id)
-    : await supabase.from("lancamentos_financeiros").insert(values);
+  if (id) {
+    throw new Error("Registros financeiros não são editados. Use Corrigir para preservar o histórico.");
+  }
+
+  const { error } = await supabase.rpc("criar_registro_financeiro", {
+    p_tipo: values.tipo,
+    p_valor: values.valor,
+    p_data: values.data ?? new Date().toISOString().slice(0, 10),
+    p_categoria_id: values.categoria_id,
+    p_unidade: values.unidade ?? null,
+    p_aluno_id: values.aluno_id ?? null,
+    p_descricao: values.descricao ?? null,
+    p_motivo: null,
+    p_curso_id: null,
+    p_edicao_simposio_id: null,
+  });
 
   if (error) throw error;
 };
 
-export const excluirLancamento = async (id: string) => {
-  const { error } = await supabase
-    .from("lancamentos_financeiros")
-    .delete()
-    .eq("id", id);
+export const excluirLancamento = async ({ id, motivo }: { id: string; motivo: string }) => {
+  const { error } = await supabase.rpc("corrigir_registro_financeiro", {
+    p_registro_id: id,
+    p_motivo: motivo,
+  });
 
+  if (error) throw error;
+};
+
+export const conciliarPagamento = async ({ id, valor }: { id: string; valor: number }) => {
+  const { error } = await supabase.rpc("conciliar_pagamento", {
+    p_pagamento_id: id,
+    p_valor: valor,
+    p_data: new Date().toISOString().slice(0, 10),
+  });
   if (error) throw error;
 };
