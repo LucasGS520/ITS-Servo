@@ -3,6 +3,10 @@
 Data: 2026-10-01  
 Branch: `refactor-central`
 
+> Histórico: os caminhos deste plano refletem a organização anterior. Na
+> estrutura vigente, `features/` chama-se `modules/` e
+> `integrations/supabase` passou a `services/supabase`.
+
 ## Objetivo
 
 Consolidar as fronteiras criadas no primeiro marco, retirando acesso direto ao
@@ -34,7 +38,7 @@ funcional.
 
 ### Guardrails
 
-- [x] Proibir import direto do client Supabase fora de `features/*/api`.
+- [x] Proibir import direto do client Supabase fora de `modules/*/api`.
 - [x] Adicionar testes para o modelo de status.
 - [x] Atualizar a documentação arquitetural.
 
@@ -51,5 +55,5 @@ funcional.
 - [x] Testes aprovados: 24 testes.
 - [x] Lint sem novos erros ou avisos: 0 erros e 7 avisos preexistentes.
 - [x] Build de produção aprovado; permanece o aviso de chunk > 500 kB.
-- [x] Nenhuma UI importa `@/integrations/supabase/client`.
+- [x] Nenhuma UI importa `@/services/supabase/client`.
 - [x] Comportamento e rotas preservados.

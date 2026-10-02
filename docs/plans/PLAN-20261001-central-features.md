@@ -3,6 +3,10 @@
 Data: 2026-10-01  
 Branch: `refactor-central`
 
+> Histórico: este plano registra a primeira migração. A estrutura vigente
+> substituiu `app/` e `features/` por `App.tsx` e `modules/`; consulte
+> `apps/central/STACK_ITS.md` para a fonte de verdade atual.
+
 ## Objetivo
 
 Reorganizar `apps/central` por capacidades de negócio, usando `features/` como

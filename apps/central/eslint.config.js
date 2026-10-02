@@ -30,15 +30,15 @@ export default tseslint.config(
     },
   },
   {
-    files: ["src/app/**/*.{ts,tsx}", "src/features/**/*.{ts,tsx}"],
-    ignores: ["src/features/**/api/**/*.{ts,tsx}"],
+    files: ["src/App.tsx", "src/{layouts,pages,providers,routes,modules,common}/**/*.{ts,tsx}"],
+    ignores: ["src/modules/**/api/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-imports": [
         "error",
         {
           paths: [
             {
-              name: "@/integrations/supabase/client",
+              name: "@/services/supabase/client",
               message: "A UI deve acessar o Supabase pela API da feature.",
             },
           ],

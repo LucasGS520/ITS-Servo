@@ -83,19 +83,24 @@ do Supabase.
 
 ```text
 apps/central/src/
-├── app/                 # providers, rotas, layouts e páginas sistêmicas
-├── features/
+├── App.tsx              # composição mínima: providers + rotas
+├── main.tsx             # bootstrap React
+├── routes/              # rotas e redirecionamentos
+├── layouts/             # shells das experiências
+├── pages/               # páginas sistêmicas
+├── providers/           # infraestrutura React global
+├── modules/
 │   ├── autenticacao/    # acesso da equipe à gestão
 │   ├── inscricoes/      # autosserviço e gestão da inscrição
 │   ├── financeiro/      # livro-caixa, alunos, categorias e relatórios
 │   └── indicadores/     # dashboard da gestão
-├── shared/              # constantes e utilitários transversais
-├── integrations/        # client Supabase da aplicação
-└── components/ui/       # primitives visuais
+├── common/              # UI, assets, constantes, hooks e utilitários
+└── services/            # integrações técnicas, hoje Supabase
+apps/central/tests/      # testes da aplicação
 ```
 
-`app/` compõe a aplicação, mas não contém regras de negócio. As capacidades
-ficam em `features/`; quando uma capacidade participa das duas experiências,
+`App.tsx`, rotas, layouts e providers compõem a aplicação, mas não contêm
+regras de negócio. As capacidades ficam em `modules/`; quando uma capacidade participa das duas experiências,
 ela separa a UI em `autosservico/` e `gestao/`.
 
 Dependências atuais relevantes:
@@ -104,7 +109,7 @@ Dependências atuais relevantes:
 - `financeiro/previsao` também interpreta dados de inscrições;
 - a confirmação de uma inscrição aciona no banco a criação de um aluno;
 - queries, commands e mutations encapsulam o client Supabase nas APIs das
-  features; páginas, componentes e layouts não acessam o client diretamente.
+  módulos; páginas, componentes e layouts não acessam o client diretamente.
 
 ### 3.3 Superfícies e rotas
 
@@ -298,24 +303,23 @@ acadêmica (notas, frequência, turmas ou AVA).
 
 ### 8.2 Estrutura interna recomendada
 
-Sem introduzir camadas cerimoniais, cada feature expõe entrypoints explícitos e
+Sem introduzir camadas cerimoniais, cada módulo expõe entrypoints explícitos e
 separa regras, dados e experiências:
 
 ```text
-app/
-├── layouts/
-├── pages/
-├── providers/
-└── routes/
+App.tsx
+routes/
+layouts/
+providers/
 
-features/inscricoes/
+modules/inscricoes/
 ├── api/                 # queries e commands
 ├── model/               # tipos, estados e regras puras
 ├── autosservico/        # jornada do candidato
 ├── gestao/              # operação da equipe
-└── index.ts             # API pública para outras features
+└── index.ts             # API pública para outros módulos
 
-features/financeiro/
+modules/financeiro/
 ├── api/
 ├── model/
 ├── gestao/
@@ -326,7 +330,7 @@ Regras de dependência:
 
 - páginas e componentes não importam o client Supabase; consomem a API da
   própria feature;
-- outras features importam somente a API pública da feature, não arquivos
+- outros módulos importam somente a API pública do módulo, não arquivos
   internos de UI;
 - `autosservico` e `gestao` não importam componentes um do outro;
 - `packages/supabase` concentra client e tipos do banco/contrato;
@@ -432,7 +436,7 @@ Uma nova funcionalidade só deve entrar quando responder claramente:
 | Manter Supabase como backend | Atende ao porte atual e já concentra dados e segurança |
 | Manter monólito modular | Menor custo operacional e fronteiras de domínio suficientes |
 | Preservar autosserviço sem conta | Token por inscrição reduz atrito sem abrir PII |
-| Tratar `features/` como fronteira de negócio | Evita organizar o sistema por telas genéricas |
+| Tratar `modules/` como fronteira de negócio | Evita organizar o sistema por telas genéricas |
 | Nomear experiências como `autosservico` e `gestao` | Expressa propósito sem conflitar com `public/` |
 | Adiar domínio acadêmico | Não ataca os gargalos operacionais prioritários |
 | Evoluir o financeiro para trilha imutável | Prestação de contas exige histórico de correções |
@@ -441,13 +445,13 @@ Uma nova funcionalidade só deve entrar quando responder claramente:
 
 Principais pontos do código usados neste mapeamento:
 
-- rotas e superfícies: `apps/central/src/app/routes/AppRoutes.tsx`;
-- composição: `apps/central/src/app/`;
-- módulos: `apps/central/src/features/`;
-- autenticação: `features/autenticacao/gestao/`;
+- rotas e superfícies: `apps/central/src/routes/AppRoutes.tsx`;
+- composição: `apps/central/src/App.tsx`, `routes/`, `layouts/` e `providers/`;
+- módulos: `apps/central/src/modules/`;
+- autenticação: `modules/autenticacao/gestao/`;
 - contrato público: `packages/supabase/src/contract.ts`;
 - dados e RLS: `supabase/migrations/`;
 - operações públicas: `supabase/functions/criar-inscricao/` e
   `supabase/functions/enviar-comprovante/`;
-- dashboard: `features/indicadores/gestao/pages/DashboardPage.tsx`;
-- financeiro: `features/financeiro/`.
+- dashboard: `modules/indicadores/gestao/pages/DashboardPage.tsx`;
+- financeiro: `modules/financeiro/`.
