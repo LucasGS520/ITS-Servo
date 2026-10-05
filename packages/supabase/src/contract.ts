@@ -85,10 +85,10 @@ async function comMensagemDoServidor(error: unknown): Promise<never> {
 export async function solicitarInscricao(
   client: SupabaseClient,
   dto: InscricaoDTO,
-): Promise<{ numero_inscricao: string; token: string; email_enviado: boolean }> {
+): Promise<{ numero_inscricao: string; token: string }> {
   const { data, error } = await client.functions.invoke("criar-inscricao", { body: dto });
   if (error) await comMensagemDoServidor(error);
-  return data as { numero_inscricao: string; token: string; email_enviado: boolean };
+  return data as { numero_inscricao: string; token: string };
 }
 
 /** @deprecated Use `solicitarInscricao`, que explicita a fronteira Site → Central. */

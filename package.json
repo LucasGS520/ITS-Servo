@@ -12,6 +12,6 @@
     "lint": "pnpm -r --if-present lint"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22.12.0"
   }
 }

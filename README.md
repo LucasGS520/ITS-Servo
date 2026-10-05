@@ -108,7 +108,6 @@ Responsável por:
 - Status da inscrição.
 - Confirmação/cancelamento pela equipe.
 - Abertura segura de comprovantes.
-- Disparo de e-mail de confirmação.
 
 `autosservico/` contém pagamento e consulta do candidato; `gestao/` contém a
 operação da equipe. Regras puras ficam em `model/` e acesso a dados em `api/`.
@@ -144,7 +143,7 @@ Diagnóstico importante: a “receita confirmada” atual é uma estimativa base
 
 ## Desenvolvimento
 
-Requer **pnpm** (workspace) e Node ≥ 18.
+Requer **pnpm** (workspace) e Node ≥ 22.12.0.
 
 ```bash
 pnpm install          # instala todo o workspace
@@ -166,7 +165,7 @@ acesso anônimo direto a `inscricoes`; o painel administrativo usa RLS. Regras e
 
 - `packages/supabase`: contrato público, tipos e funções compartilhadas.
 - `packages/design-system`: design system.
-- `supabase/functions`: operações protegidas no servidor, como criação de inscrição, envio de comprovante e e-mails.
+- `supabase/functions`: operações protegidas no servidor, como criação de inscrição e envio de comprovante.
 - Supabase: banco, Storage privado de comprovantes, autenticação e regras de acesso.
 
 ```bash
@@ -175,6 +174,8 @@ supabase db reset     # aplica migrations + seed (asserts conferem a planilha)
 supabase db push      # aplica migrations no projeto remoto
 ```
 
-Secrets exigidos pelas edge functions no deploy (falham alto se ausentes):
-`ALLOWED_ORIGINS`, `SELF_SERVICE_URL`, `EMAIL_FROM`, `ADMIN_EMAIL`,
-`RESEND_API_KEY` — via `supabase secrets set`.
+Secret exigido pelas edge functions no deploy (falha alto se ausente):
+`ALLOWED_ORIGINS` — via `supabase secrets set`.
+
+O roteiro obrigatório de publicação do backend está em
+[`docs/SUPABASE_PRODUCAO.md`](docs/SUPABASE_PRODUCAO.md).

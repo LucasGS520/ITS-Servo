@@ -45,40 +45,16 @@ export interface AtualizarStatusInscricaoInput {
   status: StatusInscricao;
 }
 
-export interface AtualizarStatusInscricaoResult {
-  emailConfirmacaoFalhou: boolean;
-}
-
 export const atualizarStatusInscricao = async ({
   inscricao,
   status,
-}: AtualizarStatusInscricaoInput): Promise<AtualizarStatusInscricaoResult> => {
+}: AtualizarStatusInscricaoInput): Promise<void> => {
   const { error } = await supabase
     .from("inscricoes")
     .update({ status })
     .eq("id", inscricao.id);
 
   if (error) throw error;
-  if (status !== "confirmada") return { emailConfirmacaoFalhou: false };
-
-  try {
-    const { error: emailError } = await supabase.functions.invoke(
-      "enviar-email-confirmacao",
-      {
-        body: {
-          numero_inscricao: inscricao.numero_inscricao,
-          nome: inscricao.nome_completo,
-          email: inscricao.email,
-          modalidade: inscricao.modalidade,
-          nucleo: inscricao.nucleo,
-        },
-      },
-    );
-
-    return { emailConfirmacaoFalhou: Boolean(emailError) };
-  } catch {
-    return { emailConfirmacaoFalhou: true };
-  }
 };
 
 export type { InscricaoResumo };

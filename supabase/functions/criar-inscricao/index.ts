@@ -3,8 +3,8 @@
  *
  * Ponto único pelo qual o Site Institucional envia uma solicitação à
  * Central. O contrato operacional valida no servidor, cria o registro via
- * service_role (RLS não expõe INSERT ao anon), gera o token de autosserviço
- * (guarda só o hash) e dispara o e-mail com o link mágico da Central.
+ * service_role (RLS não expõe INSERT ao anon) e gera o token de autosserviço
+ * (guarda só o hash) para o redirecionamento seguro à Central.
  *
  * POST { nome_completo, cpf, telefone, email, data_nascimento, escolaridade,
  *        modalidade, nucleo? }
@@ -16,16 +16,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { json } from "../_shared/cors.ts";
 import { adminClient } from "../_shared/admin.ts";
 import { generateToken, sha256Hex } from "../_shared/token.ts";
-import { sendEmail, baseTemplate, botao } from "../_shared/email.ts";
 import { validateCPF } from "../_shared/cpf.ts";
 import { NUCLEO_SLUGS } from "../_shared/nucleos.ts";
-
-// Sem fallback silencioso: link mágico apontando para localhost em produção é
-// pior do que falhar o deploy com mensagem clara.
-const SELF_SERVICE_URL = Deno.env.get("SELF_SERVICE_URL");
-if (!SELF_SERVICE_URL) {
-  throw new Error("SELF_SERVICE_URL não configurada (ex.: https://central.itsservo.org). Defina via `supabase secrets set`.");
-}
 
 interface Dto {
   nome_completo: string;
@@ -84,13 +76,18 @@ serve(async (req) => {
       .select("*", { count: "exact", head: true })
       .eq("ip", ip)
       .gte("created_at", janela);
-    // Guard degrada aberto (inscrição > rate limit), mas NUNCA em silêncio.
-    if (hitsErr) console.error("criar-inscricao: rate limit indisponível:", hitsErr);
+    if (hitsErr) {
+      console.error("criar-inscricao: rate limit indisponível:", hitsErr);
+      return json({ error: "Serviço temporariamente indisponível. Tente novamente em alguns minutos." }, 503, origin);
+    }
     if ((hits ?? 0) >= 5) {
       return json({ error: "Muitas tentativas deste endereço. Tente novamente em 1 hora." }, 429, origin);
     }
     const { error: hitInsErr } = await admin.from("criar_inscricao_hits").insert({ ip });
-    if (hitInsErr) console.error("criar-inscricao: falha ao registrar hit:", hitInsErr);
+    if (hitInsErr) {
+      console.error("criar-inscricao: falha ao registrar hit:", hitInsErr);
+      return json({ error: "Serviço temporariamente indisponível. Tente novamente em alguns minutos." }, 503, origin);
+    }
 
     const destino = dto.destino ?? "curso";
     const cursoCodigo = dto.curso_codigo ?? "teologico";
@@ -188,28 +185,7 @@ serve(async (req) => {
     });
     if (cobrancaErr) throw cobrancaErr;
 
-    // A inscrição já está persistida: falha de e-mail não pode derrubar a resposta,
-    // senão o usuário resubmete e cria duplicata sem nunca receber numero/token.
-    // Token no FRAGMENT (#): não trafega em Referer nem em logs de servidor.
-    const link = `${SELF_SERVICE_URL}/inscricao/pagamento/${numero}#token=${token}`;
-    let email_enviado = false;
-    try {
-      email_enviado = await sendEmail(
-        dto.email!.trim(),
-        `Inscrição recebida — ${numero}`,
-        baseTemplate(
-          `Olá, ${dto.nome_completo!.split(" ")[0]}!`,
-          `<p>Sua inscrição <strong>${numero}</strong> foi recebida com sucesso.</p>
-           <p>Para concluir, realize o pagamento e envie o comprovante nesta página segura:</p>
-           <p style="margin:20px 0">${botao(link, "Acessar minha inscrição")}</p>
-           <p style="font-size:13px;color:#5b6478">Guarde este link — é o acesso exclusivo à sua inscrição. Não o compartilhe.</p>`,
-        ),
-      );
-    } catch (emailErr) {
-      console.error("criar-inscricao: falha ao enviar e-mail de confirmação:", emailErr);
-    }
-
-    return json({ numero_inscricao: numero, token, email_enviado }, 200, origin);
+    return json({ numero_inscricao: numero, token }, 200, origin);
   } catch (e) {
     console.error("criar-inscricao:", e);
     return json({ error: (e as Error).message ?? "Erro interno" }, 500, origin);

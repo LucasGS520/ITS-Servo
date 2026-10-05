@@ -12,7 +12,7 @@
   "dependencies": {
     "@its-servo/design-system": "workspace:*",
     "@its-servo/supabase": "workspace:*",
-    "astro": "^4.16.0",
+    "astro": "^7.2.8",
     "leaflet": "^1.9.4"
   },
   "devDependencies": {

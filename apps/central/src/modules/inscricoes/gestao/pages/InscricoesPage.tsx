@@ -62,16 +62,8 @@ const InscricoesPage = () => {
 
   const handleStatusChange = async (newStatus: StatusInscricao, inscricao: Inscricao) => {
     try {
-      const resultado = await atualizarStatus.mutateAsync({ inscricao, status: newStatus });
-      if (resultado.emailConfirmacaoFalhou) {
-        toast({
-          title: "Status atualizado, mas o e-mail de confirmação NÃO foi enviado",
-          description: "Avise o inscrito por outro canal ou tente confirmar novamente.",
-          variant: "destructive",
-        });
-      } else {
-        toast({ title: "Status atualizado!" });
-      }
+      await atualizarStatus.mutateAsync({ inscricao, status: newStatus });
+      toast({ title: "Status atualizado!" });
       setSelected(null);
     } catch (error: unknown) {
       toast({ title: "Erro", description: getErrorMessage(error), variant: "destructive" });

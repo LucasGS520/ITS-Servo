@@ -65,7 +65,7 @@ const PagamentoPage = () => {
    * Função para enviar o comprovante de pagamento
    * 
    * Valida o arquivo, faz upload para o Supabase Storage,
-   * atualiza o status da inscrição e envia notificação por email.
+   * atualiza o status da inscrição no backend.
    */
   const handleUpload = async () => {
     if (!file || !inscricao) return;

@@ -3,13 +3,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const supabaseMocks = vi.hoisted(() => ({
   update: vi.fn(),
   eq: vi.fn(),
-  invoke: vi.fn(),
 }));
 
 vi.mock("@/services/supabase/client", () => ({
   supabase: {
     from: vi.fn(() => ({ update: supabaseMocks.update })),
-    functions: { invoke: supabaseMocks.invoke },
     storage: { from: vi.fn() },
   },
 }));
@@ -42,38 +40,23 @@ describe("commands de gestão de inscrições", () => {
     vi.clearAllMocks();
     supabaseMocks.update.mockReturnValue({ eq: supabaseMocks.eq });
     supabaseMocks.eq.mockResolvedValue({ error: null });
-    supabaseMocks.invoke.mockResolvedValue({ error: null });
   });
 
-  it("confirma a inscrição e solicita o e-mail", async () => {
+  it("atualiza o status sem disparar integração de e-mail", async () => {
     await expect(
       atualizarStatusInscricao({ inscricao, status: "confirmada" }),
-    ).resolves.toEqual({ emailConfirmacaoFalhou: false });
+    ).resolves.toBeUndefined();
 
     expect(supabaseMocks.update).toHaveBeenCalledWith({ status: "confirmada" });
-    expect(supabaseMocks.invoke).toHaveBeenCalledWith(
-      "enviar-email-confirmacao",
-      expect.objectContaining({
-        body: expect.objectContaining({ numero_inscricao: "ITS2026-0001" }),
-      }),
-    );
   });
 
-  it("mantém a alteração bem-sucedida visível quando o e-mail falha", async () => {
-    supabaseMocks.invoke.mockRejectedValue(new Error("indisponível"));
-
-    await expect(
-      atualizarStatusInscricao({ inscricao, status: "confirmada" }),
-    ).resolves.toEqual({ emailConfirmacaoFalhou: true });
-  });
-
-  it("não dispara e-mail para outros status", async () => {
+  it("atualiza qualquer status permitido pela regra do banco", async () => {
     await atualizarStatusInscricao({
       inscricao,
       status: "pagamento_nao_identificado",
     });
 
-    expect(supabaseMocks.invoke).not.toHaveBeenCalled();
+    expect(supabaseMocks.update).toHaveBeenCalledWith({ status: "pagamento_nao_identificado" });
   });
 
   it("interrompe o fluxo quando a alteração de status falha", async () => {
@@ -82,6 +65,5 @@ describe("commands de gestão de inscrições", () => {
     await expect(
       atualizarStatusInscricao({ inscricao, status: "confirmada" }),
     ).rejects.toThrow("falha no update");
-    expect(supabaseMocks.invoke).not.toHaveBeenCalled();
   });
 });

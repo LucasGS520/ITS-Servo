@@ -26,7 +26,6 @@ describe("contrato público Site → Central", () => {
       data: {
         numero_inscricao: "ITS2026-0001",
         token: "token-de-posse",
-        email_enviado: true,
       },
       error: null,
     });
@@ -34,14 +33,13 @@ describe("contrato público Site → Central", () => {
     await expect(solicitarInscricao(makeClient(invoke), dto)).resolves.toEqual({
       numero_inscricao: "ITS2026-0001",
       token: "token-de-posse",
-      email_enviado: true,
     });
     expect(invoke).toHaveBeenCalledWith("criar-inscricao", { body: dto });
   });
 
   it("preserva o alias técnico para consumidores ainda não migrados", async () => {
     const invoke = vi.fn().mockResolvedValue({
-      data: { numero_inscricao: "ITS2026-0002", token: "outro-token", email_enviado: false },
+      data: { numero_inscricao: "ITS2026-0002", token: "outro-token" },
       error: null,
     });
 
