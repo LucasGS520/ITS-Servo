@@ -1,17 +1,18 @@
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { Button } from "@/common/ui/button";
-import { LayoutDashboard, FileText, DollarSign, LogOut, BookOpen, ExternalLink, Users, GraduationCap, CalendarDays, BarChart3 } from "lucide-react";
-import { sairDaGestao } from "@/modules/autenticacao";
+import { LayoutDashboard, FileText, DollarSign, LogOut, BookOpen, ExternalLink, Users, GraduationCap, CalendarDays, BarChart3, ScrollText } from "lucide-react";
+import { sairDaGestao } from "@/modules/acesso";
 import { SITE_URL } from "@/common/constants/urls";
 
 const navItems = [
   { to: "/painel", label: "Dashboard", icon: LayoutDashboard, end: true },
-  { to: "/painel/pessoas", label: "Pessoas", icon: Users, end: false },
-  { to: "/painel/inscricoes", label: "Matrículas", icon: FileText, end: false },
+  { to: "/painel/participantes", label: "Participantes", icon: Users, end: false },
+  { to: "/painel/matriculas", label: "Matrículas", icon: FileText, end: false },
   { to: "/painel/cursos", label: "Cursos", icon: GraduationCap, end: false },
-  { to: "/painel/simposio", label: "Simpósio", icon: CalendarDays, end: false },
+  { to: "/painel/simposios", label: "Simpósios", icon: CalendarDays, end: false },
   { to: "/painel/financeiro", label: "Registro Financeiro", icon: DollarSign, end: false },
   { to: "/painel/relatorios", label: "Relatórios", icon: BarChart3, end: false },
+  { to: "/painel/auditoria", label: "Auditoria", icon: ScrollText, end: false },
 ];
 
 const GestaoLayout = () => {
@@ -26,7 +27,7 @@ const GestaoLayout = () => {
     <div className="flex min-h-screen flex-col bg-muted/30">
       {/* Topbar */}
       <header className="sticky top-0 z-40 border-b bg-card shadow-sm">
-        <div className="container flex h-14 items-center justify-between">
+        <div className="container flex min-h-14 items-center justify-between gap-2 py-2">
           {/* Identidade */}
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
@@ -39,12 +40,13 @@ const GestaoLayout = () => {
           </div>
 
           {/* Nav */}
-          <nav className="flex items-center gap-1">
+          <nav aria-label="Navegação da gestão" className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto px-1 sm:justify-center">
             {navItems.map(({ to, label, icon: Icon, end }) => (
               <NavLink
                 key={to}
                 to={to}
                 end={end}
+                aria-label={label}
                 className={({ isActive }) =>
                   `flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                     isActive
@@ -62,7 +64,7 @@ const GestaoLayout = () => {
           {/* Ações */}
           <div className="flex items-center gap-1">
             <Button asChild variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-              <a href={SITE_URL} target="_blank" rel="noopener noreferrer" title="Abrir o site institucional">
+              <a href={SITE_URL} target="_blank" rel="noopener noreferrer" title="Abrir o site institucional" aria-label="Abrir o site institucional">
                 <ExternalLink className="h-4 w-4" />
                 <span className="ml-1.5 hidden lg:inline">Site</span>
               </a>
@@ -71,6 +73,7 @@ const GestaoLayout = () => {
               variant="ghost"
               size="sm"
               onClick={handleLogout}
+              aria-label="Sair do painel"
               className="text-muted-foreground hover:text-foreground"
             >
               <LogOut className="h-4 w-4" />

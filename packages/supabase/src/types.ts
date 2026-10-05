@@ -355,6 +355,11 @@ export type Database = {
           status: string
           comprovante_url: string | null
           created_at: string
+          destino: string
+          destino_nome: string | null
+          valor_devido: number | null
+          valor_pago: number
+          saldo_devedor: number
         }[]
       }
       /** Autosserviço: cancela a própria inscrição pendente mediante token (SECURITY DEFINER) */
@@ -367,6 +372,45 @@ export type Database = {
         Returns: string
       }
       conciliar_pagamento: { Args: { p_pagamento_id: string; p_valor: number; p_data: string }; Returns: string }
+      recusar_pagamento: { Args: { p_pagamento_id: string; p_motivo: string }; Returns: undefined }
+      estornar_pagamento: { Args: { p_pagamento_id: string; p_motivo: string }; Returns: string }
+      alterar_status_matricula: { Args: { p_inscricao_id: string; p_status: string; p_motivo?: string | null }; Returns: undefined }
+      salvar_cobranca: {
+        Args: {
+          p_cobranca_id: string | null
+          p_pessoa_id: string
+          p_inscricao_id: string | null
+          p_curso_id: string | null
+          p_edicao_simposio_id: string | null
+          p_categoria_id: string | null
+          p_referente: string
+          p_valor_devido: number
+          p_vencimento: string | null
+          p_status?: string
+        }
+        Returns: string
+      }
+      criar_matricula_operacional: {
+        Args: {
+          p_nome_completo: string
+          p_cpf: string
+          p_telefone: string
+          p_email: string
+          p_data_nascimento: string
+          p_escolaridade: string
+          p_modalidade: string
+          p_nucleo: string
+          p_destino: string
+          p_curso_codigo: string
+          p_edicao_simposio_id: string | null
+          p_consulta_token_hash: string
+        }
+        Returns: { inscricao_id: string; numero_inscricao: string }[]
+      }
+      registrar_comprovante_operacional: {
+        Args: { p_numero: string; p_token_hash: string; p_comprovante_path: string }
+        Returns: string
+      }
       corrigir_registro_financeiro: { Args: { p_registro_id: string; p_motivo: string }; Returns: string }
       emitir_relatorio_mensal: { Args: { p_periodo: string; p_dados?: Json }; Returns: string }
     }

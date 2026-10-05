@@ -1,1 +1,1 @@
-export { ALUNOS_KEY } from "./api";
+export * from "./api";

@@ -4,7 +4,7 @@ import type { SupabaseClient } from "./client.ts";
  * Contrato público de inscrição da plataforma. O Site usa esta fronteira para
  * solicitar uma inscrição; a Central é dona do ciclo de vida operacional.
  * Acesso público nunca fala diretamente com `inscricoes`. Consultas administrativas
- * autenticadas continuam protegidas por RLS. Ver docs/arquitetura.md §5.
+ * autenticadas continuam protegidas por RLS.
  */
 
 export interface InscricaoDTO {
@@ -35,6 +35,11 @@ export interface InscricaoResumo {
   status: string;
   comprovante_url: string | null;
   created_at: string;
+  destino: "curso" | "simposio";
+  destino_nome: string | null;
+  valor_devido: number | null;
+  valor_pago: number;
+  saldo_devedor: number;
 }
 
 export interface DestinoPublico {

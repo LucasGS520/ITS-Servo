@@ -9,7 +9,7 @@ import { SITE_URL } from "@/common/constants/urls";
  *
  * Deliberadamente enxuto: a Central NÃO é um site institucional — todo
  * conteúdo de marketing pertence ao Produto A. O único caminho de navegação
- * daqui é voltar ao Site (link externo). Ver docs/arquitetura.md §2 e §4.
+ * daqui é voltar ao Site (link externo).
  */
 const AutosservicoLayout = () => (
   <div className="flex min-h-screen flex-col">

@@ -1,43 +1,36 @@
 # Central Operacional
 
-Aplicação React que atende duas experiências do ITS-Servo:
+SPA React/Vite com duas superfícies:
 
-- autosserviço do candidato, protegido pelo token da inscrição;
-- painel de gestão, protegido por sessão Supabase e papel administrativo.
-
-Conteúdo institucional e o formulário inicial de inscrição pertencem ao Site; a
-Central apenas preserva rotas antigas como redirecionamentos compatíveis.
+- autosserviço por número e código de acesso, sem sessão administrativa;
+- painel de gestão protegido por Supabase Auth, papel `admin` e RLS.
 
 ## Estrutura
 
 ```text
 src/
-├── App.tsx              # providers e rotas
-├── main.tsx             # bootstrap React
-├── routes/              # rotas, proteção e redirecionamentos
-├── layouts/             # estrutura das experiências
-├── pages/               # páginas sistêmicas
-├── providers/           # infraestrutura React global
-├── modules/             # capacidades de negócio
-├── common/              # UI e utilitários reutilizáveis
-├── services/            # integrações técnicas
-└── index.css            # estilos globais
-tests/                   # testes da aplicação
+├── routes/              # mapa de URLs e compatibilidade com o Site
+├── layouts/             # shells de autosserviço e gestão
+├── pages/               # páginas sistêmicas, como 404
+├── providers/           # React Query, Router, toasts e Error Boundary
+├── modules/
+│   ├── acesso/          # sessão e autorização
+│   ├── atividades/      # cursos e simpósios
+│   ├── auditoria/       # trilha operacional
+│   ├── dashboard/       # indicadores
+│   ├── financeiro/      # cobranças, pagamentos, caixa e relatórios
+│   ├── matriculas/      # autosserviço e gestão do ciclo de matrícula
+│   └── participantes/   # cadastro único e histórico
+├── common/              # UI e utilitários compartilhados
+└── services/            # integrações técnicas
 ```
 
-`modules/` contém o negócio (`autenticacao`, `inscricoes`, `financeiro` e
-`indicadores`). `common/` não conhece módulos. Acesso ao Supabase fica em
-`services/` e é consumido exclusivamente pelas APIs dos módulos.
-
-Veja [STACK_ITS.md](STACK_ITS.md) para a árvore detalhada e as regras de
-dependência.
+O acesso a dados fica nas pastas `api/`; regras puras ficam em `model/`; telas ficam em `autosservico/` ou `gestao/`. Veja [ARCHITECTURE.md](ARCHITECTURE.md) para responsabilidades, fluxo financeiro e explicação dos arquivos de composição.
 
 ## Comandos
 
-Na raiz do monorepo:
-
 ```bash
-pnpm --filter @its-servo/central dev
+pnpm --filter @its-servo/central exec tsc -b
 pnpm --filter @its-servo/central test
 pnpm --filter @its-servo/central lint
 pnpm --filter @its-servo/central build

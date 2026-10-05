@@ -4,10 +4,13 @@ import { Button } from "@/common/ui/button";
 import { Input } from "@/common/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/common/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/common/ui/table";
-import { Loader2, Printer } from "lucide-react";
+import { FileCheck2, Loader2, Printer } from "lucide-react";
 import { formatBRL } from "@/common/constants/pricing";
 import { UNIDADE_LABELS, UNIDADES_FINANCEIRO } from "@/modules/financeiro/model/unidades";
-import { useLancamentos } from "@/modules/financeiro/api";
+import { useEmitirRelatorioMensal, useLancamentos, useRelatoriosMensais } from "@/modules/financeiro/api";
+import { useToast } from "@/common/hooks/use-toast";
+import { getErrorMessage } from "@/common/lib/errors";
+import type { Json } from "@its-servo/supabase/types";
 import { formatCompetencia, formatData, mesParaCompetencia, round2, saldoAnterior } from "@/modules/financeiro/model/agregados";
 import { printRelatorioMensal, type LinhaRelatorio, type ResumoItem } from "@/modules/financeiro/gestao/lib/printRelatorio";
 
@@ -19,11 +22,14 @@ import { printRelatorioMensal, type LinhaRelatorio, type ResumoItem } from "@/mo
  *   (como a aba GERAL da planilha).
  */
 const MensalTab = () => {
+  const { toast } = useToast();
   const { data: lancamentos = [], isLoading } = useLancamentos();
   const [mes, setMes] = useState(new Date().toISOString().slice(0, 7));
   const [unidade, setUnidade] = useState("geral");
 
   const competencia = mesParaCompetencia(mes);
+  const { data: versoes = [] } = useRelatoriosMensais(competencia);
+  const emitir = useEmitirRelatorioMensal();
   const geral = unidade === "geral";
 
   const { linhas, resumo, totalGeral, saldoInicio, unidadeLabel, titulo } = useMemo(() => {
@@ -84,6 +90,18 @@ const MensalTab = () => {
     );
   }
 
+  const emitirVersao = async () => {
+    try {
+      await emitir.mutateAsync({
+        periodo: competencia,
+        dados: { unidade, unidadeLabel, titulo, saldoInicio, totalGeral, resumo, linhas } as unknown as Json,
+      });
+      toast({ title: "Versão mensal emitida", description: "O retrato do relatório foi preservado no histórico." });
+    } catch (erro) {
+      toast({ title: "Não foi possível emitir", description: getErrorMessage(erro), variant: "destructive" });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end gap-3">
@@ -117,6 +135,9 @@ const MensalTab = () => {
           }
         >
           <Printer className="mr-2 h-4 w-4" /> Imprimir relatório
+        </Button>
+        <Button variant="outline" onClick={emitirVersao} disabled={emitir.isPending}>
+          <FileCheck2 className="mr-2 h-4 w-4" /> Emitir versão
         </Button>
       </div>
 
@@ -184,6 +205,17 @@ const MensalTab = () => {
           </div>
         ))}
       </div>
+      <Card>
+        <CardContent className="space-y-2 p-4">
+          <p className="font-medium">Histórico de versões — {formatCompetencia(competencia)}</p>
+          {versoes.length === 0 ? <p className="text-sm text-muted-foreground">Nenhuma versão emitida.</p> : versoes.map((versao) => (
+            <div key={versao.id} className="flex items-center justify-between rounded-md border p-3 text-sm">
+              <span>Versão {versao.versao} · {new Date(versao.created_at).toLocaleString("pt-BR")}</span>
+              <span className={versao.status === "emitida" ? "text-foreground" : "text-destructive"}>{versao.status === "emitida" ? "Emitida" : "Revisão pendente"}</span>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
     </div>
   );
 };

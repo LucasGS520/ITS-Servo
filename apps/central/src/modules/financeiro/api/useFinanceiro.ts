@@ -7,6 +7,7 @@ export const CATEGORIAS_KEY = ["categorias_financeiras"] as const;
 export const LANCAMENTOS_KEY = ["lancamentos_financeiros"] as const;
 export const COBRANCAS_KEY = ["cobrancas"] as const;
 export const PAGAMENTOS_KEY = ["pagamentos"] as const;
+export const RELATORIOS_KEY = ["relatorios_mensais_versoes"] as const;
 
 export type Aluno = Tables<"alunos">;
 export type Categoria = Tables<"categorias_financeiras">;
@@ -16,6 +17,7 @@ export type Lancamento = Tables<"lancamentos_financeiros"> & {
 };
 export type Cobranca = Tables<"cobrancas">;
 export type Pagamento = Tables<"pagamentos">;
+export type RelatorioMensal = Tables<"relatorios_mensais_versoes">;
 
 export const useAlunos = () =>
   useQuery({
@@ -82,6 +84,22 @@ export const usePagamentos = () =>
     queryKey: PAGAMENTOS_KEY,
     queryFn: async () => {
       const { data, error } = await supabase.from("pagamentos").select("*").order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+export const useRelatoriosMensais = (periodo?: string) =>
+  useQuery({
+    queryKey: [...RELATORIOS_KEY, periodo ?? "todos"],
+    queryFn: async () => {
+      let query = supabase
+        .from("relatorios_mensais_versoes")
+        .select("*")
+        .order("periodo", { ascending: false })
+        .order("versao", { ascending: false });
+      if (periodo) query = query.eq("periodo", periodo);
+      const { data, error } = await query;
       if (error) throw error;
       return data ?? [];
     },

@@ -1,5 +1,6 @@
 import { supabase } from "@/services/supabase/client";
 import type { TablesInsert } from "@/services/supabase/types";
+import type { Json } from "@its-servo/supabase/types";
 
 export type AlunoValues = Pick<
   TablesInsert<"alunos">,
@@ -85,6 +86,58 @@ export const conciliarPagamento = async ({ id, valor }: { id: string; valor: num
     p_pagamento_id: id,
     p_valor: valor,
     p_data: new Date().toISOString().slice(0, 10),
+  });
+  if (error) throw error;
+};
+
+export const recusarPagamento = async ({ id, motivo }: { id: string; motivo: string }) => {
+  const { error } = await supabase.rpc("recusar_pagamento", {
+    p_pagamento_id: id,
+    p_motivo: motivo.trim(),
+  });
+  if (error) throw error;
+};
+
+export const estornarPagamento = async ({ id, motivo }: { id: string; motivo: string }) => {
+  const { error } = await supabase.rpc("estornar_pagamento", {
+    p_pagamento_id: id,
+    p_motivo: motivo.trim(),
+  });
+  if (error) throw error;
+};
+
+export interface CobrancaValues {
+  pessoa_id: string;
+  inscricao_id?: string | null;
+  curso_id?: string | null;
+  edicao_simposio_id?: string | null;
+  categoria_id?: string | null;
+  referente: string;
+  valor_devido: number;
+  vencimento?: string | null;
+  status?: string;
+}
+
+export const salvarCobranca = async ({ id, values }: SalvarInput<CobrancaValues>) => {
+  const { error } = await supabase.rpc("salvar_cobranca", {
+    p_cobranca_id: id ?? null,
+    p_pessoa_id: values.pessoa_id,
+    p_inscricao_id: values.inscricao_id ?? null,
+    p_curso_id: values.curso_id ?? null,
+    p_edicao_simposio_id: values.edicao_simposio_id ?? null,
+    p_categoria_id: values.categoria_id ?? null,
+    p_referente: values.referente,
+    p_valor_devido: values.valor_devido,
+    p_vencimento: values.vencimento ?? null,
+    p_status: values.status ?? "aberta",
+  });
+  if (error) throw error;
+};
+
+export const emitirRelatorioMensal = async ({ periodo, dados }: { periodo: string; dados: Json }) => {
+  const { error } = await supabase.rpc("emitir_relatorio_mensal", {
+    p_periodo: periodo,
+    p_dados: dados,
   });
   if (error) throw error;
 };

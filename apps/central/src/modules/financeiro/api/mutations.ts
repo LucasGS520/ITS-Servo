@@ -9,6 +9,10 @@ import {
 import {
   excluirLancamento,
   conciliarPagamento,
+  emitirRelatorioMensal,
+  estornarPagamento,
+  recusarPagamento,
+  salvarCobranca,
   salvarAluno,
   salvarCategoria,
   salvarLancamento,
@@ -41,10 +45,48 @@ export const useConciliarPagamento = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: conciliarPagamento,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: PAGAMENTOS_KEY });
-      queryClient.invalidateQueries({ queryKey: COBRANCAS_KEY });
-      queryClient.invalidateQueries({ queryKey: LANCAMENTOS_KEY });
-    },
+    onSuccess: () => Promise.all([
+      queryClient.invalidateQueries({ queryKey: PAGAMENTOS_KEY }),
+      queryClient.invalidateQueries({ queryKey: COBRANCAS_KEY }),
+      queryClient.invalidateQueries({ queryKey: LANCAMENTOS_KEY }),
+      queryClient.invalidateQueries({ queryKey: ALUNOS_KEY }),
+      queryClient.invalidateQueries({ queryKey: ["inscricoes"] }),
+    ]),
+  });
+};
+
+export const useRecusarPagamento = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: recusarPagamento,
+    onSuccess: () => Promise.all([
+      queryClient.invalidateQueries({ queryKey: PAGAMENTOS_KEY }),
+      queryClient.invalidateQueries({ queryKey: ["inscricoes"] }),
+    ]),
+  });
+};
+
+export const useEstornarPagamento = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: estornarPagamento,
+    onSuccess: () => Promise.all([
+      queryClient.invalidateQueries({ queryKey: PAGAMENTOS_KEY }),
+      queryClient.invalidateQueries({ queryKey: COBRANCAS_KEY }),
+      queryClient.invalidateQueries({ queryKey: LANCAMENTOS_KEY }),
+      queryClient.invalidateQueries({ queryKey: ALUNOS_KEY }),
+      queryClient.invalidateQueries({ queryKey: ["inscricoes"] }),
+    ]),
+  });
+};
+
+export const useSalvarCobranca = () =>
+  useInvalidatingMutation(salvarCobranca, COBRANCAS_KEY);
+
+export const useEmitirRelatorioMensal = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: emitirRelatorioMensal,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["relatorios_mensais_versoes"] }),
   });
 };

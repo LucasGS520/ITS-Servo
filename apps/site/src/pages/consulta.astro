@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 // A consulta/autosserviço vive na Central (acesso por token). Esta página do
-// Site apenas encaminha para lá (ou orienta o uso do link do e-mail).
+// O Site apenas encaminha para o autosserviço seguro da Central.
 const centralUrl = import.meta.env.PUBLIC_CENTRAL_URL ?? '';
 const consultaUrl = centralUrl ? `${centralUrl}/consulta` : '';
 ---
@@ -12,14 +12,13 @@ const consultaUrl = centralUrl ? `${centralUrl}/consulta` : '';
       <h1 class="section__title">Consultar Inscrição</h1>
       <p class="section__desc" style="margin-inline:auto">
         O acompanhamento da sua inscrição (pagamento, comprovante e status) é feito
-        de forma segura, com o <strong>link exclusivo</strong> enviado ao seu e-mail
-        no momento da inscrição.
+        de forma segura com o número e o código de acesso obtidos ao concluir a solicitação.
       </p>
       <div style="margin-top:var(--sp-8);display:flex;gap:var(--sp-4);justify-content:center;flex-wrap:wrap">
         {consultaUrl && <a class="btn btn--gold btn--lg" href={consultaUrl}>Acessar minha inscrição</a>}
         <a class="btn btn--outline btn--lg" href="/inscricao">Fazer nova inscrição</a>
       </div>
-      <p class="field__hint" style="margin-top:var(--sp-6)">Não encontrou o e-mail? Fale conosco no WhatsApp (11) 97229-4009.</p>
+      <p class="field__hint" style="margin-top:var(--sp-6)">Perdeu o código de acesso? Fale conosco no WhatsApp (11) 97229-4009.</p>
     </div>
   </section>
 </Base>

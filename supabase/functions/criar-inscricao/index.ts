@@ -2,15 +2,14 @@
  * Edge function — criar-inscricao  (CONTRATO: entrada do funil)
  *
  * Ponto único pelo qual o Site Institucional envia uma solicitação à
- * Central. O contrato operacional valida no servidor, cria o registro via
- * service_role (RLS não expõe INSERT ao anon) e gera o token de autosserviço
- * (guarda só o hash) para o redirecionamento seguro à Central.
+ * Central. O contrato operacional valida no servidor, gera o token de
+ * autosserviço e delega a criação de pessoa + matrícula + cobrança a uma RPC
+ * transacional. O banco guarda somente o hash do token.
  *
  * POST { nome_completo, cpf, telefone, email, data_nascimento, escolaridade,
  *        modalidade, nucleo? }
  * → 200 { numero_inscricao, token }
  *
- * Ver docs/arquitetura.md §5.
  */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { json } from "../_shared/cors.ts";
@@ -91,101 +90,31 @@ serve(async (req) => {
 
     const destino = dto.destino ?? "curso";
     const cursoCodigo = dto.curso_codigo ?? "teologico";
-    let cursoId: string | null = null;
-    let edicaoId: string | null = null;
-    let valor: number | null = null;
-    let referente = "";
-    let categoriaNome = "";
-    if (destino === "curso") {
-      const { data: curso } = await admin.from("cursos").select("id,nome,valor").eq("codigo", cursoCodigo).eq("ativo", true).eq("publico", true).maybeSingle();
-      if (!curso) return json({ error: "Este curso não está disponível para inscrição." }, 409, origin);
-      cursoId = curso.id;
-      valor = curso.valor;
-      referente = curso.nome;
-      categoriaNome = curso.nome;
-    } else {
-      const { data: edicao } = await admin.from("edicoes_simposio").select("id,nome,valor").eq("id", dto.edicao_simposio_id!).eq("ativo", true).eq("publico", true).maybeSingle();
-      if (!edicao) return json({ error: "Esta edição de simpósio não está disponível." }, 409, origin);
-      edicaoId = edicao.id;
-      valor = edicao.valor;
-      referente = edicao.nome;
-      categoriaNome = "Simpósio";
-    }
-    if (valor == null || valor <= 0) return json({ error: "O valor desta atividade ainda não foi configurado." }, 409, origin);
-
-    // ---- Uma participação ativa por pessoa e destino ----
     const cpfLimpo = dto.cpf!.replace(/\D/g, "");
-    const { data: pessoa, error: pessoaErr } = await admin
-      .from("pessoas")
-      .upsert({
-        cpf: cpfLimpo, nome_completo: dto.nome_completo!.trim(), telefone: dto.telefone!.replace(/\D/g, ""),
-        email: dto.email!.trim(), data_nascimento: dto.data_nascimento, escolaridade: dto.escolaridade,
-      }, { onConflict: "cpf" })
-      .select("id")
-      .single();
-    if (pessoaErr) throw pessoaErr;
-    const { data: existente } = await admin
-      .from("inscricoes")
-      .select("id")
-      .eq("pessoa_id", pessoa.id)
-      .neq("status", "cancelado")
-      .eq(destino === "curso" ? "curso_id" : "edicao_simposio_id", destino === "curso" ? cursoId : edicaoId)
-      .limit(1)
-      .maybeSingle();
-    if (existente) {
-      return json(
-        { error: "Já existe uma inscrição ativa para este CPF. Use o link do e-mail ou a página de consulta para acompanhá-la." },
-        409,
-        origin,
-      );
-    }
-
     const token = generateToken();
     const consulta_token_hash = await sha256Hex(token);
-
-    const { data, error } = await admin
-      .from("inscricoes")
-      .insert({
-        nome_completo: dto.nome_completo!.trim(),
-        cpf: cpfLimpo,
-        telefone: dto.telefone!.replace(/\D/g, ""),
-        email: dto.email!.trim(),
-        data_nascimento: dto.data_nascimento,
-        escolaridade: dto.escolaridade,
-        modalidade: dto.modalidade,
-        nucleo: dto.modalidade === "presencial" ? dto.nucleo : null,
-        consulta_token_hash,
-        pessoa_id: pessoa.id,
-        curso_id: cursoId,
-        edicao_simposio_id: edicaoId,
-        destino,
-      })
-      .select("id, numero_inscricao")
-      .single();
-
-    if (error) throw error;
-    const numero = data.numero_inscricao as string;
-
-    const { data: categoria, error: categoriaErr } = await admin
-      .from("categorias_financeiras")
-      .select("id")
-      .eq("nome", categoriaNome)
-      .eq("tipo", "entrada")
-      .maybeSingle();
-    if (categoriaErr || !categoria) throw categoriaErr ?? new Error("Categoria financeira não configurada.");
-
-    const { error: cobrancaErr } = await admin.from("cobrancas").insert({
-      pessoa_id: pessoa.id,
-      inscricao_id: data.id,
-      curso_id: cursoId,
-      edicao_simposio_id: edicaoId,
-      categoria_id: categoria.id,
-      referente,
-      valor_devido: valor,
+    const { data, error } = await admin.rpc("criar_matricula_operacional", {
+      p_nome_completo: dto.nome_completo!.trim(),
+      p_cpf: cpfLimpo,
+      p_telefone: dto.telefone!.replace(/\D/g, ""),
+      p_email: dto.email!.trim(),
+      p_data_nascimento: dto.data_nascimento,
+      p_escolaridade: dto.escolaridade,
+      p_modalidade: dto.modalidade,
+      p_nucleo: dto.modalidade === "presencial" ? dto.nucleo : null,
+      p_destino: destino,
+      p_curso_codigo: destino === "curso" ? cursoCodigo : null,
+      p_edicao_simposio_id: destino === "simposio" ? dto.edicao_simposio_id : null,
+      p_consulta_token_hash: consulta_token_hash,
     });
-    if (cobrancaErr) throw cobrancaErr;
+    if (error) {
+      const conflito = /já existe|não está disponível|preço|categoria financeira/i.test(error.message);
+      return json({ error: error.message }, conflito ? 409 : 500, origin);
+    }
+    const criada = Array.isArray(data) ? data[0] : data;
+    if (!criada?.numero_inscricao) throw new Error("A matrícula não retornou um número válido.");
 
-    return json({ numero_inscricao: numero, token }, 200, origin);
+    return json({ numero_inscricao: criada.numero_inscricao, token }, 200, origin);
   } catch (e) {
     console.error("criar-inscricao:", e);
     return json({ error: (e as Error).message ?? "Erro interno" }, 500, origin);

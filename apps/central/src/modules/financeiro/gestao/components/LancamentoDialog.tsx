@@ -17,6 +17,7 @@ import {
   useCategorias,
   useSalvarLancamento,
   type Lancamento,
+  type LancamentoValues,
 } from "@/modules/financeiro/api";
 import { competenciaParaMes, mesParaCompetencia } from "@/modules/financeiro/model/agregados";
 import { getErrorMessage } from "@/common/lib/errors";
@@ -123,7 +124,16 @@ const LancamentoDialog = ({ open, onOpenChange, lancamento }: Props) => {
     }
 
     try {
-      const payload = { ...parsed.data, competencia: mesParaCompetencia(parsed.data.competencia) };
+      const payload: LancamentoValues = {
+        tipo: parsed.data.tipo,
+        unidade: parsed.data.unidade,
+        categoria_id: parsed.data.categoria_id,
+        aluno_id: parsed.data.aluno_id,
+        valor: parsed.data.valor,
+        data: parsed.data.data,
+        competencia: mesParaCompetencia(parsed.data.competencia),
+        descricao: parsed.data.descricao,
+      };
       await salvarLancamento.mutateAsync({ id: lancamento?.id, values: payload });
       toast({ title: lancamento ? "Lançamento atualizado!" : "Lançamento registrado!" });
       onOpenChange(false);

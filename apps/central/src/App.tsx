@@ -4,7 +4,7 @@ import AppRoutes from "@/routes/AppRoutes";
 /**
  * Central Operacional (Produto B) — SEM conteúdo institucional.
  *
- * Escopo desta aplicação (ver docs/arquitetura.md §3 e §4):
+ * Escopo desta aplicação:
  *  1. Autosserviço público travado por token: pagamento e consulta.
  *  2. Painel administrativo autenticado: /painel/*.
  *

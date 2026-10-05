@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/common/ui/card";
 import { Badge } from "@/common/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/common/ui/table";
 import { Loader2, DollarSign, TrendingUp, Clock, XCircle } from "lucide-react";
-import { useInscricoes } from "@/modules/inscricoes";
-import { PRICING } from "@/common/constants/pricing";
+import { useMatriculas } from "@/modules/matriculas";
+import { useCobrancas } from "@/modules/financeiro/api";
 
 const fmt = (n: number) =>
   n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -30,22 +30,25 @@ const statusToSituacao = (status: string): Situacao | null => {
 };
 
 const PrevisaoTab = () => {
-  const { data: inscricoes = [], isLoading } = useInscricoes();
+  const { data: inscricoes = [], isLoading } = useMatriculas();
+  const { data: cobrancas = [], isLoading: carregandoCobrancas } = useCobrancas();
 
   const { resumo, linhas } = useMemo(() => {
     const ativas = inscricoes.filter((i) => i.status !== "cancelado");
 
-    const confirmadas = ativas.filter((i) => i.status === "confirmada").length;
-    const emAnalise = ativas.filter((i) => i.status === "comprovante_enviado").length;
-    const pendentes = ativas.filter((i) => i.status === "aguardando_pagamento").length;
-    const naoIdentificado = ativas.filter((i) => i.status === "pagamento_nao_identificado").length;
 
+    const valorDa = (inscricaoId: string) => Number(
+      cobrancas.find((c) => c.inscricao_id === inscricaoId && c.status !== "cancelada")?.valor_devido ?? 0,
+    );
+    const somarStatus = (status: string) => ativas
+      .filter((i) => i.status === status)
+      .reduce((total, i) => total + valorDa(i.id), 0);
     const resumo = {
-      confirmada: confirmadas * PRICING.TOTAL,
-      em_analise: emAnalise * PRICING.TOTAL,
-      pendente: pendentes * PRICING.TOTAL,
-      nao_identificado: naoIdentificado * PRICING.TOTAL,
-      potencial: ativas.length * PRICING.TOTAL,
+      confirmada: somarStatus("confirmada"),
+      em_analise: somarStatus("comprovante_enviado"),
+      pendente: somarStatus("aguardando_pagamento"),
+      nao_identificado: somarStatus("pagamento_nao_identificado"),
+      potencial: ativas.reduce((total, i) => total + valorDa(i.id), 0),
     };
 
     const linhas = ativas
@@ -56,16 +59,15 @@ const PrevisaoTab = () => {
         nucleo: i.modalidade === "correspondencia" ? "Correspondência" : (i.nucleo ?? "Presencial"),
         data: new Date(i.created_at).toLocaleDateString("pt-BR"),
         situacao: statusToSituacao(i.status),
-        matricula: PRICING.MATRICULA,
-        material: PRICING.MATERIAL,
-        total: PRICING.TOTAL,
+        atividade: i.destino === "simposio" ? "Simpósio" : "Curso",
+        total: valorDa(i.id),
       }))
       .filter((l) => l.situacao !== null);
 
     return { resumo, linhas };
-  }, [inscricoes]);
+  }, [inscricoes, cobrancas]);
 
-  if (isLoading) {
+  if (isLoading || carregandoCobrancas) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -76,7 +78,7 @@ const PrevisaoTab = () => {
   return (
     <div className="space-y-8">
       <p className="text-sm text-muted-foreground">
-        Previsão das taxas de inscrição — R${PRICING.MATRICULA} matrícula + R${PRICING.MATERIAL} material = R${PRICING.TOTAL}/aluno. Valores potenciais, não lançados no caixa.
+        Valores previstos a partir das cobranças de cada curso ou edição de simpósio. Não representam caixa realizado.
       </p>
 
       {/* ── Resumo financeiro ── */}
@@ -138,10 +140,9 @@ const PrevisaoTab = () => {
                 <TableRow>
                   <TableHead>Nº</TableHead>
                   <TableHead>Nome</TableHead>
+                  <TableHead>Atividade</TableHead>
                   <TableHead>Núcleo</TableHead>
                   <TableHead>Data</TableHead>
-                  <TableHead className="text-right">Matrícula</TableHead>
-                  <TableHead className="text-right">Material</TableHead>
                   <TableHead className="text-right">Total</TableHead>
                   <TableHead>Situação</TableHead>
                 </TableRow>
@@ -149,7 +150,7 @@ const PrevisaoTab = () => {
               <TableBody>
                 {linhas.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
+                    <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
                       Nenhuma inscrição ativa.
                     </TableCell>
                   </TableRow>
@@ -160,10 +161,9 @@ const PrevisaoTab = () => {
                       <TableRow key={l.id}>
                         <TableCell className="font-mono text-xs text-muted-foreground">{l.numero}</TableCell>
                         <TableCell className="font-medium">{l.nome}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{l.atividade}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">{l.nucleo}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">{l.data}</TableCell>
-                        <TableCell className="text-right text-sm">{fmt(l.matricula)}</TableCell>
-                        <TableCell className="text-right text-sm">{fmt(l.material)}</TableCell>
                         <TableCell className="text-right font-semibold">{fmt(l.total)}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className={cfg.badge}>
@@ -181,7 +181,7 @@ const PrevisaoTab = () => {
       </Card>
 
       <p className="text-right text-xs text-muted-foreground">
-        Os valores refletem apenas as taxas de inscrição (matrícula + material didático). Inscrições canceladas não aparecem.
+        Os valores refletem a cobrança associada a cada matrícula. Matrículas canceladas não aparecem.
       </p>
     </div>
   );

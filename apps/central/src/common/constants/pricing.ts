@@ -1,9 +1,3 @@
-export const PRICING = {
-  MATRICULA: 40,
-  MATERIAL: 150,
-  get TOTAL() { return this.MATRICULA + this.MATERIAL; },
-} as const;
-
 /** Identidade de recebimento — alterar aqui reflete em toda a UI de pagamento. */
 export const PIX = {
   CHAVE_EXIBICAO: "20.424.935/0001-02",

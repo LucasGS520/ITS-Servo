@@ -2,13 +2,12 @@
  * Edge function — enviar-comprovante  (CONTRATO: autosserviço, pós-inscrição)
  *
  * Recebe o comprovante (base64) + token de posse, valida, sobe para o bucket
- * PRIVADO via service_role e atualiza o status. O arquivo nunca fica
- * público — a Central lê depois por signed URL.
+ * privado e delega a atualização de matrícula + pagamento a uma RPC
+ * transacional. Se a RPC falhar, remove o objeto recém-enviado.
  *
  * POST { numero, token, file_base64, filename, content_type }
  * → 200 { success: true, status: "comprovante_enviado" }
  *
- * Ver docs/arquitetura.md §5.
  */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { json } from "../_shared/cors.ts";
@@ -79,51 +78,26 @@ serve(async (req) => {
 
     const admin = adminClient();
 
-    // Verifica posse (token) e estado atual
+    // A RPC compara este hash com o persistido e serializa a cobrança.
     const hash = await sha256Hex(token);
-    const { data: insc, error: findErr } = await admin
-      .from("inscricoes")
-      .select("id, status, consulta_token_hash")
-      .eq("numero_inscricao", numero)
-      .single();
-    // Resposta ÚNICA para "não existe" e "token errado": diferenciar permitiria
-    // enumerar números de inscrição válidos (são sequenciais).
-    if (findErr || !insc || insc.consulta_token_hash !== hash) {
-      return json({ error: "Inscrição não encontrada ou código de acesso inválido." }, 403, origin);
-    }
-    if (!["aguardando_pagamento", "pagamento_nao_identificado", "comprovante_enviado"].includes(insc.status)) {
-      return json({ error: `Não é possível enviar comprovante no status atual (${insc.status}).` }, 409, origin);
-    }
-
     const path = `${numero}/${Date.now()}.${ALLOWED[content_type]}`;
     const { error: upErr } = await admin.storage
       .from("comprovantes")
       .upload(path, bytes, { contentType: content_type, upsert: false });
     if (upErr) throw upErr;
 
-    const { error: updErr } = await admin
-      .from("inscricoes")
-      .update({ comprovante_url: path, status: "comprovante_enviado" })
-      .eq("id", insc.id);
-    if (updErr) throw updErr;
-
-    // Cada envio é um pagamento pendente separado. Isso permite pagamentos
-    // parciais sem substituir comprovantes anteriores; a tesouraria concilia
-    // cada registro e só então ele vira entrada realizada.
-    const { data: cobranca, error: cobrancaErr } = await admin
-      .from("cobrancas")
-      .select("id")
-      .eq("inscricao_id", insc.id)
-      .eq("status", "aberta")
-      .order("created_at")
-      .limit(1)
-      .maybeSingle();
-    if (cobrancaErr || !cobranca) throw cobrancaErr ?? new Error("Cobrança não encontrada para esta inscrição.");
-
-    const { error: pagamentoErr } = await admin
-      .from("pagamentos")
-      .insert({ inscricao_id: insc.id, cobranca_id: cobranca.id, comprovante_url: path, status: "pendente" });
-    if (pagamentoErr) throw pagamentoErr;
+    const { error: registroErr } = await admin.rpc("registrar_comprovante_operacional", {
+      p_numero: numero,
+      p_token_hash: hash,
+      p_comprovante_path: path,
+    });
+    if (registroErr) {
+      const { error: cleanupErr } = await admin.storage.from("comprovantes").remove([path]);
+      if (cleanupErr) console.error("enviar-comprovante: falha ao remover upload órfão:", cleanupErr);
+      const negado = /não encontrada|código de acesso/i.test(registroErr.message);
+      const conflito = /status atual|cobrança|aguardando conferência/i.test(registroErr.message);
+      return json({ error: registroErr.message }, negado ? 403 : conflito ? 409 : 500, origin);
+    }
 
     return json({ success: true, status: "comprovante_enviado" }, 200, origin);
   } catch (e) {

@@ -59,7 +59,7 @@ export const NUCLEO_OPTIONS = NUCLEOS.map((n) => ({
   label: `${n.nome} (${n.cidade})`,
 }));
 
-/** Rótulo de exibição por slug (e-mails, painel). */
+/** Rótulo de exibição por slug (site e painel). */
 export const NUCLEO_LABELS: Record<string, string> = Object.fromEntries(
   NUCLEOS.map((n) => [n.value, `${n.nome} — ${n.cidade}`]),
 );

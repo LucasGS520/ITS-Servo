@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { COMPROVANTE_MAX_BYTES, validarComprovante } from "@/modules/inscricoes/model";
+import { COMPROVANTE_MAX_BYTES, validarComprovante } from "@/modules/matriculas/model";
 
 describe("validação de comprovante no autosserviço", () => {
   it.each(["image/jpeg", "image/png", "image/webp", "application/pdf"])(
