@@ -1,8 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
 import PageHero from '../components/PageHero.astro';
-import { NUCLEO_OPTIONS } from '@its-servo/supabase';
-const nucleos = NUCLEO_OPTIONS;
 ---
 <Base title="Solicitar inscrição — Instituto Teológico Servo">
   <PageHero
@@ -82,7 +80,6 @@ const nucleos = NUCLEO_OPTIONS;
             <label for="nucleo">Núcleo *</label>
             <select class="input" id="nucleo" name="nucleo">
               <option value="" disabled selected>Selecione o núcleo…</option>
-              {nucleos.map((n) => <option value={n.value}>{n.label}</option>)}
             </select>
           </div>
         </div>
@@ -95,7 +92,7 @@ const nucleos = NUCLEO_OPTIONS;
 </Base>
 
 <script>
-  import { createBrowserClient, listarDestinosPublicos, solicitarInscricao } from '@its-servo/supabase';
+  import { createBrowserClient, listarDestinosPublicos, listarNucleosPublicos, solicitarInscricao } from '@its-servo/supabase';
 
   const url = import.meta.env.PUBLIC_SUPABASE_URL;
   const key = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
@@ -110,6 +107,14 @@ const nucleos = NUCLEO_OPTIONS;
 
   if (url && key) {
     const client = createBrowserClient(url, key);
+    listarNucleosPublicos(client).then((nucleos) => {
+      nucleos.forEach((nucleo) => {
+        const option = document.createElement('option');
+        option.value = nucleo.slug;
+        option.textContent = `${nucleo.nome} (${nucleo.cidade}/${nucleo.uf})`;
+        nucleoSel.appendChild(option);
+      });
+    }).catch(() => { msg.textContent = 'Não foi possível carregar os núcleos. Tente novamente.'; });
     listarDestinosPublicos(client).then((destinos) => {
       destinoSel.innerHTML = '';
       destinos.forEach((destino) => {

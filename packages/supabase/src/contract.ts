@@ -50,6 +50,19 @@ export interface DestinoPublico {
   valor: number | null;
 }
 
+export interface NucleoPublico {
+  slug: string;
+  nome: string;
+  cidade: string;
+  uf: string;
+}
+
+export async function listarNucleosPublicos(client: SupabaseClient): Promise<NucleoPublico[]> {
+  const { data, error } = await client.from("nucleos").select("slug,nome,cidade,uf").eq("ativo", true).order("nome");
+  if (error) throw error;
+  return (data ?? []) as NucleoPublico[];
+}
+
 /** Catálogo mínimo e seguro para o Site: só devolve cursos e edições publicados. */
 export async function listarDestinosPublicos(client: SupabaseClient): Promise<DestinoPublico[]> {
   const [cursos, edicoes] = await Promise.all([

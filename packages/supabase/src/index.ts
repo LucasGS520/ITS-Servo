@@ -20,7 +20,9 @@ export {
   cancelarInscricao,
   enviarComprovante,
   listarDestinosPublicos,
+  listarNucleosPublicos,
   type InscricaoDTO,
   type InscricaoResumo,
   type DestinoPublico,
+  type NucleoPublico,
 } from "./contract.ts";

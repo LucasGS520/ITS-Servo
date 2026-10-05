@@ -22,6 +22,12 @@ export type Database = {
   }
   public: {
     Tables: {
+      nucleos: {
+        Row: { id: string; slug: string; nome: string; cidade: string; uf: string; ativo: boolean; created_at: string; updated_at: string }
+        Insert: { id?: string; slug: string; nome: string; cidade: string; uf: string; ativo?: boolean; created_at?: string; updated_at?: string }
+        Update: { slug?: string; nome?: string; cidade?: string; uf?: string; ativo?: boolean; updated_at?: string }
+        Relationships: []
+      }
       /**
        * Tabela de inscrições
        * Armazena informações dos candidatos inscritos

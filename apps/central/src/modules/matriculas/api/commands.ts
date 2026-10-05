@@ -60,4 +60,16 @@ export const atualizarStatusInscricao = async ({
   if (error) throw error;
 };
 
+export const atualizarDadosAtendimento = async ({
+  inscricaoId, nomeCompleto, telefone, email, dataNascimento, escolaridade,
+}: { inscricaoId: string; nomeCompleto: string; telefone: string; email: string; dataNascimento: string; escolaridade: string }) => {
+  const rpc = supabase.rpc as unknown as (name: string, args: Record<string, unknown>) => Promise<{ error: unknown }>;
+  const { error } = await rpc("atualizar_atendimento", {
+    p_inscricao_id: inscricaoId, p_nome_completo: nomeCompleto, p_telefone: telefone,
+    p_email: email, p_data_nascimento: dataNascimento, p_escolaridade: escolaridade,
+    p_motivo: "Correção via Atendimento",
+  });
+  if (error) throw error;
+};
+
 export type { InscricaoResumo };

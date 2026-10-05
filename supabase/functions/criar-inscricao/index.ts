@@ -16,7 +16,6 @@ import { json } from "../_shared/cors.ts";
 import { adminClient } from "../_shared/admin.ts";
 import { generateToken, sha256Hex } from "../_shared/token.ts";
 import { validateCPF } from "../_shared/cpf.ts";
-import { NUCLEO_SLUGS } from "../_shared/nucleos.ts";
 
 interface Dto {
   nome_completo: string;
@@ -40,7 +39,7 @@ function validar(d: Partial<Dto>): string | null {
   if (!d.data_nascimento || !/^\d{4}-\d{2}-\d{2}$/.test(d.data_nascimento)) return "Data de nascimento inválida.";
   if (!d.escolaridade) return "Escolaridade obrigatória.";
   if (d.modalidade !== "presencial" && d.modalidade !== "correspondencia") return "Modalidade inválida.";
-  if (d.modalidade === "presencial" && (!d.nucleo || !NUCLEO_SLUGS.includes(d.nucleo))) {
+  if (d.modalidade === "presencial" && !d.nucleo) {
     return "Selecione um núcleo válido para modalidade presencial.";
   }
   if (d.destino && !["curso", "simposio"].includes(d.destino)) return "Destino inválido.";
@@ -62,6 +61,11 @@ serve(async (req) => {
     if (erro) return json({ error: erro }, 400, origin);
 
     const admin = adminClient();
+    if (dto.modalidade === "presencial") {
+      const { data: nucleo, error: nucleoError } = await admin
+        .from("nucleos").select("id").eq("slug", dto.nucleo!).eq("ativo", true).maybeSingle();
+      if (nucleoError || !nucleo) return json({ error: "Selecione um núcleo ativo e válido para modalidade presencial." }, 400, origin);
+    }
 
     // ---- Rate limit por IP (janela de 1h, endpoint público) ----
     const ip =

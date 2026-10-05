@@ -1,0 +1,17 @@
+import { Printer } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/common/ui/tabs";
+import { Button } from "@/common/ui/button";
+import MensalTab from "@/modules/financeiro/gestao/components/MensalTab";
+import AnualTab from "@/modules/financeiro/gestao/components/AnualTab";
+import { useMatriculas } from "@/modules/matriculas/api";
+import { useAlunos } from "@/modules/financeiro/api";
+import { useEdicoesSimposio } from "@/modules/atividades/api";
+import { Card, CardContent } from "@/common/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/common/ui/table";
+
+const Impressao = () => <Button className="print:hidden" variant="outline" size="sm" onClick={() => window.print()}><Printer className="mr-2 h-4 w-4" />Imprimir</Button>;
+const InscricoesRelatorio = () => { const { data = [] } = useMatriculas(); return <Card><CardContent className="p-0"><Table><TableHeader><TableRow><TableHead>Inscrição</TableHead><TableHead>Nome</TableHead><TableHead>Destino</TableHead><TableHead>Status</TableHead><TableHead>Núcleo</TableHead></TableRow></TableHeader><TableBody>{data.map((i) => <TableRow key={i.id}><TableCell>{i.numero_inscricao}</TableCell><TableCell>{i.nome_completo}</TableCell><TableCell>{i.destino}</TableCell><TableCell>{i.status}</TableCell><TableCell>{i.nucleo ?? "Correspondência"}</TableCell></TableRow>)}</TableBody></Table></CardContent></Card>; };
+const AlunosRelatorio = () => { const { data = [] } = useAlunos(); return <Card><CardContent className="p-0"><Table><TableHeader><TableRow><TableHead>Aluno</TableHead><TableHead>Núcleo</TableHead><TableHead>Origem</TableHead><TableHead>Situação</TableHead></TableRow></TableHeader><TableBody>{data.map((a) => <TableRow key={a.id}><TableCell>{a.nome}</TableCell><TableCell>{a.unidade}</TableCell><TableCell>{a.inscricao_id ? "Inscrição" : "Legado"}</TableCell><TableCell>{a.ativo ? "Ativo" : "Inativo"}</TableCell></TableRow>)}</TableBody></Table></CardContent></Card>; };
+const SimposiosRelatorio = () => { const { data = [] } = useEdicoesSimposio(); const { data: inscricoes = [] } = useMatriculas(); return <Card><CardContent className="space-y-4 p-4">{data.map((e) => <div key={e.id} className="rounded-lg border p-4"><p className="font-semibold">{e.nome}</p><p className="text-sm text-muted-foreground">{inscricoes.filter((i) => i.edicao_simposio_id === e.id && i.status !== "cancelado").length} participante(s)</p></div>)}</CardContent></Card>; };
+const RelatoriosPage = () => <div className="container space-y-6 py-8"><div className="flex items-start justify-between gap-4"><div><h1 className="text-2xl font-bold">Relatórios</h1><p className="mt-1 text-sm text-muted-foreground">Consultas consolidadas e impressão, sem alterações operacionais.</p></div><Impressao /></div><Tabs defaultValue="financeiro"><TabsList><TabsTrigger value="financeiro">Financeiro</TabsTrigger><TabsTrigger value="inscricoes">Inscrições</TabsTrigger><TabsTrigger value="alunos">Alunos</TabsTrigger><TabsTrigger value="simposios">Simpósios</TabsTrigger></TabsList><TabsContent value="financeiro" className="space-y-8"><MensalTab /><AnualTab /></TabsContent><TabsContent value="inscricoes"><InscricoesRelatorio /></TabsContent><TabsContent value="alunos"><AlunosRelatorio /></TabsContent><TabsContent value="simposios"><SimposiosRelatorio /></TabsContent></Tabs></div>;
+export default RelatoriosPage;
