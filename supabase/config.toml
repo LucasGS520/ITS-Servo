@@ -1,1 +1,2 @@
-project_id = "eeyebnhilphfxfklvruo"
+# Identificador apenas da stack local; o projeto remoto e vinculado via `supabase link`.
+project_id = "its-servo"
