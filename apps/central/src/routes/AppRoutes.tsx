@@ -18,6 +18,7 @@ const RelatoriosPage = lazy(() => import("@/modules/relatorios/gestao").then((mo
 const CarregandoRota = () => <div className="flex min-h-[40vh] items-center justify-center"><Loader2 className="h-7 w-7 animate-spin text-primary" /><span className="sr-only">Carregando</span></div>;
 
 const AppRoutes = () => <Suspense fallback={<CarregandoRota />}><Routes>
+  <Route path="/" element={<Navigate to="/painel/login" replace />} />
   <Route element={<AutosservicoLayout />}>
     <Route path="/inscricao/pagamento/:numero" element={<PagamentoPage />} />
     <Route path="/consulta" element={<ConsultaInscricaoPage />} />
