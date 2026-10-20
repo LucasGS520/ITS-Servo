@@ -2,7 +2,7 @@
 
 ## Estado de publicação
 
-O banco de produção recebeu as migrations `alinhamento_operacional_its`, `integridade_inscricoes_its` e `permissoes_financeiro_its`, junto da carga de 2026. As Edge Functions `criar-inscricao` e `enviar-comprovante` estão na versão 2. As telas da Central e do Site foram alteradas neste repositório, mas **ainda não foram publicadas no host web**; até essa publicação, a interface no ar pode mostrar o fluxo antigo. Não usar a interface antiga de cobrança para operar os novos registros.
+O banco de produção recebeu as migrations `alinhamento_operacional_its`, `integridade_inscricoes_its` e `permissoes_financeiro_its`, junto da carga de 2026. As Edge Functions `criar-inscricao` e `enviar-comprovante` estão na versão 2. A branch de produção `refactor-central` foi enviada ao GitHub; o Cloudflare serve o Site em `https://itservo.com.br` e a Central em `https://central.itservo.com.br`. Foram verificados os arquivos públicos novos e as rotas principais. A operação administrativa autenticada ainda deve ser acompanhada pelos responsáveis no primeiro uso real.
 
 ## Como a equipe deverá operar após publicar a interface
 
@@ -38,4 +38,4 @@ A carga repetível está em `supabase/scripts/prepare_2026.py`. Os arquivos Exce
 - A carga foi repetida sem alterar as contagens: 65 pessoas/alunos, 67 recebimentos, 78 lançamentos e quatro pendências abertas.
 - Inscrição pública, comprovante e consulta por token passaram em transação revertida. O fluxo administrativo passou com confirmação, isenção, mensalidades parciais em dois meses, correção e estorno, sem criar cobrança.
 - TypeScript, lint e build local de desenvolvimento da Central passaram; o teste de transporte de saldo passou. O build do Site requer Node.js `>=22.12.0`, enquanto a máquina usada nesta conferência tem Node 20.20.2.
-- O Site e a Central são hospedados no Cloudflare. Seus projetos/branches de produção ainda precisam ser identificados para publicar o código; ambos os apps incluem `.node-version` 22.16.0 para o build do Pages.
+- O Site e a Central são hospedados no Cloudflare, ligados à branch `refactor-central`. Ambos os apps incluem `.node-version` 22.16.0 para o build do Pages. As páginas públicas de inscrição, consulta e acompanhamento responderam HTTP 200 em seus domínios, e os bundles publicados contêm o novo fluxo e apontam para o projeto Supabase correto.
