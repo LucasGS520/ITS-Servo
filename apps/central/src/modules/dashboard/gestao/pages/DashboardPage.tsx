@@ -7,11 +7,11 @@ import {
   useMatriculas,
   type StatusInscricao,
 } from "@/modules/matriculas";
-import { useLancamentos } from "@/modules/financeiro";
+import { useAlunos, useLancamentos } from "@/modules/financeiro";
 import { NUCLEO_LABELS } from "@its-servo/supabase";
 
 const statusColors: Record<StatusInscricao, string> = {
-  aguardando_pagamento: "bg-yellow-50 border-yellow-200 text-yellow-800",
+  em_analise: "bg-yellow-50 border-yellow-200 text-yellow-800",
   comprovante_enviado: "bg-blue-50 border-blue-200 text-blue-800",
   confirmada: "bg-green-50 border-green-200 text-green-800",
   pagamento_nao_identificado: "bg-red-50 border-red-200 text-red-800",
@@ -23,17 +23,18 @@ const fmt = (n: number) =>
 
 const DashboardPage = () => {
   const { data: inscricoes = [], isLoading } = useMatriculas();
+  const { data: alunos = [] } = useAlunos();
   const { data: registros = [] } = useLancamentos();
 
   const stats = useMemo(() => {
     const agora = new Date();
     const inicioDeMes = new Date(agora.getFullYear(), agora.getMonth(), 1);
 
-    const ativas = inscricoes.filter((i) => i.status === "confirmada");
+    const ativas = alunos.filter((a) => a.situacao === "ativo");
     const novasMes = inscricoes.filter(
       (i) => new Date(i.created_at) >= inicioDeMes && i.status !== "cancelado"
     );
-    const pendentesAnalise = inscricoes.filter((i) => i.status === "comprovante_enviado");
+    const pendentesAnalise = inscricoes.filter((i) => i.status === "em_analise" || i.status === "comprovante_enviado");
     const receitaRealizada = registros.reduce(
       (total, registro) => total + (registro.tipo === "entrada" ? Number(registro.valor) : -Number(registro.valor)),
       0,
@@ -67,7 +68,7 @@ const DashboardPage = () => {
       porModalidade,
       nucleosOrdenados,
     };
-  }, [inscricoes, registros]);
+  }, [inscricoes, alunos, registros]);
 
   if (isLoading) {
     return (
@@ -131,7 +132,7 @@ const DashboardPage = () => {
               <DollarSign className="h-5 w-5 text-green-700" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Receita realizada</p>
+              <p className="text-xs text-muted-foreground">Resultado de caixa registrado</p>
               <p className="text-2xl font-bold text-foreground">{fmt(stats.receitaRealizada)}</p>
             </div>
           </CardContent>

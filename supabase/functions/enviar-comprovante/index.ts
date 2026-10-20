@@ -2,7 +2,7 @@
  * Edge function — enviar-comprovante  (CONTRATO: autosserviço, pós-inscrição)
  *
  * Recebe o comprovante (base64) + token de posse, valida, sobe para o bucket
- * privado e delega a atualização de matrícula + pagamento a uma RPC
+ * privado e delega a atualização da inscrição a uma RPC
  * transacional. Se a RPC falhar, remove o objeto recém-enviado.
  *
  * POST { numero, token, file_base64, filename, content_type }
@@ -78,7 +78,7 @@ serve(async (req) => {
 
     const admin = adminClient();
 
-    // A RPC compara este hash com o persistido e serializa a cobrança.
+    // A RPC compara este hash com o persistido e registra apenas a evidência.
     const hash = await sha256Hex(token);
     const path = `${numero}/${Date.now()}.${ALLOWED[content_type]}`;
     const { error: upErr } = await admin.storage
@@ -94,8 +94,8 @@ serve(async (req) => {
     if (registroErr) {
       const { error: cleanupErr } = await admin.storage.from("comprovantes").remove([path]);
       if (cleanupErr) console.error("enviar-comprovante: falha ao remover upload órfão:", cleanupErr);
-      const negado = /não encontrada|código de acesso/i.test(registroErr.message);
-      const conflito = /status atual|cobrança|aguardando conferência/i.test(registroErr.message);
+      const negado = /n[aã]o encontrada|c[oó]digo de acesso/i.test(registroErr.message);
+      const conflito = /estado invalido|status atual/i.test(registroErr.message);
       return json({ error: registroErr.message }, negado ? 403 : conflito ? 409 : 500, origin);
     }
 

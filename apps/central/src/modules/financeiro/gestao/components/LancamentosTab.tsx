@@ -49,7 +49,7 @@ const LancamentosTab = () => {
     const acumulado = saldoAcumulado(escopo, competencia);
     const termo = busca.trim().toLowerCase();
     const linhas = lancamentos.filter((l) => {
-      if (l.competencia !== competencia) return false;
+      if (l.mes_caixa !== competencia) return false;
       if (filtroUnidade === "geral" && l.unidade !== null) return false;
       if (filtroUnidade !== "todas" && filtroUnidade !== "geral" && l.unidade !== filtroUnidade) return false;
       if (filtroTipo !== "todos" && l.tipo !== filtroTipo) return false;
@@ -201,7 +201,7 @@ const LancamentosTab = () => {
                 ) : (
                   linhas.map((l) => (
                     <TableRow key={l.id}>
-                      <TableCell className="text-sm text-muted-foreground">{formatData(l.data)}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{formatData(l.data, l.mes_caixa)}</TableCell>
                       <TableCell className="font-medium">
                         {l.aluno?.nome ?? l.descricao ?? l.categoria?.nome ?? "—"}
                         {l.aluno && l.descricao && (

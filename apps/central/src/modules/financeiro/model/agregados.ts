@@ -24,8 +24,8 @@ export const formatCompetencia = (c: string) =>
   `${MESES_CURTOS[Number(c.slice(5, 7)) - 1]}/${c.slice(0, 4)}`;
 
 /** "2026-07-15" → "15/07/2026" (T12:00 evita deslocamento de fuso) */
-export const formatData = (d: string) =>
-  new Date(`${d}T12:00:00`).toLocaleDateString("pt-BR");
+export const formatData = (d: string | null, mesCaixa?: string) =>
+  d ? new Date(`${d}T12:00:00`).toLocaleDateString("pt-BR") : `${mesCaixa?.slice(5, 7) ?? "??"}/${mesCaixa?.slice(0, 4) ?? "????"} (dia desconhecido)`;
 
 export interface TotaisMes {
   entrada: number;
@@ -42,7 +42,7 @@ export function totaisDoMes(
   let entrada = 0;
   let saida = 0;
   for (const l of lancs) {
-    if (l.competencia !== competencia) continue;
+    if (l.mes_caixa !== competencia) continue;
     if (unidade !== undefined && l.unidade !== unidade) continue;
     if (l.tipo === "entrada") entrada += Number(l.valor);
     else saida += Number(l.valor);
@@ -50,10 +50,18 @@ export function totaisDoMes(
   return { entrada: round2(entrada), saida: round2(saida), saldo: round2(entrada - saida) };
 }
 
+/** O saldo inicial mais recente substitui os anteriores; evita somar bases duas vezes. */
+export function saldoAte(lancs: Lancamento[], limite: string, incluirLimite: boolean, saldos: { ano: number; valor: number }[] = []) {
+  const abertura = saldos.filter((item) => item.ano <= Number(limite.slice(0, 4))).sort((a, b) => b.ano - a.ano)[0];
+  const inicio = abertura ? `${abertura.ano}-01-01` : "0000-01-01";
+  return round2(Number(abertura?.valor ?? 0) + lancs.reduce((s, l) =>
+    l.mes_caixa >= inicio && (incluirLimite ? l.mes_caixa <= limite : l.mes_caixa < limite) ? s + sinal(l) : s, 0));
+}
+
 /** Saldo de tudo ANTES da competência (o "SALDO ANTERIOR" da planilha). */
-export const saldoAnterior = (lancs: Lancamento[], competencia: string) =>
-  round2(lancs.reduce((s, l) => (l.competencia < competencia ? s + sinal(l) : s), 0));
+export const saldoAnterior = (lancs: Lancamento[], competencia: string, saldos: { ano: number; valor: number }[] = []) =>
+  saldoAte(lancs, competencia, false, saldos);
 
 /** Saldo acumulado ATÉ a competência, inclusive (o "SALDO" da planilha). */
-export const saldoAcumulado = (lancs: Lancamento[], competencia: string) =>
-  round2(lancs.reduce((s, l) => (l.competencia <= competencia ? s + sinal(l) : s), 0));
+export const saldoAcumulado = (lancs: Lancamento[], competencia: string, saldos: { ano: number; valor: number }[] = []) =>
+  saldoAte(lancs, competencia, true, saldos);

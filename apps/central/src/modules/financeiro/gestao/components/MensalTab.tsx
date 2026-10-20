@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { FileCheck2, Loader2, Printer } from "lucide-react";
 import { formatBRL } from "@/common/constants/pricing";
 import { UNIDADE_LABELS, UNIDADES_FINANCEIRO } from "@/modules/financeiro/model/unidades";
-import { useEmitirRelatorioMensal, useLancamentos, useRelatoriosMensais } from "@/modules/financeiro/api";
+import { useEmitirRelatorioMensal, useLancamentos, useRelatoriosMensais, useSaldosIniciais } from "@/modules/financeiro/api";
 import { useToast } from "@/common/hooks/use-toast";
 import { getErrorMessage } from "@/common/lib/errors";
 import type { Json } from "@its-servo/supabase/types";
@@ -24,6 +24,7 @@ import { printRelatorioMensal, type LinhaRelatorio, type ResumoItem } from "@/mo
 const MensalTab = () => {
   const { toast } = useToast();
   const { data: lancamentos = [], isLoading } = useLancamentos();
+  const { data: saldos = [] } = useSaldosIniciais();
   const [mes, setMes] = useState(new Date().toISOString().slice(0, 7));
   const [unidade, setUnidade] = useState("geral");
 
@@ -34,10 +35,10 @@ const MensalTab = () => {
 
   const { linhas, resumo, totalGeral, saldoInicio, unidadeLabel, titulo } = useMemo(() => {
     const doMes = lancamentos
-      .filter((l) => l.competencia === competencia && (geral || l.unidade === unidade))
-      .sort((a, b) => a.data.localeCompare(b.data) || a.created_at.localeCompare(b.created_at));
+      .filter((l) => l.mes_caixa === competencia && (geral || l.unidade === unidade))
+      .sort((a, b) => (a.data ?? "").localeCompare(b.data ?? "") || a.created_at.localeCompare(b.created_at));
 
-    const inicio = geral ? saldoAnterior(lancamentos, competencia) : 0;
+    const inicio = geral ? saldoAnterior(lancamentos, competencia, saldos) : 0;
 
     let saldo = inicio;
     let entrada = 0;
@@ -51,7 +52,7 @@ const MensalTab = () => {
       const base = l.aluno?.nome ?? l.descricao ?? l.categoria?.nome ?? "—";
       const nome = geral && l.unidade ? `${base} — ${UNIDADE_LABELS[l.unidade] ?? l.unidade}` : base;
       return {
-        data: formatData(l.data),
+        data: formatData(l.data, l.mes_caixa),
         nome,
         entrada: isEntrada ? valor : null,
         saida: isEntrada ? null : valor,
@@ -80,7 +81,7 @@ const MensalTab = () => {
       unidadeLabel: geral ? "Geral (consolidado)" : UNIDADE_LABELS[unidade] ?? unidade,
       titulo: geral ? "RELATÓRIO FINANCEIRO GERAL" : "RELATÓRIO FINANCEIRO POR NÚCLEO",
     };
-  }, [lancamentos, competencia, unidade, geral]);
+  }, [lancamentos, competencia, unidade, geral, saldos]);
 
   if (isLoading) {
     return (

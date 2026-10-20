@@ -41,7 +41,7 @@ import {
 import { getErrorMessage } from "@/common/lib/errors";
 
 const statusVisual: Record<StatusInscricao, { icon: React.ReactNode; color: string }> = {
-  aguardando_pagamento: { icon: <Clock className="h-4 w-4" />, color: "text-yellow-600 bg-yellow-50 border-yellow-200" },
+  em_analise: { icon: <Clock className="h-4 w-4" />, color: "text-yellow-600 bg-yellow-50 border-yellow-200" },
   comprovante_enviado: { icon: <FileText className="h-4 w-4" />, color: "text-blue-600 bg-blue-50 border-blue-200" },
   confirmada: { icon: <CheckCircle className="h-4 w-4" />, color: "text-green-600 bg-green-50 border-green-200" },
   pagamento_nao_identificado: { icon: <AlertCircle className="h-4 w-4" />, color: "text-orange-600 bg-orange-50 border-orange-200" },
@@ -178,10 +178,10 @@ const ConsultaInscricaoPage = () => {
                       {resultado.nucleo && <div><span className="text-muted-foreground">Núcleo:</span> <span className="font-medium">{resultado.nucleo}</span></div>}
                     </div>
 
-                    {resultado.status === "aguardando_pagamento" && (
+                    {resultado.status === "em_analise" && (
                       <div className="flex flex-col gap-2 sm:flex-row">
                         <Button onClick={() => navigate(`/inscricao/pagamento/${resultado.numero_inscricao}#token=${encodeURIComponent(token.trim())}`)} className="flex-1 bg-secondary text-secondary-foreground hover:bg-secondary/90">
-                          Ir para Pagamento
+                          Enviar comprovante (opcional)
                         </Button>
                         <Button variant="outline" onClick={() => setCancelOpen(true)} className="flex-1 border-destructive text-destructive hover:bg-destructive/10">
                           <XCircle className="mr-2 h-4 w-4" /> Cancelar Inscrição

@@ -24,5 +24,9 @@ Thumbs.db
 *.sw?
 supabase/.temp/
 
+# Planilhas de trabalho do ITS (podem conter dados pessoais e financeiros)
+.planilhas_its/
+__pycache__/
+
 # Artefatos locais gerados pelo Graphify (mapa e cache de análise)
 graphify-out/

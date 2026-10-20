@@ -21,6 +21,7 @@ import {
 } from "@/modules/financeiro/api";
 import { competenciaParaMes, mesParaCompetencia } from "@/modules/financeiro/model/agregados";
 import { getErrorMessage } from "@/common/lib/errors";
+import { useCursos, useEdicoesSimposio } from "@/modules/atividades/api";
 
 const schema = z.object({
   tipo: z.enum(["entrada", "saida"]),
@@ -52,6 +53,8 @@ const LancamentoDialog = ({ open, onOpenChange, lancamento }: Props) => {
   const { toast } = useToast();
   const { data: categorias = [] } = useCategorias();
   const { data: alunos = [] } = useAlunos();
+  const { data: cursos = [] } = useCursos();
+  const { data: edicoes = [] } = useEdicoesSimposio();
   const salvarLancamento = useSalvarLancamento();
 
   const [tipo, setTipo] = useState<"entrada" | "saida">("entrada");
@@ -62,6 +65,7 @@ const LancamentoDialog = ({ open, onOpenChange, lancamento }: Props) => {
   const [data, setData] = useState<string>(hoje());
   const [competencia, setCompetencia] = useState<string>(hoje().slice(0, 7));
   const [descricao, setDescricao] = useState<string>("");
+  const [atividade, setAtividade] = useState<string>("geral");
   const [alunoOpen, setAlunoOpen] = useState(false);
 
   // (Re)inicializa ao abrir — novo ou edição
@@ -73,9 +77,10 @@ const LancamentoDialog = ({ open, onOpenChange, lancamento }: Props) => {
       setCategoriaId(lancamento.categoria_id);
       setAlunoId(lancamento.aluno_id);
       setValor(String(lancamento.valor));
-      setData(lancamento.data);
+      setData(lancamento.data ?? "");
       setCompetencia(competenciaParaMes(lancamento.competencia));
       setDescricao(lancamento.descricao ?? "");
+      setAtividade(lancamento.curso_id ? `curso:${lancamento.curso_id}` : lancamento.edicao_simposio_id ? `simposio:${lancamento.edicao_simposio_id}` : "geral");
     } else {
       setTipo("entrada");
       setUnidade("geral");
@@ -85,6 +90,7 @@ const LancamentoDialog = ({ open, onOpenChange, lancamento }: Props) => {
       setData(hoje());
       setCompetencia(hoje().slice(0, 7));
       setDescricao("");
+      setAtividade("geral");
     }
   }, [open, lancamento]);
 
@@ -104,6 +110,11 @@ const LancamentoDialog = ({ open, onOpenChange, lancamento }: Props) => {
   const alunoSelecionado = alunos.find((a) => a.id === alunoId) ?? null;
 
   const handleSave = async () => {
+    const categoriaEscolhida = categorias.find((c) => c.id === categoriaId);
+    if (tipo === "entrada" && (alunoId || ["Curso Teológico", "Capacitação de Obreiros"].includes(categoriaEscolhida?.nome ?? ""))) {
+      toast({ title: "Use Recebimentos para pagamentos de alunos", variant: "destructive" });
+      return;
+    }
     const parsed = schema.safeParse({
       tipo,
       unidade: unidade === "geral" ? null : unidade,
@@ -133,6 +144,8 @@ const LancamentoDialog = ({ open, onOpenChange, lancamento }: Props) => {
         data: parsed.data.data,
         competencia: mesParaCompetencia(parsed.data.competencia),
         descricao: parsed.data.descricao,
+        curso_id: atividade.startsWith("curso:") ? atividade.slice(6) : null,
+        edicao_simposio_id: atividade.startsWith("simposio:") ? atividade.slice(9) : null,
       };
       await salvarLancamento.mutateAsync({ id: lancamento?.id, values: payload });
       toast({ title: lancamento ? "Lançamento atualizado!" : "Lançamento registrado!" });
@@ -200,6 +213,8 @@ const LancamentoDialog = ({ open, onOpenChange, lancamento }: Props) => {
               </SelectContent>
             </Select>
           </div>
+
+          <div className="space-y-2 sm:col-span-2"><Label htmlFor="lancamento-atividade">Atividade vinculada</Label><select id="lancamento-atividade" className="h-10 w-full rounded-md border bg-background px-3" value={atividade} onChange={(event) => setAtividade(event.target.value)}><option value="geral">Geral do ITS</option>{cursos.map((curso) => <option key={curso.id} value={`curso:${curso.id}`}>{curso.nome}</option>)}{edicoes.map((edicao) => <option key={edicao.id} value={`simposio:${edicao.id}`}>{edicao.nome}</option>)}</select></div>
 
           {tipo === "entrada" && (
             <div className="space-y-2 sm:col-span-2">

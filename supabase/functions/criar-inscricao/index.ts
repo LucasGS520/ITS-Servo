@@ -3,7 +3,7 @@
  *
  * Ponto único pelo qual o Site Institucional envia uma solicitação à
  * Central. O contrato operacional valida no servidor, gera o token de
- * autosserviço e delega a criação de pessoa + matrícula + cobrança a uma RPC
+ * autosserviço e delega a criação de pessoa + inscrição a uma RPC
  * transacional. O banco guarda somente o hash do token.
  *
  * POST { nome_completo, cpf, telefone, email, data_nascimento, escolaridade,
@@ -112,7 +112,7 @@ serve(async (req) => {
       p_consulta_token_hash: consulta_token_hash,
     });
     if (error) {
-      const conflito = /já existe|não está disponível|preço|categoria financeira/i.test(error.message);
+      const conflito = /j[aá] existe|n[aã]o est[aá] dispon[ií]vel|duplicat/i.test(error.message);
       return json({ error: error.message }, conflito ? 409 : 500, origin);
     }
     const criada = Array.isArray(data) ? data[0] : data;

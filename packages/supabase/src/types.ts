@@ -1,7 +1,3 @@
-/**
- * Tipo para representar valores JSON genéricos
- * Compatível com tipos primitivos e objetos/arrays aninhados
- */
 export type Json =
   | string
   | number
@@ -10,155 +6,71 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-/**
- * Tipo principal de banco de dados Supabase
- * Define a estrutura completa das tabelas, views, funções e enums
- */
 export type Database = {
-  // Permite instanciar automaticamente createClient com as opções corretas
-  // em vez de createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.1"
+    PostgrestVersion: "14.18"
   }
   public: {
     Tables: {
-      nucleos: {
-        Row: { id: string; slug: string; nome: string; cidade: string; uf: string; ativo: boolean; created_at: string; updated_at: string }
-        Insert: { id?: string; slug: string; nome: string; cidade: string; uf: string; ativo?: boolean; created_at?: string; updated_at?: string }
-        Update: { slug?: string; nome?: string; cidade?: string; uf?: string; ativo?: boolean; updated_at?: string }
-        Relationships: []
-      }
-      /**
-       * Tabela de inscrições
-       * Armazena informações dos candidatos inscritos
-       */
-      inscricoes: {
-        Row: {
-          comprovante_url: string | null /** Path do comprovante no bucket privado (linhas antigas: URL pública) */
-          consulta_token_hash: string | null /** SHA-256 do token de autosserviço (nunca exposto ao client) */
-          cpf: string /** CPF do candidato */
-          created_at: string /** Data de criação do registro */
-          data_nascimento: string /** Data de nascimento do candidato */
-          email: string /** Email do candidato */
-          escolaridade: string /** Grau de escolaridade */
-          id: string /** Identificador único da inscrição */
-          modalidade: string /** Modalidade de inscrição */
-          nome_completo: string /** Nome completo do candidato */
-          nucleo: string | null /** Núcleo de atendimento (opcional) */
-          numero_inscricao: string /** Número único da inscrição */
-          status: string /** Status da inscrição */
-          telefone: string /** Telefone do candidato */
-          updated_at: string /** Data da última atualização */
-          pessoa_id: string | null
-          curso_id: string | null
-          edicao_simposio_id: string | null
-          destino: string
-        }
-        Insert: {
-          comprovante_url?: string | null /** Path do comprovante no bucket privado (opcional) */
-          consulta_token_hash?: string | null /** SHA-256 do token de autosserviço */
-          cpf: string /** CPF do candidato */
-          created_at?: string /** Data de criação do registro (preenchido automaticamente) */
-          data_nascimento: string /** Data de nascimento do candidato */
-          email: string /** Email do candidato */
-          escolaridade: string /** Grau de escolaridade */
-          id?: string /** Identificador único da inscrição (preenchido automaticamente) */
-          modalidade: string /** Modalidade de inscrição */
-          nome_completo: string /** Nome completo do candidato */
-          nucleo?: string | null /** Núcleo de atendimento (opcional) */
-          numero_inscricao?: string /** Número único da inscrição (preenchido automaticamente) */
-          status?: string /** Status da inscrição (preenchido automaticamente) */
-          telefone: string /** Telefone do candidato */
-          updated_at?: string /** Data da última atualização (preenchido automaticamente) */
-          pessoa_id?: string | null
-          curso_id?: string | null
-          edicao_simposio_id?: string | null
-          destino?: string
-        }
-        Update: {
-          comprovante_url?: string | null /** Path do comprovante no bucket privado (opcional) */
-          consulta_token_hash?: string | null /** SHA-256 do token de autosserviço */
-          cpf?: string /** CPF do candidato */
-          created_at?: string /** Data de criação do registro (não deve ser atualizado) */
-          data_nascimento?: string /** Data de nascimento do candidato */
-          email?: string /** Email do candidato */
-          escolaridade?: string /** Grau de escolaridade */
-          id?: string /** Identificador único da inscrição (não deve ser atualizado) */
-          modalidade?: string /** Modalidade de inscrição */
-          nome_completo?: string /** Nome completo do candidato */
-          nucleo?: string | null /** Núcleo de atendimento (opcional) */
-          numero_inscricao?: string /** Número único da inscrição (não deve ser atualizado) */
-          status?: string /** Status da inscrição */
-          telefone?: string /** Telefone do candidato */
-          updated_at?: string /** Data da última atualização (preenchido automaticamente) */
-          pessoa_id?: string | null
-          curso_id?: string | null
-          edicao_simposio_id?: string | null
-          destino?: string
-        }
-        Relationships: []
-      }
-      /**
-       * Tabela de papéis de usuário
-       * Define os papéis/permissões para cada usuário
-       */
-      user_roles: {
-        Row: {
-          created_at: string /** Data de criação do registro */
-          id: string /** Identificador único do papel */
-          role: Database["public"]["Enums"]["app_role"] /** Tipo de papel (admin ou user) */
-          user_id: string /** ID do usuário */
-        }
-        Insert: {
-          created_at?: string /** Data de criação do registro (preenchido automaticamente) */
-          id?: string /** Identificador único do papel (preenchido automaticamente) */
-          role: Database["public"]["Enums"]["app_role"] /** Tipo de papel (admin ou user) */
-          user_id: string /** ID do usuário */
-        }
-        Update: {
-          created_at?: string /** Data de criação do registro (não deve ser atualizado) */
-          id?: string /** Identificador único do papel (não deve ser atualizado) */
-          role?: Database["public"]["Enums"]["app_role"] /** Tipo de papel (admin ou user) */
-          user_id?: string /** ID do usuário (não deve ser atualizado) */
-        }
-        Relationships: []
-      }
-      /**
-       * Alunos do financeiro — vinculados a uma inscrição confirmada ou
-       * cadastrados manualmente (legados da planilha)
-       */
       alunos: {
         Row: {
-          id: string /** Identificador único do aluno */
-          nome: string /** Nome do aluno */
-          unidade: string /** Slug do núcleo ou 'correspondencia' */
-          inscricao_id: string | null /** Inscrição de origem (null p/ legados) */
-          ativo: boolean /** Aluno ativo para lançamentos */
-          observacoes: string | null /** Observações livres */
-          created_at: string /** Data de criação do registro */
-          updated_at: string /** Data da última atualização */
+          ativo: boolean
+          created_at: string
+          curso_id: string | null
+          id: string
+          inscricao_id: string | null
+          nome: string
+          nucleo_id: string | null
+          observacoes: string | null
+          origem_referencia: string | null
+          pessoa_id: string | null
+          primeira_competencia: string | null
+          situacao: string
+          unidade: string
+          updated_at: string
         }
         Insert: {
-          id?: string
-          nome: string
-          unidade: string
-          inscricao_id?: string | null
           ativo?: boolean
-          observacoes?: string | null
           created_at?: string
+          curso_id?: string | null
+          id?: string
+          inscricao_id?: string | null
+          nome: string
+          nucleo_id?: string | null
+          observacoes?: string | null
+          origem_referencia?: string | null
+          pessoa_id?: string | null
+          primeira_competencia?: string | null
+          situacao?: string
+          unidade: string
           updated_at?: string
         }
         Update: {
-          id?: string
-          nome?: string
-          unidade?: string
-          inscricao_id?: string | null
           ativo?: boolean
-          observacoes?: string | null
           created_at?: string
+          curso_id?: string | null
+          id?: string
+          inscricao_id?: string | null
+          nome?: string
+          nucleo_id?: string | null
+          observacoes?: string | null
+          origem_referencia?: string | null
+          pessoa_id?: string | null
+          primeira_competencia?: string | null
+          situacao?: string
+          unidade?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "alunos_curso_id_fkey"
+            columns: ["curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "alunos_inscricao_id_fkey"
             columns: ["inscricao_id"]
@@ -166,106 +78,572 @@ export type Database = {
             referencedRelation: "inscricoes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "alunos_nucleo_id_fkey"
+            columns: ["nucleo_id"]
+            isOneToOne: false
+            referencedRelation: "nucleos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alunos_pessoa_id_fkey"
+            columns: ["pessoa_id"]
+            isOneToOne: false
+            referencedRelation: "pessoas"
+            referencedColumns: ["id"]
+          },
         ]
       }
-      /** Categorias de entrada/saída do financeiro (gerenciáveis no painel) */
-      categorias_financeiras: {
+      atribuicoes_mensalidade: {
         Row: {
-          id: string /** Identificador único da categoria */
-          nome: string /** Nome da categoria */
-          tipo: string /** 'entrada' | 'saida' */
-          ativo: boolean /** Categoria disponível para novos lançamentos */
-          created_at: string /** Data de criação do registro */
-          updated_at: string /** Data da última atualização */
+          aluno_id: string
+          competencia: string
+          created_at: string
+          id: string
+          recebimento_id: string
+          valor: number
         }
         Insert: {
+          aluno_id: string
+          competencia: string
+          created_at?: string
+          id?: string
+          recebimento_id: string
+          valor: number
+        }
+        Update: {
+          aluno_id?: string
+          competencia?: string
+          created_at?: string
+          id?: string
+          recebimento_id?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atribuicoes_mensalidade_aluno_id_fkey"
+            columns: ["aluno_id"]
+            isOneToOne: false
+            referencedRelation: "alunos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atribuicoes_mensalidade_recebimento_id_fkey"
+            columns: ["recebimento_id"]
+            isOneToOne: false
+            referencedRelation: "recebimentos_its"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      auditoria_operacional: {
+        Row: {
+          acao: string
+          created_at: string
+          dados: Json
+          entidade: string
+          entidade_id: string
+          executado_por: string | null
+          id: string
+          motivo: string | null
+        }
+        Insert: {
+          acao: string
+          created_at?: string
+          dados?: Json
+          entidade: string
+          entidade_id: string
+          executado_por?: string | null
+          id?: string
+          motivo?: string | null
+        }
+        Update: {
+          acao?: string
+          created_at?: string
+          dados?: Json
+          entidade?: string
+          entidade_id?: string
+          executado_por?: string | null
+          id?: string
+          motivo?: string | null
+        }
+        Relationships: []
+      }
+      categorias_financeiras: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          id: string
+          nome: string
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
           id?: string
           nome: string
           tipo: string
-          ativo?: boolean
-          created_at?: string
           updated_at?: string
         }
         Update: {
+          ativo?: boolean
+          created_at?: string
           id?: string
           nome?: string
           tipo?: string
-          ativo?: boolean
-          created_at?: string
           updated_at?: string
         }
         Relationships: []
       }
-      /**
-       * Lançamentos financeiros (livro-caixa).
-       * data = dia real; competencia = mês de referência (sempre dia 1);
-       * unidade null = movimento geral/institucional
-       */
-      lancamentos_financeiros: {
+      cobrancas: {
         Row: {
-          id: string /** Identificador único do lançamento */
-          tipo: string /** 'entrada' | 'saida' */
-          valor: number /** Valor sempre positivo; sentido vem de tipo */
-          data: string /** Dia real do movimento (DATE) */
-          competencia: string /** Mês de referência, dia 1 (DATE) */
-          unidade: string | null /** Slug da unidade ou null (geral) */
-          categoria_id: string /** Categoria do lançamento */
-          aluno_id: string | null /** Aluno (mensalidade/matrícula) ou null */
-          descricao: string | null /** Descrição livre */
-          created_by: string | null /** Usuário que lançou */
-          created_at: string /** Data de criação do registro */
-          updated_at: string /** Data da última atualização */
-          pagamento_id: string | null
-          cobranca_id: string | null
+          categoria_id: string | null
+          created_at: string
+          created_by: string | null
           curso_id: string | null
           edicao_simposio_id: string | null
-          estorno_de_id: string | null
-          motivo: string | null
-          origem: string
+          id: string
+          inscricao_id: string | null
+          pessoa_id: string
+          referente: string
+          status: string
+          updated_at: string
+          valor_devido: number
+          vencimento: string | null
         }
         Insert: {
-          id?: string
-          tipo: string
-          valor: number
-          data?: string
-          competencia: string
-          unidade?: string | null
-          categoria_id: string
-          aluno_id?: string | null
-          descricao?: string | null
-          created_by?: string | null
+          categoria_id?: string | null
           created_at?: string
-          updated_at?: string
-          pagamento_id?: string | null
-          cobranca_id?: string | null
+          created_by?: string | null
           curso_id?: string | null
           edicao_simposio_id?: string | null
-          estorno_de_id?: string | null
-          motivo?: string | null
-          origem?: string
+          id?: string
+          inscricao_id?: string | null
+          pessoa_id: string
+          referente: string
+          status?: string
+          updated_at?: string
+          valor_devido: number
+          vencimento?: string | null
         }
         Update: {
-          id?: string
-          tipo?: string
-          valor?: number
-          data?: string
-          competencia?: string
-          unidade?: string | null
-          categoria_id?: string
-          aluno_id?: string | null
-          descricao?: string | null
-          created_by?: string | null
+          categoria_id?: string | null
           created_at?: string
-          updated_at?: string
-          pagamento_id?: string | null
-          cobranca_id?: string | null
+          created_by?: string | null
           curso_id?: string | null
           edicao_simposio_id?: string | null
-          estorno_de_id?: string | null
-          motivo?: string | null
-          origem?: string
+          id?: string
+          inscricao_id?: string | null
+          pessoa_id?: string
+          referente?: string
+          status?: string
+          updated_at?: string
+          valor_devido?: number
+          vencimento?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "cobrancas_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "categorias_financeiras"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cobrancas_curso_id_fkey"
+            columns: ["curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cobrancas_edicao_simposio_id_fkey"
+            columns: ["edicao_simposio_id"]
+            isOneToOne: false
+            referencedRelation: "edicoes_simposio"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cobrancas_inscricao_id_fkey"
+            columns: ["inscricao_id"]
+            isOneToOne: false
+            referencedRelation: "inscricoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cobrancas_pessoa_id_fkey"
+            columns: ["pessoa_id"]
+            isOneToOne: false
+            referencedRelation: "pessoas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      criar_inscricao_hits: {
+        Row: {
+          created_at: string
+          id: number
+          ip: string
+        }
+        Insert: {
+          created_at?: string
+          id?: never
+          ip: string
+        }
+        Update: {
+          created_at?: string
+          id?: never
+          ip?: string
+        }
+        Relationships: []
+      }
+      cursos: {
+        Row: {
+          ativo: boolean
+          codigo: string
+          created_at: string
+          id: string
+          mensalidade_referencia: number | null
+          nome: string
+          publico: boolean
+          taxa_matricula: number | null
+          updated_at: string
+          valor: number | null
+        }
+        Insert: {
+          ativo?: boolean
+          codigo: string
+          created_at?: string
+          id?: string
+          mensalidade_referencia?: number | null
+          nome: string
+          publico?: boolean
+          taxa_matricula?: number | null
+          updated_at?: string
+          valor?: number | null
+        }
+        Update: {
+          ativo?: boolean
+          codigo?: string
+          created_at?: string
+          id?: string
+          mensalidade_referencia?: number | null
+          nome?: string
+          publico?: boolean
+          taxa_matricula?: number | null
+          updated_at?: string
+          valor?: number | null
+        }
+        Relationships: []
+      }
+      edicoes_simposio: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          fim: string | null
+          id: string
+          inicio: string | null
+          inscritos_historicos: number | null
+          isentos_historicos: number | null
+          nome: string
+          origem_referencia: string | null
+          pagantes_historicos: number | null
+          publico: boolean
+          updated_at: string
+          valor: number | null
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          fim?: string | null
+          id?: string
+          inicio?: string | null
+          inscritos_historicos?: number | null
+          isentos_historicos?: number | null
+          nome: string
+          origem_referencia?: string | null
+          pagantes_historicos?: number | null
+          publico?: boolean
+          updated_at?: string
+          valor?: number | null
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          fim?: string | null
+          id?: string
+          inicio?: string | null
+          inscritos_historicos?: number | null
+          isentos_historicos?: number | null
+          nome?: string
+          origem_referencia?: string | null
+          pagantes_historicos?: number | null
+          publico?: boolean
+          updated_at?: string
+          valor?: number | null
+        }
+        Relationships: []
+      }
+      importacoes_its: {
+        Row: {
+          carregada_em: string
+          fonte: string
+          sha256: string
+        }
+        Insert: {
+          carregada_em?: string
+          fonte: string
+          sha256: string
+        }
+        Update: {
+          carregada_em?: string
+          fonte?: string
+          sha256?: string
+        }
+        Relationships: []
+      }
+      inscricoes: {
+        Row: {
+          comprovante_url: string | null
+          consulta_token_hash: string | null
+          cpf: string
+          created_at: string
+          curso_id: string | null
+          data_nascimento: string
+          destino: string
+          edicao_simposio_id: string | null
+          email: string
+          escolaridade: string
+          id: string
+          isento: boolean
+          modalidade: string
+          motivo_isencao: string | null
+          nome_completo: string
+          nucleo: string | null
+          nucleo_id: string | null
+          numero_inscricao: string
+          origem_cadastro: string
+          pessoa_id: string | null
+          primeira_competencia: string | null
+          status: string
+          telefone: string
+          updated_at: string
+        }
+        Insert: {
+          comprovante_url?: string | null
+          consulta_token_hash?: string | null
+          cpf: string
+          created_at?: string
+          curso_id?: string | null
+          data_nascimento: string
+          destino?: string
+          edicao_simposio_id?: string | null
+          email: string
+          escolaridade: string
+          id?: string
+          isento?: boolean
+          modalidade: string
+          motivo_isencao?: string | null
+          nome_completo: string
+          nucleo?: string | null
+          nucleo_id?: string | null
+          numero_inscricao?: string
+          origem_cadastro?: string
+          pessoa_id?: string | null
+          primeira_competencia?: string | null
+          status?: string
+          telefone: string
+          updated_at?: string
+        }
+        Update: {
+          comprovante_url?: string | null
+          consulta_token_hash?: string | null
+          cpf?: string
+          created_at?: string
+          curso_id?: string | null
+          data_nascimento?: string
+          destino?: string
+          edicao_simposio_id?: string | null
+          email?: string
+          escolaridade?: string
+          id?: string
+          isento?: boolean
+          modalidade?: string
+          motivo_isencao?: string | null
+          nome_completo?: string
+          nucleo?: string | null
+          nucleo_id?: string | null
+          numero_inscricao?: string
+          origem_cadastro?: string
+          pessoa_id?: string | null
+          primeira_competencia?: string | null
+          status?: string
+          telefone?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inscricoes_curso_id_fkey"
+            columns: ["curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inscricoes_edicao_simposio_id_fkey"
+            columns: ["edicao_simposio_id"]
+            isOneToOne: false
+            referencedRelation: "edicoes_simposio"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inscricoes_nucleo_id_fkey"
+            columns: ["nucleo_id"]
+            isOneToOne: false
+            referencedRelation: "nucleos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inscricoes_pessoa_id_fkey"
+            columns: ["pessoa_id"]
+            isOneToOne: false
+            referencedRelation: "pessoas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      itens_simposio: {
+        Row: {
+          contabilizado: boolean
+          created_at: string
+          descricao: string
+          doador: string | null
+          edicao_id: string
+          id: string
+          origem_referencia: string | null
+          tipo: string
+          valor: number | null
+        }
+        Insert: {
+          contabilizado?: boolean
+          created_at?: string
+          descricao: string
+          doador?: string | null
+          edicao_id: string
+          id?: string
+          origem_referencia?: string | null
+          tipo: string
+          valor?: number | null
+        }
+        Update: {
+          contabilizado?: boolean
+          created_at?: string
+          descricao?: string
+          doador?: string | null
+          edicao_id?: string
+          id?: string
+          origem_referencia?: string | null
+          tipo?: string
+          valor?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "itens_simposio_edicao_id_fkey"
+            columns: ["edicao_id"]
+            isOneToOne: false
+            referencedRelation: "edicoes_simposio"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lancamentos_financeiros: {
+        Row: {
+          aluno_id: string | null
+          categoria_id: string
+          cobranca_id: string | null
+          competencia: string
+          conciliacao_status: string
+          created_at: string
+          created_by: string | null
+          curso_id: string | null
+          data: string | null
+          descricao: string | null
+          edicao_simposio_id: string | null
+          estorno_de_id: string | null
+          id: string
+          mes_caixa: string
+          motivo: string | null
+          nucleo_id: string | null
+          origem: string
+          origem_referencia: string | null
+          pagamento_id: string | null
+          precisao_data: string
+          tipo: string
+          unidade: string | null
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          aluno_id?: string | null
+          categoria_id: string
+          cobranca_id?: string | null
+          competencia: string
+          conciliacao_status?: string
+          created_at?: string
+          created_by?: string | null
+          curso_id?: string | null
+          data?: string | null
+          descricao?: string | null
+          edicao_simposio_id?: string | null
+          estorno_de_id?: string | null
+          id?: string
+          mes_caixa: string
+          motivo?: string | null
+          nucleo_id?: string | null
+          origem?: string
+          origem_referencia?: string | null
+          pagamento_id?: string | null
+          precisao_data?: string
+          tipo: string
+          unidade?: string | null
+          updated_at?: string
+          valor: number
+        }
+        Update: {
+          aluno_id?: string | null
+          categoria_id?: string
+          cobranca_id?: string | null
+          competencia?: string
+          conciliacao_status?: string
+          created_at?: string
+          created_by?: string | null
+          curso_id?: string | null
+          data?: string | null
+          descricao?: string | null
+          edicao_simposio_id?: string | null
+          estorno_de_id?: string | null
+          id?: string
+          mes_caixa?: string
+          motivo?: string | null
+          nucleo_id?: string | null
+          origem?: string
+          origem_referencia?: string | null
+          pagamento_id?: string | null
+          precisao_data?: string
+          tipo?: string
+          unidade?: string | null
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lancamentos_financeiros_aluno_id_fkey"
+            columns: ["aluno_id"]
+            isOneToOne: false
+            referencedRelation: "alunos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "lancamentos_financeiros_categoria_id_fkey"
             columns: ["categoria_id"]
@@ -274,54 +652,396 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "lancamentos_financeiros_aluno_id_fkey"
+            foreignKeyName: "lancamentos_financeiros_cobranca_id_fkey"
+            columns: ["cobranca_id"]
+            isOneToOne: false
+            referencedRelation: "cobrancas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lancamentos_financeiros_curso_id_fkey"
+            columns: ["curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lancamentos_financeiros_edicao_simposio_id_fkey"
+            columns: ["edicao_simposio_id"]
+            isOneToOne: false
+            referencedRelation: "edicoes_simposio"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lancamentos_financeiros_estorno_de_id_fkey"
+            columns: ["estorno_de_id"]
+            isOneToOne: false
+            referencedRelation: "lancamentos_financeiros"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lancamentos_financeiros_nucleo_id_fkey"
+            columns: ["nucleo_id"]
+            isOneToOne: false
+            referencedRelation: "nucleos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lancamentos_financeiros_pagamento_id_fkey"
+            columns: ["pagamento_id"]
+            isOneToOne: true
+            referencedRelation: "pagamentos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nucleos: {
+        Row: {
+          ativo: boolean
+          cidade: string
+          created_at: string
+          id: string
+          nome: string
+          slug: string
+          uf: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          cidade: string
+          created_at?: string
+          id?: string
+          nome: string
+          slug: string
+          uf: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          cidade?: string
+          created_at?: string
+          id?: string
+          nome?: string
+          slug?: string
+          uf?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pagamentos: {
+        Row: {
+          cobranca_id: string | null
+          comprovante_url: string | null
+          conciliado_em: string | null
+          conciliado_por: string | null
+          created_at: string
+          data_recebimento: string | null
+          id: string
+          inscricao_id: string | null
+          status: string
+          updated_at: string
+          valor: number | null
+        }
+        Insert: {
+          cobranca_id?: string | null
+          comprovante_url?: string | null
+          conciliado_em?: string | null
+          conciliado_por?: string | null
+          created_at?: string
+          data_recebimento?: string | null
+          id?: string
+          inscricao_id?: string | null
+          status?: string
+          updated_at?: string
+          valor?: number | null
+        }
+        Update: {
+          cobranca_id?: string | null
+          comprovante_url?: string | null
+          conciliado_em?: string | null
+          conciliado_por?: string | null
+          created_at?: string
+          data_recebimento?: string | null
+          id?: string
+          inscricao_id?: string | null
+          status?: string
+          updated_at?: string
+          valor?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pagamentos_cobranca_id_fkey"
+            columns: ["cobranca_id"]
+            isOneToOne: false
+            referencedRelation: "cobrancas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pagamentos_inscricao_id_fkey"
+            columns: ["inscricao_id"]
+            isOneToOne: false
+            referencedRelation: "inscricoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pendencias_conciliacao: {
+        Row: {
+          chave: string
+          created_at: string
+          descricao: string
+          id: string
+          resolucao: string | null
+          resolvida_em: string | null
+          resolvida_por: string | null
+          status: string
+          valor_anual: number | null
+          valor_detalhe: number | null
+        }
+        Insert: {
+          chave: string
+          created_at?: string
+          descricao: string
+          id?: string
+          resolucao?: string | null
+          resolvida_em?: string | null
+          resolvida_por?: string | null
+          status?: string
+          valor_anual?: number | null
+          valor_detalhe?: number | null
+        }
+        Update: {
+          chave?: string
+          created_at?: string
+          descricao?: string
+          id?: string
+          resolucao?: string | null
+          resolvida_em?: string | null
+          resolvida_por?: string | null
+          status?: string
+          valor_anual?: number | null
+          valor_detalhe?: number | null
+        }
+        Relationships: []
+      }
+      pessoas: {
+        Row: {
+          cpf: string | null
+          created_at: string
+          data_nascimento: string | null
+          email: string | null
+          escolaridade: string | null
+          id: string
+          identidade_pendente: boolean
+          nome_completo: string
+          origem_referencia: string | null
+          telefone: string | null
+          updated_at: string
+        }
+        Insert: {
+          cpf?: string | null
+          created_at?: string
+          data_nascimento?: string | null
+          email?: string | null
+          escolaridade?: string | null
+          id?: string
+          identidade_pendente?: boolean
+          nome_completo: string
+          origem_referencia?: string | null
+          telefone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cpf?: string | null
+          created_at?: string
+          data_nascimento?: string | null
+          email?: string | null
+          escolaridade?: string | null
+          id?: string
+          identidade_pendente?: boolean
+          nome_completo?: string
+          origem_referencia?: string | null
+          telefone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      recebimentos_its: {
+        Row: {
+          aluno_id: string | null
+          comprovante_url: string | null
+          created_at: string
+          curso_id: string | null
+          data_recebimento: string | null
+          edicao_simposio_id: string | null
+          id: string
+          inscricao_id: string | null
+          lancamento_id: string | null
+          mes_caixa: string
+          origem: string
+          origem_referencia: string | null
+          pessoa_id: string | null
+          precisao_data: string
+          registrado_por: string | null
+          status: string
+          tipo: string
+          valor: number
+        }
+        Insert: {
+          aluno_id?: string | null
+          comprovante_url?: string | null
+          created_at?: string
+          curso_id?: string | null
+          data_recebimento?: string | null
+          edicao_simposio_id?: string | null
+          id?: string
+          inscricao_id?: string | null
+          lancamento_id?: string | null
+          mes_caixa: string
+          origem?: string
+          origem_referencia?: string | null
+          pessoa_id?: string | null
+          precisao_data: string
+          registrado_por?: string | null
+          status?: string
+          tipo?: string
+          valor: number
+        }
+        Update: {
+          aluno_id?: string | null
+          comprovante_url?: string | null
+          created_at?: string
+          curso_id?: string | null
+          data_recebimento?: string | null
+          edicao_simposio_id?: string | null
+          id?: string
+          inscricao_id?: string | null
+          lancamento_id?: string | null
+          mes_caixa?: string
+          origem?: string
+          origem_referencia?: string | null
+          pessoa_id?: string | null
+          precisao_data?: string
+          registrado_por?: string | null
+          status?: string
+          tipo?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recebimentos_its_aluno_id_fkey"
             columns: ["aluno_id"]
             isOneToOne: false
             referencedRelation: "alunos"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "recebimentos_its_curso_id_fkey"
+            columns: ["curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recebimentos_its_edicao_simposio_id_fkey"
+            columns: ["edicao_simposio_id"]
+            isOneToOne: false
+            referencedRelation: "edicoes_simposio"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recebimentos_its_inscricao_id_fkey"
+            columns: ["inscricao_id"]
+            isOneToOne: false
+            referencedRelation: "inscricoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recebimentos_its_lancamento_id_fkey"
+            columns: ["lancamento_id"]
+            isOneToOne: true
+            referencedRelation: "lancamentos_financeiros"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recebimentos_its_pessoa_id_fkey"
+            columns: ["pessoa_id"]
+            isOneToOne: false
+            referencedRelation: "pessoas"
+            referencedColumns: ["id"]
+          },
         ]
       }
-      pessoas: {
-        Row: { id: string; cpf: string; nome_completo: string; telefone: string | null; email: string | null; data_nascimento: string | null; escolaridade: string | null; created_at: string; updated_at: string }
-        Insert: { id?: string; cpf: string; nome_completo: string; telefone?: string | null; email?: string | null; data_nascimento?: string | null; escolaridade?: string | null; created_at?: string; updated_at?: string }
-        Update: { id?: string; cpf?: string; nome_completo?: string; telefone?: string | null; email?: string | null; data_nascimento?: string | null; escolaridade?: string | null; updated_at?: string }
-        Relationships: []
-      }
-      cursos: {
-        Row: { id: string; codigo: string; nome: string; valor: number | null; ativo: boolean; publico: boolean; created_at: string; updated_at: string }
-        Insert: { id?: string; codigo: string; nome: string; valor?: number | null; ativo?: boolean; publico?: boolean; created_at?: string; updated_at?: string }
-        Update: { id?: string; codigo?: string; nome?: string; valor?: number | null; ativo?: boolean; publico?: boolean; updated_at?: string }
-        Relationships: []
-      }
-      edicoes_simposio: {
-        Row: { id: string; nome: string; inicio: string | null; fim: string | null; valor: number | null; ativo: boolean; publico: boolean; created_at: string; updated_at: string }
-        Insert: { id?: string; nome: string; inicio?: string | null; fim?: string | null; valor?: number | null; ativo?: boolean; publico?: boolean; created_at?: string; updated_at?: string }
-        Update: { id?: string; nome?: string; inicio?: string | null; fim?: string | null; valor?: number | null; ativo?: boolean; publico?: boolean; updated_at?: string }
-        Relationships: []
-      }
-      cobrancas: {
-        Row: { id: string; pessoa_id: string; inscricao_id: string | null; curso_id: string | null; edicao_simposio_id: string | null; categoria_id: string | null; referente: string; valor_devido: number; vencimento: string | null; status: string; created_by: string | null; created_at: string; updated_at: string }
-        Insert: { id?: string; pessoa_id: string; inscricao_id?: string | null; curso_id?: string | null; edicao_simposio_id?: string | null; categoria_id?: string | null; referente: string; valor_devido: number; vencimento?: string | null; status?: string; created_by?: string | null; created_at?: string; updated_at?: string }
-        Update: { status?: string; vencimento?: string | null; referente?: string; valor_devido?: number; categoria_id?: string | null; updated_at?: string }
-        Relationships: []
-      }
-      pagamentos: {
-        Row: { id: string; cobranca_id: string | null; inscricao_id: string | null; valor: number | null; data_recebimento: string | null; comprovante_url: string | null; status: string; conciliado_por: string | null; conciliado_em: string | null; created_at: string; updated_at: string }
-        Insert: { id?: string; cobranca_id?: string | null; inscricao_id?: string | null; valor?: number | null; data_recebimento?: string | null; comprovante_url?: string | null; status?: string; created_at?: string; updated_at?: string }
-        Update: { valor?: number | null; data_recebimento?: string | null; comprovante_url?: string | null; status?: string; conciliado_por?: string | null; conciliado_em?: string | null; updated_at?: string }
-        Relationships: []
-      }
-      auditoria_operacional: {
-        Row: { id: string; entidade: string; entidade_id: string; acao: string; motivo: string | null; dados: Json; executado_por: string | null; created_at: string }
-        Insert: { id?: string; entidade: string; entidade_id: string; acao: string; motivo?: string | null; dados?: Json; executado_por?: string | null; created_at?: string }
-        Update: never
-        Relationships: []
-      }
       relatorios_mensais_versoes: {
-        Row: { id: string; periodo: string; versao: number; status: string; dados: Json; emitido_por: string | null; created_at: string }
-        Insert: { id?: string; periodo: string; versao: number; status?: string; dados?: Json; emitido_por?: string | null; created_at?: string }
-        Update: { status?: string; dados?: Json }
+        Row: {
+          created_at: string
+          dados: Json
+          emitido_por: string | null
+          id: string
+          periodo: string
+          status: string
+          versao: number
+        }
+        Insert: {
+          created_at?: string
+          dados?: Json
+          emitido_por?: string | null
+          id?: string
+          periodo: string
+          status?: string
+          versao: number
+        }
+        Update: {
+          created_at?: string
+          dados?: Json
+          emitido_por?: string | null
+          id?: string
+          periodo?: string
+          status?: string
+          versao?: number
+        }
+        Relationships: []
+      }
+      saldos_iniciais_its: {
+        Row: {
+          ano: number
+          created_at: string
+          fonte: string
+          valor: number
+        }
+        Insert: {
+          ano: number
+          created_at?: string
+          fonte: string
+          valor: number
+        }
+        Update: {
+          ano?: number
+          created_at?: string
+          fonte?: string
+          valor?: number
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
         Relationships: []
       }
     }
@@ -329,13 +1049,140 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      /** Gera um novo número de inscrição único */
+      alterar_status_matricula: {
+        Args: { p_inscricao_id: string; p_motivo?: string; p_status: string }
+        Returns: undefined
+      }
+      atribuir_mensalidade_its: {
+        Args: {
+          p_competencia: string
+          p_recebimento_id: string
+          p_valor: number
+        }
+        Returns: string
+      }
+      atualizar_atendimento: {
+        Args: {
+          p_data_nascimento: string
+          p_email: string
+          p_escolaridade: string
+          p_inscricao_id: string
+          p_motivo?: string
+          p_nome_completo: string
+          p_telefone: string
+        }
+        Returns: undefined
+      }
+      buscar_inscricao: {
+        Args: { p_numero: string; p_token: string }
+        Returns: {
+          comprovante_url: string
+          cpf: string
+          created_at: string
+          data_nascimento: string
+          destino: string
+          destino_nome: string
+          email: string
+          escolaridade: string
+          modalidade: string
+          nome_completo: string
+          nucleo: string
+          numero_inscricao: string
+          saldo_devedor: number
+          status: string
+          telefone: string
+          valor_devido: number
+          valor_pago: number
+        }[]
+      }
+      cancelar_inscricao: {
+        Args: { p_numero: string; p_token: string }
+        Returns: boolean
+      }
+      cancelar_inscricao_interna: {
+        Args: { p_inscricao_id: string; p_motivo: string }
+        Returns: undefined
+      }
+      conciliar_pagamento: {
+        Args: { p_data: string; p_pagamento_id: string; p_valor: number }
+        Returns: string
+      }
+      confirmar_inscricao_its: {
+        Args: {
+          p_inscricao_id: string
+          p_isento?: boolean
+          p_motivo?: string
+          p_primeira_competencia?: string
+        }
+        Returns: undefined
+      }
+      corrigir_registro_financeiro: {
+        Args: { p_motivo: string; p_registro_id: string }
+        Returns: string
+      }
+      criar_inscricao_interna: {
+        Args: {
+          p_cpf: string
+          p_curso_id: string
+          p_edicao_id: string
+          p_email: string
+          p_escolaridade: string
+          p_modalidade: string
+          p_nascimento: string
+          p_nome: string
+          p_nucleo: string
+          p_telefone: string
+        }
+        Returns: string
+      }
+      criar_matricula_operacional: {
+        Args: {
+          p_consulta_token_hash: string
+          p_cpf: string
+          p_curso_codigo: string
+          p_data_nascimento: string
+          p_destino: string
+          p_edicao_simposio_id: string
+          p_email: string
+          p_escolaridade: string
+          p_modalidade: string
+          p_nome_completo: string
+          p_nucleo: string
+          p_telefone: string
+        }
+        Returns: {
+          inscricao_id: string
+          numero_inscricao: string
+        }[]
+      }
+      criar_registro_financeiro: {
+        Args: {
+          p_aluno_id?: string
+          p_categoria_id: string
+          p_curso_id?: string
+          p_data: string
+          p_descricao?: string
+          p_edicao_simposio_id?: string
+          p_motivo?: string
+          p_tipo: string
+          p_unidade?: string
+          p_valor: number
+        }
+        Returns: string
+      }
+      emitir_relatorio_mensal: {
+        Args: { p_dados?: Json; p_periodo: string }
+        Returns: string
+      }
+      estornar_pagamento: {
+        Args: { p_motivo: string; p_pagamento_id: string }
+        Returns: string
+      }
+      estornar_recebimento_its: {
+        Args: { p_motivo: string; p_recebimento_id: string }
+        Returns: undefined
+      }
       generate_numero_inscricao: { Args: never; Returns: string }
-      /**
-       * Verifica se o usuário possui um papel específico
-       * - O papel a verificar
-       * - ID do usuário
-       */
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -343,85 +1190,79 @@ export type Database = {
         }
         Returns: boolean
       }
-      /** Verifica se o usuário logado é administrador */
-      is_admin: { Args: never; Returns: boolean }
-      /** Autosserviço: lê a própria inscrição mediante token de posse (SECURITY DEFINER) */
-      buscar_inscricao: {
-        Args: { p_numero: string; p_token: string }
-        Returns: {
-          numero_inscricao: string
-          nome_completo: string
-          email: string
-          telefone: string
-          cpf: string
-          data_nascimento: string
-          escolaridade: string
-          modalidade: string
-          nucleo: string | null
-          status: string
-          comprovante_url: string | null
-          created_at: string
-          destino: string
-          destino_nome: string | null
-          valor_devido: number | null
-          valor_pago: number
-          saldo_devedor: number
-        }[]
-      }
-      /** Autosserviço: cancela a própria inscrição pendente mediante token (SECURITY DEFINER) */
-      cancelar_inscricao: {
+      inscricao_token_valido: {
         Args: { p_numero: string; p_token: string }
         Returns: boolean
       }
-      criar_registro_financeiro: {
-        Args: { p_tipo: string; p_valor: number; p_data: string; p_categoria_id: string; p_unidade?: string | null; p_aluno_id?: string | null; p_descricao?: string | null; p_motivo?: string | null; p_curso_id?: string | null; p_edicao_simposio_id?: string | null }
-        Returns: string
+      is_admin: { Args: never; Returns: boolean }
+      marcar_relatorio_para_revisao: {
+        Args: { p_data: string }
+        Returns: undefined
       }
-      conciliar_pagamento: { Args: { p_pagamento_id: string; p_valor: number; p_data: string }; Returns: string }
-      recusar_pagamento: { Args: { p_pagamento_id: string; p_motivo: string }; Returns: undefined }
-      estornar_pagamento: { Args: { p_pagamento_id: string; p_motivo: string }; Returns: string }
-      alterar_status_matricula: { Args: { p_inscricao_id: string; p_status: string; p_motivo?: string | null }; Returns: undefined }
-      salvar_cobranca: {
-        Args: {
-          p_cobranca_id: string | null
-          p_pessoa_id: string
-          p_inscricao_id: string | null
-          p_curso_id: string | null
-          p_edicao_simposio_id: string | null
-          p_categoria_id: string | null
-          p_referente: string
-          p_valor_devido: number
-          p_vencimento: string | null
-          p_status?: string
-        }
-        Returns: string
+      recusar_pagamento: {
+        Args: { p_motivo: string; p_pagamento_id: string }
+        Returns: undefined
       }
-      criar_matricula_operacional: {
+      registrar_auditoria: {
         Args: {
-          p_nome_completo: string
-          p_cpf: string
-          p_telefone: string
-          p_email: string
-          p_data_nascimento: string
-          p_escolaridade: string
-          p_modalidade: string
-          p_nucleo: string
-          p_destino: string
-          p_curso_codigo: string
-          p_edicao_simposio_id: string | null
-          p_consulta_token_hash: string
+          p_acao: string
+          p_dados?: Json
+          p_entidade: string
+          p_entidade_id: string
+          p_motivo?: string
         }
-        Returns: { inscricao_id: string; numero_inscricao: string }[]
+        Returns: undefined
       }
       registrar_comprovante_operacional: {
-        Args: { p_numero: string; p_token_hash: string; p_comprovante_path: string }
+        Args: {
+          p_comprovante_path: string
+          p_numero: string
+          p_token_hash: string
+        }
         Returns: string
       }
-      corrigir_registro_financeiro: { Args: { p_registro_id: string; p_motivo: string }; Returns: string }
-      emitir_relatorio_mensal: { Args: { p_periodo: string; p_dados?: Json }; Returns: string }
+      registrar_recebimento_its: {
+        Args: {
+          p_atribuicoes?: Json
+          p_comprovante?: string
+          p_data: string
+          p_inscricao_id: string
+          p_tipo: string
+          p_valor: number
+        }
+        Returns: string
+      }
+      retirar_atribuicao_its: {
+        Args: { p_atribuicao_id: string; p_motivo: string }
+        Returns: undefined
+      }
+      salvar_cobranca: {
+        Args: {
+          p_categoria_id: string
+          p_cobranca_id: string
+          p_curso_id: string
+          p_edicao_simposio_id: string
+          p_inscricao_id: string
+          p_pessoa_id: string
+          p_referente: string
+          p_status?: string
+          p_valor_devido: number
+          p_vencimento: string
+        }
+        Returns: string
+      }
+      validar_aluno_historico: {
+        Args: {
+          p_aluno_id: string
+          p_cpf: string
+          p_nome: string
+          p_primeira_competencia?: string
+          p_situacao: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
-      /** Papéis disponíveis no sistema */
       app_role: "admin" | "user"
     }
     CompositeTypes: {
@@ -430,26 +1271,20 @@ export type Database = {
   }
 }
 
-/** Tipo de banco de dados sem as configurações internas do Supabase */
 type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
-/** Schema padrão para acesso às tabelas públicas */
 type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
-/**
- * Tipo genérico para acessar linhas de uma tabela ou view
- * Permite tipagem automática dos dados retornados
- */
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -473,11 +1308,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -498,11 +1333,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -523,11 +1358,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -540,11 +1375,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }

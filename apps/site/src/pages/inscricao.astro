@@ -84,7 +84,7 @@ import PageHero from '../components/PageHero.astro';
           </div>
         </div>
 
-        <button class="btn btn--gold btn--lg btn--block" type="submit">Enviar solicitação e continuar</button>
+        <button class="btn btn--gold btn--lg btn--block" type="submit">Enviar solicitação</button>
         <p id="form-msg" style="text-align:center;font-size:var(--text-sm);color:var(--muted)"></p>
       </form>
     </div>
@@ -205,7 +205,7 @@ import PageHero from '../components/PageHero.astro';
       const supabase = createBrowserClient(url, key);
       const { numero_inscricao, token } = await solicitarInscricao(supabase, dto);
       // Token no fragment (#): não vaza em Referer nem em logs de servidor.
-      // PIX, comprovante e estado passam a pertencer somente à Central.
+      // A Central apresenta o estado e recebe comprovante opcional.
       window.location.href = `${centralUrl}/inscricao/pagamento/${numero_inscricao}#token=${encodeURIComponent(token)}`;
     } catch (err: any) {
       msg.textContent = 'Não foi possível concluir: ' + (err?.message ?? 'tente novamente.');

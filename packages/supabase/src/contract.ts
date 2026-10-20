@@ -39,7 +39,7 @@ export interface InscricaoResumo {
   destino_nome: string | null;
   valor_devido: number | null;
   valor_pago: number;
-  saldo_devedor: number;
+  saldo_devedor: number | null;
 }
 
 export interface DestinoPublico {

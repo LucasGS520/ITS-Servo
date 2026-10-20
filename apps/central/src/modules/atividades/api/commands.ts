@@ -3,8 +3,8 @@ import type { TablesInsert, TablesUpdate } from "@/services/supabase/types";
 
 type EdicaoSimposioValues = Pick<TablesInsert<"edicoes_simposio">, "nome" | "inicio" | "fim" | "valor" | "ativo" | "publico">;
 
-export const salvarCurso = async ({ id, values }: { id: string; values: TablesUpdate<"cursos"> }) => {
-  const { error } = await supabase.from("cursos").update(values).eq("id", id);
+export const salvarCurso = async ({ id, values }: { id: string; values: TablesUpdate<"cursos"> & { taxa_matricula?: number | null; mensalidade_referencia?: number | null } }) => {
+  const { error } = await supabase.from("cursos").update(values as TablesUpdate<"cursos">).eq("id", id);
   if (error) throw error;
 };
 

@@ -4,8 +4,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2 } from "lucide-react";
 import { formatBRL } from "@/common/constants/pricing";
 import { UNIDADES_FINANCEIRO } from "@/modules/financeiro/model/unidades";
-import { useLancamentos, type Lancamento } from "@/modules/financeiro/api";
-import { round2, sinal } from "@/modules/financeiro/model/agregados";
+import { useLancamentos, usePendenciasConciliacao, useSaldosIniciais, type Lancamento } from "@/modules/financeiro/api";
+import { round2, saldoAnterior } from "@/modules/financeiro/model/agregados";
 
 const MESES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
@@ -26,9 +26,11 @@ const fmtCell = (v: number) => (v === 0 ? "—" : formatBRL(v));
  */
 const AnualTab = () => {
   const { data: lancamentos = [], isLoading } = useLancamentos();
+  const { data: saldos = [] } = useSaldosIniciais();
+  const { data: pendencias = [] } = usePendenciasConciliacao();
 
   const anos = useMemo(() => {
-    const set = new Set(lancamentos.map((l) => l.competencia.slice(0, 4)));
+    const set = new Set(lancamentos.map((l) => l.mes_caixa.slice(0, 4)));
     set.add(String(new Date().getFullYear()));
     return [...set].sort().reverse();
   }, [lancamentos]);
@@ -36,8 +38,8 @@ const AnualTab = () => {
   const [ano, setAno] = useState(String(new Date().getFullYear()));
 
   const grade = useMemo(() => {
-    const doAno = (l: Lancamento) => l.competencia.slice(0, 4) === ano;
-    const mesDe = (l: Lancamento) => Number(l.competencia.slice(5, 7)) - 1;
+    const doAno = (l: Lancamento) => l.mes_caixa.slice(0, 4) === ano;
+    const mesDe = (l: Lancamento) => Number(l.mes_caixa.slice(5, 7)) - 1;
 
     const addLinha = (mapa: Map<string, LinhaGrade>, chave: string, label: string, mes: number, valor: number) => {
       const linha = mapa.get(chave) ?? linhaVazia(label);
@@ -73,10 +75,7 @@ const AnualTab = () => {
     }
 
     // Rodapé encadeado: saldo anterior de jan = tudo antes de jan (inclui saldo inicial)
-    const antesDoAno = lancamentos.reduce(
-      (s, l) => (l.competencia < `${ano}-01-01` ? s + sinal(l) : s),
-      0,
-    );
+    const antesDoAno = saldoAnterior(lancamentos, `${ano}-01-01`, saldos);
     const saldoAnteriorMes: number[] = Array(12).fill(0);
     const totalGeralMes: number[] = Array(12).fill(0);
     const saldoMes: number[] = Array(12).fill(0);
@@ -108,7 +107,7 @@ const AnualTab = () => {
       simposio,
       temMovimento: entradaMes.some((v) => v !== 0) || saidaMes.some((v) => v !== 0),
     };
-  }, [lancamentos, ano]);
+  }, [lancamentos, ano, saldos]);
 
   if (isLoading) {
     return (
@@ -142,6 +141,7 @@ const AnualTab = () => {
 
   return (
     <div className="space-y-6">
+      {pendencias.some((item) => item.status === "aberta" && item.chave.includes(ano)) && <Card><CardContent className="p-4 text-sm text-amber-800">Histórico de {ano} com pendências de conciliação. O resultado do Simpósio usa os valores do relatório anual; o detalhe do evento permanece separado.</CardContent></Card>}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="space-y-1">
           <p className="text-xs font-medium text-muted-foreground">Ano</p>
