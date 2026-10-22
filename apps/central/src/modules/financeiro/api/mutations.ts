@@ -2,14 +2,11 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ALUNOS_KEY,
   CATEGORIAS_KEY,
-  LANCAMENTOS_KEY,
 } from "./useFinanceiro";
 import {
-  excluirLancamento,
   emitirRelatorioMensal,
   salvarAluno,
   salvarCategoria,
-  salvarLancamento,
 } from "./commands";
 
 const useInvalidatingMutation = <TVariables>(
@@ -28,12 +25,6 @@ export const useSalvarAluno = () =>
 
 export const useSalvarCategoria = () =>
   useInvalidatingMutation(salvarCategoria, CATEGORIAS_KEY);
-
-export const useSalvarLancamento = () =>
-  useInvalidatingMutation(salvarLancamento, LANCAMENTOS_KEY);
-
-export const useExcluirLancamento = () =>
-  useInvalidatingMutation(excluirLancamento, LANCAMENTOS_KEY);
 
 export const useEmitirRelatorioMensal = () => {
   const queryClient = useQueryClient();

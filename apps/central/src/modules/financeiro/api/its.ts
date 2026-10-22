@@ -45,33 +45,6 @@ export const useAtribuicoesMensalidade = () => useQuery({
   },
 });
 
-export async function registrarRecebimentoIts(input: {
-  inscricaoId: string; valor: number; data: string; tipo: string;
-  atribuicoes: { competencia: string; valor: number }[];
-  comprovante?: string | null;
-}) {
-  const { error } = await rpc("registrar_recebimento_its", {
-    p_inscricao_id: input.inscricaoId, p_valor: input.valor, p_data: input.data,
-    p_tipo: input.tipo, p_atribuicoes: input.atribuicoes, p_comprovante: input.comprovante ?? null,
-  });
-  if (error) throw error;
-}
-
-export async function estornarRecebimentoIts(id: string, motivo: string) {
-  const { error } = await rpc("estornar_recebimento_its", { p_recebimento_id: id, p_motivo: motivo });
-  if (error) throw error;
-}
-
-export async function atribuirMensalidadeIts(id: string, competencia: string, valor: number) {
-  const { error } = await rpc("atribuir_mensalidade_its", { p_recebimento_id: id, p_competencia: competencia, p_valor: valor });
-  if (error) throw error;
-}
-
-export async function retirarAtribuicaoIts(id: string, motivo: string) {
-  const { error } = await rpc("retirar_atribuicao_its", { p_atribuicao_id: id, p_motivo: motivo });
-  if (error) throw error;
-}
-
 export async function validarAlunoHistorico(input: {
   alunoId: string; nome: string; cpf: string; situacao: string; primeiraCompetencia: string | null;
 }) {

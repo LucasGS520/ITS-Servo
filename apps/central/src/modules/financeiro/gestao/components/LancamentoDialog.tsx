@@ -1,308 +1,160 @@
-import { useEffect, useMemo, useState } from "react";
-import { z } from "zod";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/common/ui/dialog";
 import { Button } from "@/common/ui/button";
 import { Input } from "@/common/ui/input";
 import { Label } from "@/common/ui/label";
 import { Textarea } from "@/common/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/common/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/common/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/common/ui/command";
-import { Check, ChevronsUpDown, Loader2, X } from "lucide-react";
 import { useToast } from "@/common/hooks/use-toast";
-import { cn } from "@/common/lib/utils";
-import { UNIDADES_FINANCEIRO } from "@/modules/financeiro/model/unidades";
-import {
-  useAlunos,
-  useCategorias,
-  useSalvarLancamento,
-  type Lancamento,
-  type LancamentoValues,
-} from "@/modules/financeiro/api";
-import { competenciaParaMes, mesParaCompetencia } from "@/modules/financeiro/model/agregados";
 import { getErrorMessage } from "@/common/lib/errors";
+import { UNIDADES_FINANCEIRO } from "@/modules/financeiro/model/unidades";
+import { useAlunos, useCategorias, type Lancamento } from "@/modules/financeiro/api";
+import { enviarComprovanteFinanceiro, removerComprovanteFinanceiro, useSalvarMovimentacao, type MovimentacaoInput } from "@/modules/financeiro/api/movimentacoes";
+import { useMatriculas, obterUrlComprovante } from "@/modules/matriculas";
 import { useCursos, useEdicoesSimposio } from "@/modules/atividades/api";
 
-const schema = z.object({
-  tipo: z.enum(["entrada", "saida"]),
-  unidade: z.string().nullable(),
-  categoria_id: z.string().uuid("Selecione a categoria."),
-  aluno_id: z.string().uuid().nullable(),
-  valor: z.number().positive("Informe um valor maior que zero."),
-  data: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Informe a data."),
-  competencia: z.string().regex(/^\d{4}-\d{2}$/, "Informe o mês de referência."),
-  descricao: z.string().max(300, "Descrição muito longa.").nullable(),
-});
+const hoje = () => new Date().toLocaleDateString("en-CA");
+const valorNumerico = (texto: string) => Number(texto.trim().includes(",") ? texto.replace(/\./g, "").replace(",", ".") : texto);
+type Pagador = "nenhum" | "inscricao" | "historico";
 
-interface Props {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  /** Presente = legado somente leitura; ausente = nova movimentação. */
-  lancamento?: Lancamento | null;
-}
-
-const hoje = () => new Date().toISOString().slice(0, 10);
-
-/** Aceita "150", "150.50", "150,50" e "1.234,56". */
-const parseValor = (s: string) => {
-  const t = s.trim();
-  return Number(t.includes(",") ? t.replace(/\./g, "").replace(",", ".") : t);
-};
+interface Props { open: boolean; onOpenChange: (open: boolean) => void; lancamento?: Lancamento | null }
 
 const LancamentoDialog = ({ open, onOpenChange, lancamento }: Props) => {
   const { toast } = useToast();
+  const salvar = useSalvarMovimentacao();
   const { data: categorias = [] } = useCategorias();
+  const { data: inscricoes = [] } = useMatriculas();
   const { data: alunos = [] } = useAlunos();
   const { data: cursos = [] } = useCursos();
   const { data: edicoes = [] } = useEdicoesSimposio();
-  const salvarLancamento = useSalvarLancamento();
-
   const [tipo, setTipo] = useState<"entrada" | "saida">("entrada");
-  const [unidade, setUnidade] = useState<string>("geral");
-  const [categoriaId, setCategoriaId] = useState<string>("");
-  const [alunoId, setAlunoId] = useState<string | null>(null);
-  const [valor, setValor] = useState<string>("");
-  const [data, setData] = useState<string>(hoje());
-  const [competencia, setCompetencia] = useState<string>(hoje().slice(0, 7));
-  const [descricao, setDescricao] = useState<string>("");
-  const [atividade, setAtividade] = useState<string>("geral");
-  const [alunoOpen, setAlunoOpen] = useState(false);
+  const [categoriaId, setCategoriaId] = useState("");
+  const [valor, setValor] = useState("");
+  const [data, setData] = useState(hoje);
+  const [mesCaixa, setMesCaixa] = useState(hoje().slice(0, 7));
+  const [unidade, setUnidade] = useState("geral");
+  const [atividade, setAtividade] = useState("geral");
+  const [pagador, setPagador] = useState<Pagador>("nenhum");
+  const [inscricaoId, setInscricaoId] = useState("");
+  const [alunoId, setAlunoId] = useState("");
+  const [finalidade, setFinalidade] = useState<NonNullable<MovimentacaoInput["finalidade"]>>("mensalidade");
+  const [mesReferencia, setMesReferencia] = useState("");
+  const [comprovante, setComprovante] = useState("");
+  const [arquivo, setArquivo] = useState<File | null>(null);
+  const [descricao, setDescricao] = useState("");
+  const devolucao = Boolean(lancamento?.estorno_de_id);
 
-  // (Re)inicializa ao abrir — novo ou edição
   useEffect(() => {
     if (!open) return;
-    if (lancamento) {
-      setTipo(lancamento.tipo as "entrada" | "saida");
-      setUnidade(lancamento.unidade ?? "geral");
-      setCategoriaId(lancamento.categoria_id);
-      setAlunoId(lancamento.aluno_id);
-      setValor(String(lancamento.valor));
-      setData(lancamento.data ?? "");
-      setCompetencia(competenciaParaMes(lancamento.competencia));
-      setDescricao(lancamento.descricao ?? "");
-      setAtividade(lancamento.curso_id ? `curso:${lancamento.curso_id}` : lancamento.edicao_simposio_id ? `simposio:${lancamento.edicao_simposio_id}` : "geral");
-    } else {
-      setTipo("entrada");
-      setUnidade("geral");
-      setCategoriaId("");
-      setAlunoId(null);
-      setValor("");
-      setData(hoje());
-      setCompetencia(hoje().slice(0, 7));
-      setDescricao("");
-      setAtividade("geral");
-    }
+    setTipo((lancamento?.tipo as "entrada" | "saida") ?? "entrada");
+    setCategoriaId(lancamento?.categoria_id ?? "");
+    setValor(lancamento ? String(lancamento.valor) : "");
+    setData(lancamento ? lancamento.data ?? "" : hoje());
+    setMesCaixa(lancamento?.mes_caixa.slice(0, 7) ?? hoje().slice(0, 7));
+    setUnidade(lancamento?.unidade ?? "geral");
+    setAtividade(lancamento?.curso_id ? `curso:${lancamento.curso_id}` : lancamento?.edicao_simposio_id ? `simposio:${lancamento.edicao_simposio_id}` : "geral");
+    setPagador(lancamento?.inscricao_id ? "inscricao" : lancamento?.aluno_id && lancamento.finalidade ? "historico" : "nenhum");
+    setInscricaoId(lancamento?.inscricao_id ?? "");
+    setAlunoId(lancamento?.aluno_id ?? "");
+    setFinalidade(lancamento?.finalidade ?? "mensalidade");
+    setMesReferencia(lancamento?.mes_referencia?.slice(0, 7) ?? "");
+    setComprovante(lancamento?.comprovante_url ?? "");
+    setArquivo(null);
+    setDescricao(lancamento?.descricao ?? "");
   }, [open, lancamento]);
 
-  const categoriasDoTipo = useMemo(
-    () => categorias.filter((c) => c.tipo === tipo && (c.ativo || c.id === categoriaId)),
-    [categorias, tipo, categoriaId],
-  );
+  const inscricao = inscricoes.find((item) => item.id === inscricaoId);
+  const aluno = alunos.find((item) => item.id === alunoId);
+  const inscritos = useMemo(() => inscricoes.filter((item) => item.status !== "cancelado" || item.id === inscricaoId), [inscricoes, inscricaoId]);
+  const historicos = useMemo(() => alunos.filter((item) => item.origem_referencia && (item.situacao !== "pendente_validacao" || item.id === alunoId)), [alunos, alunoId]);
+  const categoriasDisponiveis = categorias.filter((item) => item.tipo === tipo && (item.ativo || item.id === categoriaId));
 
-  const alunosDaUnidade = useMemo(
-    () =>
-      alunos.filter(
-        (a) => (a.ativo || a.id === alunoId) && (unidade === "geral" || a.unidade === unidade),
-      ),
-    [alunos, unidade, alunoId],
-  );
+  const escolherCategoria = (nome: string) => {
+    const item = categorias.find((categoria) => categoria.nome === nome && categoria.tipo === "entrada" && categoria.ativo);
+    if (item) setCategoriaId(item.id);
+  };
 
-  const alunoSelecionado = alunos.find((a) => a.id === alunoId) ?? null;
+  const selecionarInscricao = (id: string) => {
+    setInscricaoId(id);
+    const item = inscricoes.find((inscricaoAtual) => inscricaoAtual.id === id);
+    if (!item) return;
+    setFinalidade(item.destino === "simposio" ? "inscricao_evento" : "mensalidade");
+    setAtividade(item.curso_id ? `curso:${item.curso_id}` : item.edicao_simposio_id ? `simposio:${item.edicao_simposio_id}` : "geral");
+    setUnidade(item.modalidade === "correspondencia" ? "correspondencia" : item.nucleo ?? "geral");
+    escolherCategoria(item.destino === "simposio" ? "Simpósio" : "Mensalidade");
+  };
 
-  const handleSave = async () => {
-    const categoriaEscolhida = categorias.find((c) => c.id === categoriaId);
-    if (tipo === "entrada" && (alunoId || ["Curso Teológico", "Capacitação de Obreiros"].includes(categoriaEscolhida?.nome ?? ""))) {
-      toast({ title: "Use Recebimentos para pagamentos de alunos", variant: "destructive" });
-      return;
+  const selecionarAluno = (id: string) => {
+    setAlunoId(id);
+    const item = alunos.find((alunoAtual) => alunoAtual.id === id);
+    if (!item) return;
+    setAtividade(item.curso_id ? `curso:${item.curso_id}` : "geral");
+    setUnidade(item.unidade ?? "geral");
+    setFinalidade("mensalidade");
+    escolherCategoria("Mensalidade");
+  };
+
+  const abrirComprovante = async (path: string) => {
+    try { window.open(await obterUrlComprovante(path), "_blank", "noopener,noreferrer"); }
+    catch (error) { toast({ title: "Não foi possível abrir o comprovante", description: getErrorMessage(error), variant: "destructive" }); }
+  };
+
+  const enviar = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const numero = valorNumerico(valor);
+    if (!Number.isFinite(numero) || numero <= 0 || !categoriaId || !mesCaixa || (data && data.slice(0, 7) !== mesCaixa)) {
+      toast({ title: "Confira valor, categoria e data", variant: "destructive" }); return;
     }
-    const parsed = schema.safeParse({
-      tipo,
-      unidade: unidade === "geral" ? null : unidade,
-      categoria_id: categoriaId,
-      aluno_id: tipo === "entrada" ? alunoId : null,
-      valor: parseValor(valor),
-      data,
-      competencia,
-      descricao: descricao.trim() || null,
-    });
-    if (!parsed.success) {
-      toast({
-        title: "Verifique o formulário",
-        description: parsed.error.issues[0]?.message,
-        variant: "destructive",
-      });
-      return;
+    if (pagador === "inscricao" && !inscricaoId || pagador === "historico" && !alunoId) {
+      toast({ title: "Selecione a inscrição ou o aluno", variant: "destructive" }); return;
     }
-
+    if (tipo === "entrada" && pagador !== "nenhum" && finalidade === "mensalidade" && !mesReferencia && !lancamento?.origem_referencia) {
+      toast({ title: "Informe o mês da mensalidade", variant: "destructive" }); return;
+    }
+    if (!data && (!lancamento || lancamento.precisao_data !== "mes")) {
+      toast({ title: "Informe a data do movimento", variant: "destructive" }); return;
+    }
+    let pathNovo: string | null = null;
     try {
-      const payload: LancamentoValues = {
-        tipo: parsed.data.tipo,
-        unidade: parsed.data.unidade,
-        categoria_id: parsed.data.categoria_id,
-        aluno_id: parsed.data.aluno_id,
-        valor: parsed.data.valor,
-        data: parsed.data.data,
-        competencia: mesParaCompetencia(parsed.data.competencia),
-        descricao: parsed.data.descricao,
-        curso_id: atividade.startsWith("curso:") ? atividade.slice(6) : null,
-        edicao_simposio_id: atividade.startsWith("simposio:") ? atividade.slice(9) : null,
-      };
-      await salvarLancamento.mutateAsync({ id: lancamento?.id, values: payload });
-      toast({ title: lancamento ? "Lançamento atualizado!" : "Lançamento registrado!" });
+      if (arquivo) pathNovo = await enviarComprovanteFinanceiro(arquivo);
+      const vinculado = tipo === "entrada" && pagador !== "nenhum" && !devolucao;
+      await salvar.mutateAsync({
+        id: lancamento?.id ?? null, tipo, valor: numero, data: data || null, mesCaixa,
+        categoriaId, unidade: unidade === "geral" ? null : unidade,
+        cursoId: atividade.startsWith("curso:") ? atividade.slice(6) : null,
+        edicaoId: atividade.startsWith("simposio:") ? atividade.slice(9) : null,
+        inscricaoId: vinculado && pagador === "inscricao" ? inscricaoId : null,
+        alunoHistoricoId: vinculado && pagador === "historico" ? alunoId : null,
+        finalidade: vinculado ? finalidade : null,
+        mesReferencia: vinculado && finalidade === "mensalidade" ? mesReferencia || null : null,
+        comprovanteUrl: pathNovo ?? (comprovante || null),
+        descricao: descricao.trim() || null,
+      });
+      toast({ title: lancamento ? "Movimentação atualizada" : "Movimentação registrada" });
       onOpenChange(false);
-    } catch (error: unknown) {
-      toast({ title: "Erro ao salvar", description: getErrorMessage(error), variant: "destructive" });
+    } catch (error) {
+      if (pathNovo) await removerComprovanteFinanceiro(pathNovo);
+      toast({ title: "Não foi possível salvar", description: getErrorMessage(error), variant: "destructive" });
     }
   };
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{lancamento ? "Registro financeiro" : "Nova movimentação"}</DialogTitle>
-        </DialogHeader>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label>Tipo</Label>
-            <Select
-              value={tipo}
-              onValueChange={(v) => {
-                setTipo(v as "entrada" | "saida");
-                setCategoriaId("");
-                if (v === "saida") setAlunoId(null);
-              }}
-            >
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="entrada">Entrada</SelectItem>
-                <SelectItem value="saida">Saída</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Unidade</Label>
-            <Select
-              value={unidade}
-              onValueChange={(v) => {
-                setUnidade(v);
-                setAlunoId(null);
-              }}
-            >
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="geral">Geral (institucional)</SelectItem>
-                {UNIDADES_FINANCEIRO.map((u) => (
-                  <SelectItem key={u.value} value={u.value}>{u.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2 sm:col-span-2">
-            <Label>Categoria</Label>
-            <Select value={categoriaId} onValueChange={setCategoriaId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione a categoria" />
-              </SelectTrigger>
-              <SelectContent>
-                {categoriasDoTipo.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2 sm:col-span-2"><Label htmlFor="lancamento-atividade">Atividade vinculada</Label><select id="lancamento-atividade" className="h-10 w-full rounded-md border bg-background px-3" value={atividade} onChange={(event) => setAtividade(event.target.value)}><option value="geral">Geral do ITS</option>{cursos.map((curso) => <option key={curso.id} value={`curso:${curso.id}`}>{curso.nome}</option>)}{edicoes.map((edicao) => <option key={edicao.id} value={`simposio:${edicao.id}`}>{edicao.nome}</option>)}</select></div>
-
-          {tipo === "entrada" && (
-            <div className="space-y-2 sm:col-span-2">
-              <Label>Aluno (opcional)</Label>
-              <div className="flex gap-2">
-                <Popover open={alunoOpen} onOpenChange={setAlunoOpen}>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" role="combobox" className="flex-1 justify-between font-normal">
-                      {alunoSelecionado ? alunoSelecionado.nome : "Buscar aluno…"}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-                    <Command>
-                      <CommandInput placeholder="Nome do aluno…" />
-                      <CommandList>
-                        <CommandEmpty>Nenhum aluno encontrado.</CommandEmpty>
-                        <CommandGroup>
-                          {alunosDaUnidade.map((a) => (
-                            <CommandItem
-                              key={a.id}
-                              value={a.nome}
-                              onSelect={() => {
-                                setAlunoId(a.id);
-                                if (unidade === "geral") setUnidade(a.unidade);
-                                setAlunoOpen(false);
-                              }}
-                            >
-                              <Check className={cn("mr-2 h-4 w-4", alunoId === a.id ? "opacity-100" : "opacity-0")} />
-                              {a.nome}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-                {alunoId && (
-                  <Button variant="ghost" size="icon" onClick={() => setAlunoId(null)} title="Limpar aluno">
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            </div>
-          )}
-
-          <div className="space-y-2">
-            <Label>Valor (R$)</Label>
-            {/* type=text: input number rejeita vírgula decimal em locales estrangeiros */}
-            <Input
-              type="text"
-              inputMode="decimal"
-              placeholder="0,00"
-              value={valor}
-              onChange={(e) => setValor(e.target.value.replace(/[^\d.,]/g, ""))}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Data do movimento</Label>
-            <Input
-              type="date"
-              value={data}
-              onChange={(e) => {
-                setData(e.target.value);
-                if (e.target.value) setCompetencia(e.target.value.slice(0, 7));
-              }}
-            />
-          </div>
-
-          <div className="space-y-2 sm:col-span-2">
-            <Label>Referente / observação (opcional)</Label>
-            <Textarea rows={2} value={descricao} onChange={(e) => setDescricao(e.target.value)} />
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-2 pt-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={salvarLancamento.isPending}>
-            Cancelar
-          </Button>
-          <Button onClick={handleSave} disabled={salvarLancamento.isPending}>
-            {salvarLancamento.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            {lancamento ? "Registro imutável" : "Registrar"}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
+  return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl"><DialogHeader><DialogTitle>{lancamento ? "Editar movimentação" : "Nova movimentação"}</DialogTitle></DialogHeader>
+    <form className="space-y-4" onSubmit={enviar}>
+      {lancamento?.origem_referencia && <p className="rounded-md border border-amber-200 bg-amber-50 p-2 text-xs text-amber-900">Registro importado: {lancamento.origem_referencia}. A edição mantém a origem e registra a alteração.</p>}
+      {devolucao && <p className="text-sm text-muted-foreground">Esta saída permanece vinculada à entrada original. Valor, data, categoria e observação podem ser corrigidos.</p>}
+      <div className="grid gap-3 sm:grid-cols-2"><div><Label htmlFor="mov-tipo">Tipo</Label><select id="mov-tipo" className="h-10 w-full rounded-md border bg-background px-3" value={tipo} disabled={devolucao} onChange={(e) => { setTipo(e.target.value as "entrada" | "saida"); setCategoriaId(""); if (e.target.value === "saida") setPagador("nenhum"); }}><option value="entrada">Entrada</option><option value="saida">Saída</option></select></div><div><Label htmlFor="mov-categoria">Categoria</Label><select id="mov-categoria" className="h-10 w-full rounded-md border bg-background px-3" value={categoriaId} required onChange={(e) => setCategoriaId(e.target.value)}><option value="">Selecione</option>{categoriasDisponiveis.map((item) => <option key={item.id} value={item.id}>{item.nome}</option>)}</select></div></div>
+      <div className="grid gap-3 sm:grid-cols-2"><div><Label htmlFor="mov-valor">Valor (R$)</Label><Input id="mov-valor" value={valor} onChange={(e) => setValor(e.target.value)} inputMode="decimal" required /></div><div><Label htmlFor="mov-data">Data real</Label><Input id="mov-data" type="date" value={data} onChange={(e) => { setData(e.target.value); if (e.target.value) setMesCaixa(e.target.value.slice(0, 7)); }} />{!data && lancamento?.precisao_data === "mes" && <p className="text-xs text-muted-foreground">Dia desconhecido na fonte histórica</p>}</div></div>
+      {!data && <div><Label htmlFor="mov-mes-caixa">Mês conhecido do caixa</Label><Input id="mov-mes-caixa" type="month" value={mesCaixa} onChange={(e) => setMesCaixa(e.target.value)} /></div>}
+      {!devolucao && <><div><Label htmlFor="mov-atividade">Atividade</Label><select id="mov-atividade" className="h-10 w-full rounded-md border bg-background px-3" value={atividade} disabled={tipo === "entrada" && pagador !== "nenhum"} onChange={(e) => setAtividade(e.target.value)}><option value="geral">Geral do ITS</option>{cursos.map((item) => <option key={item.id} value={`curso:${item.id}`}>{item.nome}</option>)}{edicoes.map((item) => <option key={item.id} value={`simposio:${item.id}`}>{item.nome}</option>)}</select></div><div><Label htmlFor="mov-unidade">Unidade</Label><select id="mov-unidade" className="h-10 w-full rounded-md border bg-background px-3" value={unidade} disabled={tipo === "entrada" && pagador !== "nenhum"} onChange={(e) => setUnidade(e.target.value)}><option value="geral">Geral institucional</option>{UNIDADES_FINANCEIRO.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></div></>}
+      {tipo === "entrada" && !devolucao && <><div><Label htmlFor="mov-pagador">Vínculo do pagamento</Label><select id="mov-pagador" className="h-10 w-full rounded-md border bg-background px-3" value={pagador} onChange={(e) => { setPagador(e.target.value as Pagador); setInscricaoId(""); setAlunoId(""); }}><option value="nenhum">Entrada sem inscrição (oferta, patrocínio etc.)</option><option value="inscricao">Inscrição de curso ou Simpósio</option><option value="historico">Aluno histórico validado, sem inscrição</option></select></div>
+        {pagador === "inscricao" && <div><Label htmlFor="mov-inscricao">Inscrição</Label><select id="mov-inscricao" className="h-10 w-full rounded-md border bg-background px-3" value={inscricaoId} onChange={(e) => selecionarInscricao(e.target.value)} required><option value="">Selecione</option>{inscritos.map((item) => <option key={item.id} value={item.id}>{item.nome_completo} · {item.numero_inscricao}</option>)}</select>{inscricao && <p className="text-xs text-muted-foreground">{inscricao.status} · {inscricao.destino === "simposio" ? "Simpósio" : "Curso"}</p>}</div>}
+        {pagador === "historico" && <div><Label htmlFor="mov-aluno">Aluno histórico</Label><select id="mov-aluno" className="h-10 w-full rounded-md border bg-background px-3" value={alunoId} onChange={(e) => selecionarAluno(e.target.value)} required><option value="">Selecione</option>{historicos.map((item) => <option key={item.id} value={item.id}>{item.nome} · {item.unidade}</option>)}</select>{aluno?.situacao === "pendente_validacao" && <p className="text-xs text-amber-700">Esta linha histórica pode ser editada; novos pagamentos exigem validação do aluno.</p>}</div>}
+        {pagador !== "nenhum" && <div className="grid gap-3 sm:grid-cols-2"><div><Label htmlFor="mov-finalidade">Referente a</Label><select id="mov-finalidade" className="h-10 w-full rounded-md border bg-background px-3" value={finalidade} onChange={(e) => { const nova = e.target.value as typeof finalidade; setFinalidade(nova); if (nova === "mensalidade") escolherCategoria("Mensalidade"); else if (nova === "matricula") escolherCategoria("Matrícula"); else if (nova === "inscricao_evento") escolherCategoria("Simpósio"); }}><option value="matricula">Matrícula</option><option value="mensalidade">Mensalidade</option><option value="inscricao_evento">Inscrição em evento</option><option value="outro">Outro</option></select></div>{finalidade === "mensalidade" && <div><Label htmlFor="mov-mes-ref">Mês pago</Label><Input id="mov-mes-ref" type="month" value={mesReferencia} onChange={(e) => setMesReferencia(e.target.value)} required={!lancamento?.origem_referencia} />{lancamento?.origem_referencia && !mesReferencia && <p className="text-xs text-muted-foreground">Desconhecido no histórico</p>}</div>}</div>}
+      </>}
+      <div><Label htmlFor="mov-descricao">Descrição ou observação</Label><Textarea id="mov-descricao" value={descricao} onChange={(e) => setDescricao(e.target.value)} rows={2} /></div>
+      {!devolucao && <div className="space-y-2"><Label htmlFor="mov-arquivo">Comprovante opcional (PDF ou imagem, até 10 MB)</Label><Input id="mov-arquivo" type="file" accept="application/pdf,image/jpeg,image/png,image/webp" onChange={(e) => setArquivo(e.target.files?.[0] ?? null)} />{inscricao?.comprovante_url && <Button type="button" variant="outline" size="sm" onClick={() => setComprovante(inscricao.comprovante_url!)}>Associar comprovante da inscrição</Button>}{comprovante && <div className="flex items-center gap-3 text-xs"><span>Comprovante associado</span><button type="button" className="underline" onClick={() => void abrirComprovante(comprovante)}>Abrir</button><button type="button" className="underline" onClick={() => setComprovante("")}>Remover vínculo</button></div>}</div>}
+      <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button><Button disabled={salvar.isPending}>{salvar.isPending ? "Salvando..." : lancamento ? "Salvar alterações" : "Registrar movimento"}</Button></div>
+    </form>
+  </DialogContent></Dialog>;
 };
 
 export default LancamentoDialog;

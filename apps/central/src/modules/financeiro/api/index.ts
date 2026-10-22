@@ -1,13 +1,10 @@
 export type {
   AlunoValues,
   CategoriaValues,
-  LancamentoValues,
 } from "./commands";
 export {
-  useExcluirLancamento,
   useSalvarAluno,
   useSalvarCategoria,
-  useSalvarLancamento,
   useEmitirRelatorioMensal,
 } from "./mutations";
 export {

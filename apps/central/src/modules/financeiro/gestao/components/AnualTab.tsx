@@ -87,10 +87,10 @@ const AnualTab = () => {
       acumulado = saldoMes[m];
     }
 
-    // Resumo do Simpósio (categoria com entrada e saída próprias)
+    // Resumo do Simpósio por edição vinculada, inclusive devoluções.
     const simposio = { entrada: 0, saida: 0 };
     for (const l of lancamentos) {
-      if (!doAno(l) || l.categoria?.nome !== "Simpósio") continue;
+      if (!doAno(l) || !l.edicao_simposio_id) continue;
       if (l.tipo === "entrada") simposio.entrada += Number(l.valor);
       else simposio.saida += Number(l.valor);
     }

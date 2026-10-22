@@ -16,6 +16,11 @@ export type Lancamento = Tables<"lancamentos_financeiros"> & {
   conciliacao_status: "conciliado" | "provisorio" | "divergente";
   aluno: { nome: string } | null;
   categoria: { nome: string; tipo: string } | null;
+  inscricao_id: string | null;
+  mes_referencia: string | null;
+  comprovante_url: string | null;
+  finalidade: "matricula" | "mensalidade" | "inscricao_evento" | "outro" | null;
+  inscricao: { nome_completo: string; numero_inscricao: string } | null;
 };
 export type RelatorioMensal = Tables<"relatorios_mensais_versoes">;
 
@@ -59,12 +64,12 @@ export const useLancamentos = () =>
     queryFn: async () => {
       const data = await fetchAllPages((from, to) => supabase
         .from("lancamentos_financeiros")
-        .select("*, aluno:alunos(nome), categoria:categorias_financeiras(nome,tipo)")
+        .select("*, aluno:alunos(nome), categoria:categorias_financeiras(nome,tipo), inscricao:inscricoes(nome_completo,numero_inscricao)")
         .order("mes_caixa", { ascending: false })
         .order("created_at", { ascending: false })
         .order("id", { ascending: false })
         .range(from, to));
-      return data as Lancamento[];
+      return data as unknown as Lancamento[];
     },
     staleTime: 10_000,
   });
