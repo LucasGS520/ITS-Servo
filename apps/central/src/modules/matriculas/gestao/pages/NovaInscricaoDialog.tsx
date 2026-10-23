@@ -10,13 +10,13 @@ import { useCursos, useEdicoesSimposio } from "@/modules/atividades/api";
 import { useNucleos } from "@/modules/instituto/api";
 import { criarInscricaoInterna, MATRICULAS_KEY } from "@/modules/matriculas/api";
 
-export const NovaInscricaoDialog = ({ open, onClose, onCreated }: { open: boolean; onClose: () => void; onCreated?: (id: string) => void }) => {
+export const NovaInscricaoDialog = ({ open, onClose, onCreated, atividadeInicial = "" }: { open: boolean; onClose: () => void; onCreated?: (id: string) => void; atividadeInicial?: string }) => {
   const { toast } = useToast();
   const client = useQueryClient();
   const { data: cursos = [] } = useCursos();
   const { data: edicoes = [] } = useEdicoesSimposio();
   const { data: nucleos = [] } = useNucleos();
-  const [atividade, setAtividade] = useState("");
+  const [atividade, setAtividade] = useState(atividadeInicial);
   const [modalidade, setModalidade] = useState("presencial");
   const [salvando, setSalvando] = useState(false);
 

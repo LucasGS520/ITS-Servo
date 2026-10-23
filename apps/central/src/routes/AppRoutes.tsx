@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useParams } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import AutosservicoLayout from "@/layouts/AutosservicoLayout";
 import GestaoLayout from "@/layouts/GestaoLayout";
@@ -14,9 +14,14 @@ const FinanceiroPage = lazy(() => import("@/modules/financeiro/gestao").then((mo
 const DashboardPage = lazy(() => import("@/modules/dashboard/gestao").then((modulo) => ({ default: modulo.DashboardPage })));
 const InstitutoPage = lazy(() => import("@/modules/instituto/gestao").then((modulo) => ({ default: modulo.InstitutoPage })));
 const OperacaoSimposioPage = lazy(() => import("@/modules/atividades/gestao/pages/OperacaoSimposioPage"));
+const AlunoDetalhePage = lazy(() => import("@/modules/instituto/gestao/pages/AlunosPage").then((modulo) => ({ default: modulo.AlunoDetalhePage })));
 const RelatoriosPage = lazy(() => import("@/modules/relatorios/gestao").then((modulo) => ({ default: modulo.RelatoriosPage })));
 
 const CarregandoRota = () => <div className="flex min-h-[40vh] items-center justify-center"><Loader2 className="h-7 w-7 animate-spin text-primary" /><span className="sr-only">Carregando</span></div>;
+const RedirecionarOperacao = () => {
+  const { edicaoId } = useParams();
+  return <Navigate to={`/painel/instituto/simposios/${edicaoId}`} replace />;
+};
 
 const AppRoutes = () => <Suspense fallback={<CarregandoRota />}><Routes>
   <Route path="/" element={<Navigate to="/painel/login" replace />} />
@@ -32,7 +37,9 @@ const AppRoutes = () => <Suspense fallback={<CarregandoRota />}><Routes>
     <Route path="atendimento" element={<Navigate to="/painel/inscricoes" replace />} />
     <Route path="financeiro" element={<FinanceiroPage />} />
     <Route path="instituto" element={<InstitutoPage />} />
-    <Route path="simposios/:edicaoId/operacao" element={<OperacaoSimposioPage />} />
+    <Route path="instituto/alunos/:alunoId" element={<AlunoDetalhePage />} />
+    <Route path="instituto/simposios/:edicaoId" element={<OperacaoSimposioPage />} />
+    <Route path="simposios/:edicaoId/operacao" element={<RedirecionarOperacao />} />
     <Route path="relatorios" element={<RelatoriosPage />} />
   </Route>
 

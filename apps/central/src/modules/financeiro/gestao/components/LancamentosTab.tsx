@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "@/common/ui/card";
 import { Button } from "@/common/ui/button";
 import { Input } from "@/common/ui/input";
@@ -21,23 +22,37 @@ const hoje = () => new Date().toLocaleDateString("en-CA");
 const finalidadeLabel: Record<string, string> = { matricula: "Matrícula", mensalidade: "Mensalidade", inscricao_evento: "Inscrição em evento", outro: "Outro" };
 
 const LancamentosTab = () => {
+  const [params] = useSearchParams();
+  const atividadeInicial = params.get("atividade") ?? "todas";
+  const alunoInicial = params.get("aluno");
+  const inscricaoInicial = params.get("inscricao");
   const { toast } = useToast();
   const { data: lancamentos = [], isLoading } = useLancamentos();
   const { data: categorias = [] } = useCategorias();
   const { data: cursos = [] } = useCursos();
   const { data: edicoes = [] } = useEdicoesSimposio();
   const { data: saldos = [] } = useSaldosIniciais();
-  const [mes, setMes] = useState(hoje().slice(0, 7));
+  const [mes, setMes] = useState(params.get("mes") ?? hoje().slice(0, 7));
   const [unidade, setUnidade] = useState("todas");
   const [tipo, setTipo] = useState("todos");
   const [categoria, setCategoria] = useState("todas");
-  const [atividade, setAtividade] = useState("todas");
+  const [atividade, setAtividade] = useState(atividadeInicial);
   const [origem, setOrigem] = useState("todas");
   const [busca, setBusca] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editando, setEditando] = useState<Lancamento | null>(null);
   const [devolvendo, setDevolvendo] = useState<Lancamento | null>(null);
   const competencia = mesParaCompetencia(mes);
+  useEffect(() => {
+    if (!params.get("mes") && (atividadeInicial !== "todas" || alunoInicial || inscricaoInicial)) {
+      const relacionados = lancamentos.filter(item => alunoInicial || inscricaoInicial
+        ? item.aluno_id === alunoInicial || item.inscricao_id === inscricaoInicial
+        : atividadeInicial.startsWith("simposio:") ? item.edicao_simposio_id === atividadeInicial.slice(9)
+        : atividadeInicial.startsWith("curso:") ? item.curso_id === atividadeInicial.slice(6) : false);
+      const ultimo = relacionados.map(item => item.mes_caixa.slice(0, 7)).sort().at(-1);
+      if (ultimo) setMes(ultimo);
+    }
+  }, [lancamentos, atividadeInicial, alunoInicial, inscricaoInicial, params]);
 
   const totalDevolvido = (id: string) => lancamentos.filter((item) => item.estorno_de_id === id && item.tipo === "saida").reduce((s, item) => s + Number(item.valor), 0);
   const { linhas, totais, acumulado, saldoReal } = useMemo(() => {
@@ -46,19 +61,20 @@ const LancamentosTab = () => {
       if (unidade !== "todas" && (unidade === "institucional" ? item.unidade !== null : item.unidade !== unidade)) return false;
       if (tipo !== "todos" && item.tipo !== tipo) return false;
       if (categoria !== "todas" && item.categoria_id !== categoria) return false;
+      if ((alunoInicial || inscricaoInicial) && item.aluno_id !== alunoInicial && item.inscricao_id !== inscricaoInicial) return false;
       if (atividade !== "todas" && (atividade.startsWith("curso:") ? item.curso_id !== atividade.slice(6) : atividade.startsWith("simposio:") ? item.edicao_simposio_id !== atividade.slice(9) : item.curso_id !== null || item.edicao_simposio_id !== null)) return false;
       if (origem !== "todas" && item.origem !== origem) return false;
       if (termo && !`${item.aluno?.nome ?? ""} ${item.inscricao?.nome_completo ?? ""} ${item.inscricao?.numero_inscricao ?? ""} ${item.descricao ?? ""} ${item.categoria?.nome ?? ""}`.toLowerCase().includes(termo)) return false;
       return true;
     });
-    const saldoReal = unidade === "todas" && tipo === "todos" && categoria === "todas" && atividade === "todas" && origem === "todas" && !termo;
+    const saldoReal = unidade === "todas" && tipo === "todos" && categoria === "todas" && atividade === "todas" && origem === "todas" && !termo && !alunoInicial && !inscricaoInicial;
     return {
       linhas: escopo.filter((item) => item.mes_caixa === competencia),
       totais: totaisDoMes(escopo, competencia),
       acumulado: saldoAcumulado(escopo, competencia, saldoReal ? saldos : []),
       saldoReal,
     };
-  }, [lancamentos, competencia, unidade, tipo, categoria, atividade, origem, busca, saldos]);
+  }, [lancamentos, competencia, unidade, tipo, categoria, atividade, origem, busca, saldos, alunoInicial, inscricaoInicial]);
 
   const abrirEdicao = (item: Lancamento | null) => { setEditando(item); setDialogOpen(true); };
   const abrirDevolucao = (item: Lancamento) => {

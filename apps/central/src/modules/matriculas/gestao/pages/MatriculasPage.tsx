@@ -32,7 +32,7 @@ const InscricoesPage = () => {
   const [params, setParams] = useSearchParams();
   const selecionadaId = params.get("id");
   const setSelecionadaId = (id: string | null) => setParams(id ? { id } : {}, { replace: true });
-  const [nova, setNova] = useState(false);
+  const [nova, setNova] = useState(params.get("nova") === "1");
   const selecionada = inscricoes.find((item) => item.id === selecionadaId) ?? null;
   const pendentes = new Set(pedidos.filter((item) => item.status === "pendente").map((item) => item.inscricao_id));
   const nucleos = Array.from(new Set(inscricoes.map((item) => item.nucleo).filter((item): item is string => Boolean(item)))).sort();

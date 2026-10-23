@@ -12,7 +12,6 @@ import { getErrorMessage } from "@/common/lib/errors";
 import { formatBRL } from "@/common/constants/pricing";
 import { useCursos, useEdicoesSimposio, useSalvarCurso, useSalvarEdicaoSimposio } from "@/modules/atividades/api";
 import { useMatriculas } from "@/modules/matriculas";
-import AlunosTab from "@/modules/financeiro/gestao/components/AlunosTab";
 import type { Tables } from "@/services/supabase/types";
 
 const preco = (n: number | null) => n == null ? "A configurar" : formatBRL(Number(n));
@@ -24,7 +23,6 @@ export const CursosPage = () => {
   const salvarCurso = useSalvarCurso();
   const { toast } = useToast();
   const [edicao, setEdicao] = useState<Tables<"cursos"> | null>(null);
-  const [aberto, setAberto] = useState<string | null>(null);
   async function salvar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!edicao) return;
@@ -50,9 +48,8 @@ export const CursosPage = () => {
     <div className="grid gap-4 md:grid-cols-2">{cursos.map(c => <Card key={c.id}><CardHeader><CardTitle className="flex justify-between gap-2 text-lg">{c.nome}<Badge variant={c.ativo ? "default" : "outline"}>{c.ativo ? "Ativo" : "Inativo"}</Badge></CardTitle></CardHeader><CardContent className="space-y-2 text-sm">
       <p>Matrícula: <strong>{preco(c.taxa_matricula)}</strong></p><p>Mensalidade: <strong>{preco(c.mensalidade_referencia)}</strong></p>
       <p>{c.publico ? "Publicado no Site" : "Uso interno"}</p>
-      <div className="flex gap-2"><Button variant="outline" onClick={() => setEdicao(c)}>Configurar</Button><Button variant="outline" onClick={() => setAberto(aberto === c.id ? null : c.id)}>{aberto === c.id ? "Fechar alunos" : "Ver alunos"}</Button></div>
+      <div className="flex gap-2"><Button variant="outline" onClick={() => setEdicao(c)}>Configurar</Button><Button asChild variant="outline"><Link to={`/painel/instituto?secao=alunos&curso=${c.id}`}>Ver alunos</Link></Button></div>
     </CardContent></Card>)}</div>
-    {aberto && <AlunosTab cursoId={aberto} cursoNome={cursos.find(c => c.id === aberto)?.nome ?? "Curso"} />}
     <Dialog open={!!edicao} onOpenChange={v => !v && setEdicao(null)}><DialogContent><DialogHeader><DialogTitle>Configurar curso</DialogTitle></DialogHeader>{edicao && <form key={edicao.id} onSubmit={salvar} className="space-y-3">
       <Label>Nome<Input name="nome" defaultValue={edicao.nome} required /></Label>
       <div className="grid grid-cols-2 gap-3"><Label>Matrícula<Input name="taxa" type="number" min="0" step="0.01" defaultValue={edicao.taxa_matricula ?? ""} /></Label><Label>Mensalidade<Input name="mensalidade" type="number" min="0" step="0.01" defaultValue={edicao.mensalidade_referencia ?? ""} /></Label></div>
@@ -68,7 +65,6 @@ export const SimposioPage = () => {
   const salvarEdicao = useSalvarEdicaoSimposio();
   const { toast } = useToast();
   const [edicao, setEdicao] = useState<Tables<"edicoes_simposio"> | "nova" | null>(null);
-  const [aberta, setAberta] = useState<string | null>(null);
   async function salvar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const f = new FormData(event.currentTarget);
@@ -96,8 +92,7 @@ export const SimposioPage = () => {
       return <Card key={e.id}><CardHeader><CardTitle className="flex justify-between gap-2 text-lg">{e.nome}<span className="flex gap-2"><Badge variant={e.ativo ? "default" : "outline"}>{e.ativo ? "Ativa" : "Inativa"}</Badge><Badge variant={e.publico ? "default" : "outline"}>{e.publico ? "Publicada" : "Interna"}</Badge></span></CardTitle></CardHeader><CardContent className="space-y-3 text-sm">
         <p>Período: {e.inicio ?? "Desconhecido"}{e.fim ? ` a ${e.fim}` : ""} · Preço único: <strong>{preco(e.valor)}</strong></p>
         <div className="grid gap-2 sm:grid-cols-3"><div className="rounded border p-3"><strong>{e.inscritos_historicos ?? "—"}</strong><p>Inscritos históricos agregados</p><small>{e.pagantes_historicos ?? "—"} pagantes · {e.isentos_historicos ?? "—"} isentos</small></div><div className="rounded border p-3"><strong>{analise}</strong><p>Inscrições em análise identificadas</p></div><div className="rounded border p-3"><strong>{confirmados}</strong><p>Participantes confirmados identificados</p></div></div>
-        <div className="flex flex-wrap gap-2"><Button variant="outline" onClick={() => setEdicao(e)}>Configurar</Button><Button asChild variant="outline"><Link to={`/painel/simposios/${e.id}/operacao`}>Abrir operação</Link></Button><Button variant="outline" onClick={() => setAberta(aberta === e.id ? null : e.id)}>{aberta === e.id ? "Fechar lista" : "Ver inscrições"}</Button></div>
-        {aberta === e.id && <div className="space-y-2 border-t pt-3">{lista.length ? lista.map(i => <div key={i.id} className="flex justify-between rounded border p-2"><span>{i.nome_completo} · {i.numero_inscricao} · {i.status}</span><Link className="underline" to={`/painel/inscricoes?id=${i.id}`}>Abrir ficha</Link></div>) : <p>Sem inscrições individuais. Os totais históricos não têm lista nominal.</p>}</div>}
+        <div className="flex flex-wrap gap-2"><Button asChild><Link to={`/painel/instituto/simposios/${e.id}`}>Abrir edição</Link></Button><Button variant="outline" onClick={() => setEdicao(e)}>Configurar</Button></div>
       </CardContent></Card>;
     })}
     <Dialog open={!!edicao} onOpenChange={v => !v && setEdicao(null)}><DialogContent><DialogHeader><DialogTitle>{edicao === "nova" ? "Nova edição" : "Configurar edição"}</DialogTitle></DialogHeader><form key={atual?.id ?? "nova"} onSubmit={salvar} className="space-y-3">
