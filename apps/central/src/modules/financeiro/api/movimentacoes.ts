@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/services/supabase/client";
-import { LANCAMENTOS_KEY, RELATORIOS_KEY } from "./useFinanceiro";
+import { LANCAMENTOS_KEY } from "./useFinanceiro";
 
 export interface MovimentacaoInput {
   id: string | null;
@@ -60,10 +60,7 @@ export async function removerComprovanteFinanceiro(path: string) {
 }
 
 const invalidate = async (client: ReturnType<typeof useQueryClient>) => {
-  await Promise.all([
-    client.invalidateQueries({ queryKey: LANCAMENTOS_KEY }),
-    client.invalidateQueries({ queryKey: RELATORIOS_KEY }),
-  ]);
+  await client.invalidateQueries({ queryKey: LANCAMENTOS_KEY });
 };
 
 export const useSalvarMovimentacao = () => {

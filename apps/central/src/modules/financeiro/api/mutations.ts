@@ -4,7 +4,6 @@ import {
   CATEGORIAS_KEY,
 } from "./useFinanceiro";
 import {
-  emitirRelatorioMensal,
   salvarAluno,
   salvarCategoria,
 } from "./commands";
@@ -25,11 +24,3 @@ export const useSalvarAluno = () =>
 
 export const useSalvarCategoria = () =>
   useInvalidatingMutation(salvarCategoria, CATEGORIAS_KEY);
-
-export const useEmitirRelatorioMensal = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: emitirRelatorioMensal,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["relatorios_mensais_versoes"] }),
-  });
-};

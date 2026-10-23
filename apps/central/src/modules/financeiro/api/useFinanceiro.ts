@@ -6,7 +6,6 @@ import { fetchAllPages } from "@/common/lib/fetchAllPages";
 export const ALUNOS_KEY = ["alunos"] as const;
 export const CATEGORIAS_KEY = ["categorias_financeiras"] as const;
 export const LANCAMENTOS_KEY = ["lancamentos_financeiros"] as const;
-export const RELATORIOS_KEY = ["relatorios_mensais_versoes"] as const;
 
 export type Aluno = Tables<"alunos">;
 export type Categoria = Tables<"categorias_financeiras">;
@@ -22,7 +21,6 @@ export type Lancamento = Tables<"lancamentos_financeiros"> & {
   finalidade: "matricula" | "mensalidade" | "inscricao_evento" | "outro" | null;
   inscricao: { nome_completo: string; numero_inscricao: string } | null;
 };
-export type RelatorioMensal = Tables<"relatorios_mensais_versoes">;
 
 export const useAlunos = () =>
   useQuery({
@@ -82,7 +80,6 @@ export const useSaldosIniciais = () => useQuery({
     return (data ?? []) as unknown as { ano: number; valor: number; fonte: string }[];
   },
 });
-
 export const usePendenciasConciliacao = () => useQuery({
   queryKey: ["pendencias_conciliacao"],
   queryFn: async () => {
@@ -91,19 +88,3 @@ export const usePendenciasConciliacao = () => useQuery({
     return (data ?? []) as unknown as { chave: string; descricao: string; status: string; valor_anual: number | null; valor_detalhe: number | null }[];
   },
 });
-
-export const useRelatoriosMensais = (periodo?: string) =>
-  useQuery({
-    queryKey: [...RELATORIOS_KEY, periodo ?? "todos"],
-    queryFn: async () => {
-      let query = supabase
-        .from("relatorios_mensais_versoes")
-        .select("*")
-        .order("periodo", { ascending: false })
-        .order("versao", { ascending: false });
-      if (periodo) query = query.eq("periodo", periodo);
-      const { data, error } = await query;
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
