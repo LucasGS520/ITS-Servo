@@ -37,7 +37,7 @@ export default function CursosRelatorio() {
     {curso && <Button variant="outline" asChild><Link to={`/painel/instituto?secao=alunos&curso=${curso.id}`}>Abrir alunos no Instituto</Link></Button>}
     {consultas.some(q => q.isLoading) && <p>Carregando dados do curso...</p>}
     {consultas.some(q => q.isError) && <p className="text-destructive">Falha ao carregar o relatório. A impressão está indisponível.</p>}
-    {!consultas.some(q => q.isLoading || q.isError) && doc && <ReportView documento={doc} pronto={true} />}
+    {!consultas.some(q => q.isLoading || q.isError) && doc && <ReportView documento={doc} pronto={!consultas.some(q => q.isFetching)} />}
     {!consultas.some(q => q.isLoading || q.isError) && !doc && <p>Nenhum curso cadastrado.</p>}
   </div>;
 }

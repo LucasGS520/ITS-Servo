@@ -35,7 +35,7 @@ export default function SimposiosRelatorio() {
     {edicao && <Button asChild variant="outline"><Link to={`/painel/instituto/simposios/${edicao.id}`}>Abrir edição no Instituto</Link></Button>}
     {consultas.some(q => q.isLoading) && <p>Carregando dados da edição...</p>}
     {consultas.some(q => q.isError) && <p className="text-destructive">Falha ao carregar o relatório. A impressão está indisponível.</p>}
-    {!consultas.some(q => q.isLoading || q.isError) && doc && <ReportView documento={doc} pronto={true} />}
+    {!consultas.some(q => q.isLoading || q.isError) && doc && <ReportView documento={doc} pronto={!consultas.some(q => q.isFetching)} />}
     {!consultas.some(q => q.isLoading || q.isError) && !doc && <p>Nenhuma edição cadastrada.</p>}
   </div>;
 }

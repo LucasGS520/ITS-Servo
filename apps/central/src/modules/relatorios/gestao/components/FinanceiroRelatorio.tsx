@@ -52,6 +52,6 @@ export default function FinanceiroRelatorio() {
   </div>
   {consultas.some(q => q.isLoading) && <p>Carregando dados do relatório...</p>}
   {consultas.some(q => q.isError) && <p className="text-destructive">Falha ao carregar os dados. A impressão está indisponível.</p>}
-  {!consultas.some(q => q.isLoading || q.isError) && <ReportView documento={documento} pronto={true} />}
+  {!consultas.some(q => q.isLoading || q.isError) && <ReportView documento={documento} pronto={!consultas.some(q => q.isFetching)} />}
   </div>;
 }
