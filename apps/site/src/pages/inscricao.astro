@@ -59,7 +59,7 @@ import PageHero from '../components/PageHero.astro';
           <div class="field">
             <label for="destino_publico">Curso ou simpósio *</label>
             <select class="input" id="destino_publico" name="destino_publico" required>
-              <option value="curso:teologico">Curso Teológico</option>
+              <option value="" disabled selected>Carregando atividades...</option>
             </select>
             <span class="field__hint">Mostramos apenas atividades abertas para inscrição.</span>
           </div>
@@ -117,13 +117,22 @@ import PageHero from '../components/PageHero.astro';
     }).catch(() => { msg.textContent = 'Não foi possível carregar os núcleos. Tente novamente.'; });
     listarDestinosPublicos(client).then((destinos) => {
       destinoSel.innerHTML = '';
+      const inicial = document.createElement('option');
+      inicial.value = '';
+      inicial.textContent = destinos.length ? 'Selecione a atividade...' : 'Nenhuma atividade aberta no momento';
+      inicial.disabled = true;
+      inicial.selected = true;
+      destinoSel.appendChild(inicial);
       destinos.forEach((destino) => {
         const option = document.createElement('option');
         option.value = destino.tipo === 'curso' ? `curso:${destino.codigo}` : `simposio:${destino.id}`;
-        option.textContent = destino.valor == null ? destino.nome : `${destino.nome} — ${destino.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+        const moeda = (n: number) => n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        option.textContent = destino.tipo === 'curso'
+          ? `${destino.nome} — matrícula ${moeda(destino.taxa_matricula)} · mensalidade ${moeda(destino.mensalidade_referencia)}`
+          : destino.valor == null ? destino.nome : `${destino.nome} — ${moeda(destino.valor)}`;
         destinoSel.appendChild(option);
       });
-    }).catch(() => { /* mantém Curso Teológico disponível durante indisponibilidade temporária */ });
+    }).catch(() => { destinoSel.innerHTML = '<option value="">Não foi possível carregar as atividades</option>'; msg.textContent = 'Não foi possível carregar as atividades. Tente novamente.'; });
   }
 
   // Mostra/oculta o núcleo conforme a modalidade
@@ -181,7 +190,8 @@ import PageHero from '../components/PageHero.astro';
 
     const fd = new FormData(form);
     const modalidade = String(fd.get('modalidade') || '');
-    const destinoSelecionado = String(fd.get('destino_publico') || 'curso:teologico');
+    const destinoSelecionado = String(fd.get('destino_publico') || '');
+    if (!destinoSelecionado) { msg.textContent = 'Selecione uma atividade disponível.'; return; }
     const [destino, destinoId] = destinoSelecionado.split(':');
     const dto = {
       nome_completo: String(fd.get('nome_completo') || ''),

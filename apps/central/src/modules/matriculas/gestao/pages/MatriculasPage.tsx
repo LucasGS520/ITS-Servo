@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Eye, Plus, Search } from "lucide-react";
 import { Button } from "@/common/ui/button";
 import { Card, CardContent } from "@/common/ui/card";
@@ -28,7 +29,9 @@ const InscricoesPage = () => {
   const [periodo, setPeriodo] = useState("");
   const [status, setStatus] = useState("todos");
   const [financeiro, setFinanceiro] = useState("todos");
-  const [selecionadaId, setSelecionadaId] = useState<string | null>(null);
+  const [params, setParams] = useSearchParams();
+  const selecionadaId = params.get("id");
+  const setSelecionadaId = (id: string | null) => setParams(id ? { id } : {}, { replace: true });
   const [nova, setNova] = useState(false);
   const selecionada = inscricoes.find((item) => item.id === selecionadaId) ?? null;
   const pendentes = new Set(pedidos.filter((item) => item.status === "pendente").map((item) => item.inscricao_id));

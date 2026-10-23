@@ -1,4 +1,5 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
+import { Link } from "react-router-dom";
 import { Badge } from "@/common/ui/badge";
 import { Button } from "@/common/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/common/ui/card";
@@ -6,89 +7,104 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/common/ui/di
 import { Input } from "@/common/ui/input";
 import { Label } from "@/common/ui/label";
 import { Switch } from "@/common/ui/switch";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/common/ui/table";
-import { Loader2, Pencil, Plus } from "lucide-react";
-import { useCursos, useEdicoesSimposio, useSalvarCurso, useSalvarEdicaoSimposio } from "@/modules/atividades/api";
-import { useMatriculas } from "@/modules/matriculas";
-import { useLancamentos } from "@/modules/financeiro";
 import { useToast } from "@/common/hooks/use-toast";
 import { getErrorMessage } from "@/common/lib/errors";
 import { formatBRL } from "@/common/constants/pricing";
+import { useCursos, useEdicoesSimposio, useSalvarCurso, useSalvarEdicaoSimposio } from "@/modules/atividades/api";
+import { useMatriculas } from "@/modules/matriculas";
+import AlunosTab from "@/modules/financeiro/gestao/components/AlunosTab";
 import type { Tables } from "@/services/supabase/types";
-import { ItensSimposio } from "@/modules/atividades/gestao/components/ItensSimposio";
 
-const moeda = (valor: number | null) => valor == null ? "Valor a configurar" : formatBRL(Number(valor));
-type CursoValores = { taxa_matricula?: number | null; mensalidade_referencia?: number | null };
+const preco = (n: number | null) => n == null ? "A configurar" : formatBRL(Number(n));
+const Toggle = ({ name, label, checked }: { name: string; label: string; checked: boolean }) =>
+  <label className="flex items-center justify-between rounded border p-3">{label}<Switch name={name} defaultChecked={checked} /></label>;
 
 export const CursosPage = () => {
-  const { toast } = useToast();
-  const { data: cursos = [], isLoading } = useCursos();
+  const { data: cursos = [], isLoading, error } = useCursos();
   const salvarCurso = useSalvarCurso();
+  const { toast } = useToast();
   const [edicao, setEdicao] = useState<Tables<"cursos"> | null>(null);
-
-  const salvar = async (event: FormEvent<HTMLFormElement>) => {
+  const [aberto, setAberto] = useState<string | null>(null);
+  async function salvar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!edicao) return;
-    const form = new FormData(event.currentTarget);
+    const f = new FormData(event.currentTarget);
+    const taxa = f.get("taxa") ? Number(f.get("taxa")) : null;
+    const mensalidade = f.get("mensalidade") ? Number(f.get("mensalidade")) : null;
+    const ativo = f.get("ativo") === "on";
+    const publico = f.get("publico") === "on";
+    if (publico && (!ativo || taxa == null || mensalidade == null)) {
+      toast({ title: "Configure matrícula e mensalidade e ative o curso antes de publicar", variant: "destructive" }); return;
+    }
     try {
       await salvarCurso.mutateAsync({ id: edicao.id, values: {
-        nome: String(form.get("nome") ?? "").trim(),
-        valor: null,
-        taxa_matricula: form.get("taxa") ? Number(form.get("taxa")) : null,
-        mensalidade_referencia: form.get("mensalidade") ? Number(form.get("mensalidade")) : null,
-        ativo: form.get("ativo") === "on",
-        publico: form.get("publico") === "on",
+        nome: String(f.get("nome") ?? "").trim(), taxa_matricula: taxa,
+        mensalidade_referencia: mensalidade, ativo, publico,
       } });
-      toast({ title: "Curso atualizado" });
-      setEdicao(null);
-    } catch (erro) { toast({ title: "Não foi possível salvar", description: getErrorMessage(erro), variant: "destructive" }); }
-  };
-
-  if (isLoading) return <Carregando />;
-  return <div className="container space-y-6 py-8"><div><h1 className="text-2xl font-bold">Cursos</h1><p className="mt-1 text-sm text-muted-foreground">Valores de referência para controle interno; a Central não emite cobranças.</p></div><div className="grid gap-4 md:grid-cols-2">{cursos.map((curso) => { const v = curso as typeof curso & CursoValores; return <Card key={curso.id}><CardHeader><CardTitle className="flex items-center justify-between gap-3 text-lg">{curso.nome}<Badge variant={curso.ativo ? "default" : "outline"}>{curso.ativo ? "Ativo" : "Inativo"}</Badge></CardTitle></CardHeader><CardContent className="space-y-3 text-sm"><p>Taxa de matrícula: <strong>{moeda(v.taxa_matricula ?? null)}</strong></p><p>Mensalidade de referência: <strong>{moeda(v.mensalidade_referencia ?? null)}</strong></p><p className="text-muted-foreground">{curso.publico ? "Disponível para inscrição" : "Uso interno"}</p><Button variant="outline" size="sm" onClick={() => setEdicao(curso)}><Pencil className="mr-2 h-4 w-4" />Editar curso</Button></CardContent></Card>; })}</div>
-    <Dialog open={Boolean(edicao)} onOpenChange={(aberto) => !aberto && setEdicao(null)}><DialogContent><DialogHeader><DialogTitle>Editar curso</DialogTitle></DialogHeader>{edicao && <form onSubmit={salvar} className="space-y-4"><div className="space-y-1"><Label htmlFor="curso-nome">Nome</Label><Input id="curso-nome" name="nome" defaultValue={edicao.nome} required /></div><div className="grid grid-cols-2 gap-3"><div><Label htmlFor="curso-taxa">Taxa de matrícula</Label><Input id="curso-taxa" name="taxa" type="number" min="0" step="0.01" defaultValue={(edicao as typeof edicao & CursoValores).taxa_matricula ?? ""} /></div><div><Label htmlFor="curso-mensalidade">Mensalidade</Label><Input id="curso-mensalidade" name="mensalidade" type="number" min="0" step="0.01" defaultValue={(edicao as typeof edicao & CursoValores).mensalidade_referencia ?? ""} /></div></div><ToggleField id="curso-ativo" name="ativo" label="Curso ativo" defaultChecked={edicao.ativo} /><ToggleField id="curso-publico" name="publico" label="Disponível no formulário público" defaultChecked={edicao.publico} /><div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setEdicao(null)}>Cancelar</Button><Button disabled={salvarCurso.isPending}>Salvar</Button></div></form>}</DialogContent></Dialog>
-  </div>;
+      setEdicao(null); toast({ title: "Curso atualizado" });
+    } catch (e) { toast({ title: "Não foi possível salvar", description: getErrorMessage(e), variant: "destructive" }); }
+  }
+  return <section className="space-y-5">
+    <div><h2 className="text-xl font-semibold">Cursos</h2><p className="text-sm text-muted-foreground">Valores oficiais, publicação e alunos por curso.</p></div>
+    {error && <p className="text-destructive">Falha ao carregar cursos.</p>}{isLoading && <p>Carregando...</p>}
+    <div className="grid gap-4 md:grid-cols-2">{cursos.map(c => <Card key={c.id}><CardHeader><CardTitle className="flex justify-between gap-2 text-lg">{c.nome}<Badge variant={c.ativo ? "default" : "outline"}>{c.ativo ? "Ativo" : "Inativo"}</Badge></CardTitle></CardHeader><CardContent className="space-y-2 text-sm">
+      <p>Matrícula: <strong>{preco(c.taxa_matricula)}</strong></p><p>Mensalidade: <strong>{preco(c.mensalidade_referencia)}</strong></p>
+      <p>{c.publico ? "Publicado no Site" : "Uso interno"}</p>
+      <div className="flex gap-2"><Button variant="outline" onClick={() => setEdicao(c)}>Configurar</Button><Button variant="outline" onClick={() => setAberto(aberto === c.id ? null : c.id)}>{aberto === c.id ? "Fechar alunos" : "Ver alunos"}</Button></div>
+    </CardContent></Card>)}</div>
+    {aberto && <AlunosTab cursoId={aberto} cursoNome={cursos.find(c => c.id === aberto)?.nome ?? "Curso"} />}
+    <Dialog open={!!edicao} onOpenChange={v => !v && setEdicao(null)}><DialogContent><DialogHeader><DialogTitle>Configurar curso</DialogTitle></DialogHeader>{edicao && <form key={edicao.id} onSubmit={salvar} className="space-y-3">
+      <Label>Nome<Input name="nome" defaultValue={edicao.nome} required /></Label>
+      <div className="grid grid-cols-2 gap-3"><Label>Matrícula<Input name="taxa" type="number" min="0" step="0.01" defaultValue={edicao.taxa_matricula ?? ""} /></Label><Label>Mensalidade<Input name="mensalidade" type="number" min="0" step="0.01" defaultValue={edicao.mensalidade_referencia ?? ""} /></Label></div>
+      <Toggle name="ativo" label="Curso ativo" checked={edicao.ativo} /><Toggle name="publico" label="Publicado no Site" checked={edicao.publico} />
+      <Button disabled={salvarCurso.isPending}>Salvar</Button>
+    </form>}</DialogContent></Dialog>
+  </section>;
 };
 
 export const SimposioPage = () => {
-  const { toast } = useToast();
-  const { data: edicoes = [], isLoading } = useEdicoesSimposio();
+  const { data: edicoes = [], isLoading, error } = useEdicoesSimposio();
   const { data: inscricoes = [] } = useMatriculas();
-  const { data: lancamentos = [] } = useLancamentos();
   const salvarEdicao = useSalvarEdicaoSimposio();
-  const [edicao, setEdicao] = useState<Tables<"edicoes_simposio"> | null | "nova">(null);
-
-  const metricas = useMemo(() => new Map(edicoes.map((item) => {
-    const matriculas = inscricoes.filter((i) => i.edicao_simposio_id === item.id && i.status !== "cancelado");
-    const receitaPrevista = matriculas.filter((i) => i.status === "confirmada" && !(i as typeof i & { isento?: boolean }).isento).length * Number(item.valor ?? 0);
-    const movimentos = lancamentos.filter((l) => l.edicao_simposio_id === item.id);
-    const receita = movimentos.filter((l) => l.tipo === "entrada").reduce((s, l) => s + Number(l.valor), 0);
-    const custo = movimentos.filter((l) => l.tipo === "saida").reduce((s, l) => s + Number(l.valor), 0);
-    return [item.id, { matriculas, receitaPrevista, receita, custo, resultado: receita - custo }];
-  })), [edicoes, inscricoes, lancamentos]);
-
-  const salvar = async (event: FormEvent<HTMLFormElement>) => {
+  const { toast } = useToast();
+  const [edicao, setEdicao] = useState<Tables<"edicoes_simposio"> | "nova" | null>(null);
+  const [aberta, setAberta] = useState<string | null>(null);
+  async function salvar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const f = new FormData(event.currentTarget);
+    const inicio = String(f.get("inicio") ?? "") || null;
+    const fim = String(f.get("fim") ?? "") || null;
+    const valor = f.get("valor") ? Number(f.get("valor")) : null;
+    const ativo = f.get("ativo") === "on", publico = f.get("publico") === "on";
+    if (inicio && fim && fim < inicio) { toast({ title: "Fim anterior ao início", variant: "destructive" }); return; }
+    if (publico && (!ativo || valor == null)) { toast({ title: "Ative a edição e informe o preço antes de publicar", variant: "destructive" }); return; }
     try {
       await salvarEdicao.mutateAsync({ id: edicao === "nova" ? undefined : edicao?.id, values: {
-        nome: String(form.get("nome") ?? "").trim(), inicio: String(form.get("inicio") ?? "") || null,
-        fim: String(form.get("fim") ?? "") || null, valor: Number(form.get("valor")),
-        ativo: form.get("ativo") === "on", publico: form.get("publico") === "on",
+        nome: String(f.get("nome") ?? "").trim(), inicio, fim, valor, ativo, publico,
       } });
-      toast({ title: edicao === "nova" ? "Edição criada" : "Edição atualizada" }); setEdicao(null);
-    } catch (erro) { toast({ title: "Não foi possível salvar", description: getErrorMessage(erro), variant: "destructive" }); }
-  };
-
-  if (isLoading) return <Carregando />;
+      setEdicao(null); toast({ title: "Edição salva" });
+    } catch (e) { toast({ title: "Não foi possível salvar", description: getErrorMessage(e), variant: "destructive" }); }
+  }
   const atual = edicao === "nova" ? null : edicao;
-  return <div className="container space-y-6 py-8"><div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><h1 className="text-2xl font-bold">Simpósios</h1><p className="mt-1 text-sm text-muted-foreground">Edições, participantes, receita, custo e resultado comparável.</p></div><Button onClick={() => setEdicao("nova")}><Plus className="mr-2 h-4 w-4" />Nova edição</Button></div>
-    <Card><CardContent className="p-0"><div className="overflow-x-auto"><Table><TableHeader><TableRow><TableHead>Edição</TableHead><TableHead>Período</TableHead><TableHead className="text-right">Participantes</TableHead><TableHead className="text-right">Previsto</TableHead><TableHead className="text-right">Receita</TableHead><TableHead className="text-right">Custo</TableHead><TableHead className="text-right">Resultado</TableHead><TableHead /></TableRow></TableHeader><TableBody>{edicoes.map((item) => { const dados = metricas.get(item.id)!; const historicos = item as typeof item & { inscritos_historicos?: number | null; pagantes_historicos?: number | null; isentos_historicos?: number | null }; return <TableRow key={item.id}><TableCell><p className="font-medium">{item.nome}</p><Badge variant={item.publico ? "default" : "outline"}>{item.publico ? "Publicado" : "Interno"}</Badge></TableCell><TableCell>{item.inicio ?? "A definir"}{item.fim ? ` a ${item.fim}` : ""}</TableCell><TableCell className="text-right">{Number(historicos.inscritos_historicos ?? 0) + dados.matriculas.length}{historicos.inscritos_historicos != null && <p className="text-xs text-muted-foreground">{historicos.pagantes_historicos} pagantes · {historicos.isentos_historicos} isentos, históricos</p>}</TableCell><TableCell className="text-right">{formatBRL(dados.receitaPrevista)}</TableCell><TableCell className="text-right">{formatBRL(dados.receita)}</TableCell><TableCell className="text-right">{formatBRL(dados.custo)}</TableCell><TableCell className="text-right font-semibold">{formatBRL(dados.resultado)}</TableCell><TableCell><Button variant="ghost" size="sm" onClick={() => setEdicao(item)}><Pencil className="h-4 w-4" /><span className="sr-only">Editar {item.nome}</span></Button></TableCell></TableRow>; })}{edicoes.length === 0 && <TableRow><TableCell colSpan={8} className="py-10 text-center text-muted-foreground">Nenhuma edição cadastrada.</TableCell></TableRow>}</TableBody></Table></div></CardContent></Card>
-    {edicoes.map((item) => { const participantes = metricas.get(item.id)?.matriculas ?? []; return participantes.length > 0 && <Card key={`${item.id}-participantes`}><CardHeader><CardTitle className="text-base">Participantes — {item.nome}</CardTitle></CardHeader><CardContent><div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{participantes.map((i) => <div key={i.id} className="rounded-md border p-3"><p className="font-medium">{i.nome_completo}</p><p className="text-xs text-muted-foreground">{i.numero_inscricao} · {i.status}</p></div>)}</div></CardContent></Card>; })}
-    {edicoes.map((item) => <ItensSimposio key={`${item.id}-itens`} edicaoId={item.id} />)}
-    <Dialog open={Boolean(edicao)} onOpenChange={(aberto) => !aberto && setEdicao(null)}><DialogContent><DialogHeader><DialogTitle>{edicao === "nova" ? "Nova edição" : "Editar edição"}</DialogTitle></DialogHeader><form onSubmit={salvar} className="space-y-4"><div className="space-y-1"><Label htmlFor="simposio-nome">Nome</Label><Input id="simposio-nome" name="nome" defaultValue={atual?.nome ?? ""} required /></div><div className="grid gap-4 sm:grid-cols-2"><div className="space-y-1"><Label htmlFor="simposio-inicio">Início</Label><Input id="simposio-inicio" name="inicio" type="date" defaultValue={atual?.inicio ?? ""} /></div><div className="space-y-1"><Label htmlFor="simposio-fim">Fim</Label><Input id="simposio-fim" name="fim" type="date" defaultValue={atual?.fim ?? ""} /></div></div><div className="space-y-1"><Label htmlFor="simposio-valor">Valor oficial</Label><Input id="simposio-valor" name="valor" type="number" min="0.01" step="0.01" defaultValue={atual?.valor ?? ""} required /></div><ToggleField id="simposio-ativo" name="ativo" label="Edição ativa" defaultChecked={atual?.ativo ?? true} /><ToggleField id="simposio-publico" name="publico" label="Disponível no formulário público" defaultChecked={atual?.publico ?? false} /><div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setEdicao(null)}>Cancelar</Button><Button disabled={salvarEdicao.isPending}>Salvar</Button></div></form></DialogContent></Dialog>
-  </div>;
+  return <section className="space-y-5">
+    <div className="flex justify-between gap-3"><div><h2 className="text-xl font-semibold">Edições do Simpósio</h2><p className="text-sm text-muted-foreground">Configuração, participação e inventário por edição.</p></div><Button onClick={() => setEdicao("nova")}>Nova edição</Button></div>
+    {error && <p className="text-destructive">Falha ao carregar edições.</p>}{isLoading && <p>Carregando...</p>}
+    {edicoes.map(e => {
+      const lista = inscricoes.filter(i => i.edicao_simposio_id === e.id);
+      const analise = lista.filter(i => ["em_analise", "comprovante_enviado", "pagamento_nao_identificado"].includes(i.status)).length;
+      const confirmados = lista.filter(i => i.status === "confirmada").length;
+      return <Card key={e.id}><CardHeader><CardTitle className="flex justify-between gap-2 text-lg">{e.nome}<span className="flex gap-2"><Badge variant={e.ativo ? "default" : "outline"}>{e.ativo ? "Ativa" : "Inativa"}</Badge><Badge variant={e.publico ? "default" : "outline"}>{e.publico ? "Publicada" : "Interna"}</Badge></span></CardTitle></CardHeader><CardContent className="space-y-3 text-sm">
+        <p>Período: {e.inicio ?? "Desconhecido"}{e.fim ? ` a ${e.fim}` : ""} · Preço único: <strong>{preco(e.valor)}</strong></p>
+        <div className="grid gap-2 sm:grid-cols-3"><div className="rounded border p-3"><strong>{e.inscritos_historicos ?? "—"}</strong><p>Inscritos históricos agregados</p><small>{e.pagantes_historicos ?? "—"} pagantes · {e.isentos_historicos ?? "—"} isentos</small></div><div className="rounded border p-3"><strong>{analise}</strong><p>Inscrições em análise identificadas</p></div><div className="rounded border p-3"><strong>{confirmados}</strong><p>Participantes confirmados identificados</p></div></div>
+        <div className="flex flex-wrap gap-2"><Button variant="outline" onClick={() => setEdicao(e)}>Configurar</Button><Button asChild variant="outline"><Link to={`/painel/simposios/${e.id}/operacao`}>Abrir operação</Link></Button><Button variant="outline" onClick={() => setAberta(aberta === e.id ? null : e.id)}>{aberta === e.id ? "Fechar lista" : "Ver inscrições"}</Button></div>
+        {aberta === e.id && <div className="space-y-2 border-t pt-3">{lista.length ? lista.map(i => <div key={i.id} className="flex justify-between rounded border p-2"><span>{i.nome_completo} · {i.numero_inscricao} · {i.status}</span><Link className="underline" to={`/painel/inscricoes?id=${i.id}`}>Abrir ficha</Link></div>) : <p>Sem inscrições individuais. Os totais históricos não têm lista nominal.</p>}</div>}
+      </CardContent></Card>;
+    })}
+    <Dialog open={!!edicao} onOpenChange={v => !v && setEdicao(null)}><DialogContent><DialogHeader><DialogTitle>{edicao === "nova" ? "Nova edição" : "Configurar edição"}</DialogTitle></DialogHeader><form key={atual?.id ?? "nova"} onSubmit={salvar} className="space-y-3">
+      <Label>Nome<Input name="nome" defaultValue={atual?.nome ?? ""} required /></Label><div className="grid grid-cols-2 gap-3"><Label>Início<Input name="inicio" type="date" defaultValue={atual?.inicio ?? ""} /></Label><Label>Fim<Input name="fim" type="date" defaultValue={atual?.fim ?? ""} /></Label></div>
+      <Label>Preço único<Input name="valor" type="number" min="0" step="0.01" defaultValue={atual?.valor ?? ""} /></Label>
+      <Toggle name="ativo" label="Edição ativa" checked={atual?.ativo ?? true} /><Toggle name="publico" label="Publicado no Site" checked={atual?.publico ?? false} />
+      <Button disabled={salvarEdicao.isPending}>Salvar</Button>
+    </form></DialogContent></Dialog>
+  </section>;
 };
-
-const ToggleField = ({ id, name, label, defaultChecked }: { id: string; name: string; label: string; defaultChecked: boolean }) => <div className="flex items-center justify-between rounded-md border p-3"><Label htmlFor={id}>{label}</Label><Switch id={id} name={name} defaultChecked={defaultChecked} /></div>;
-const Carregando = () => <div className="flex min-h-[40vh] items-center justify-center"><Loader2 className="h-7 w-7 animate-spin text-primary" /></div>;

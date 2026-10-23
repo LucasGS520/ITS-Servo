@@ -522,6 +522,10 @@ export type Database = {
           edicao_id: string
           id: string
           origem_referencia: string | null
+          quantidade: number | null
+          unidade_medida: string | null
+          data_recebimento: string | null
+          situacao_doacao: string | null
           tipo: string
           valor: number | null
         }
@@ -533,6 +537,10 @@ export type Database = {
           edicao_id: string
           id?: string
           origem_referencia?: string | null
+          quantidade?: number | null
+          unidade_medida?: string | null
+          data_recebimento?: string | null
+          situacao_doacao?: string | null
           tipo: string
           valor?: number | null
         }
@@ -544,6 +552,10 @@ export type Database = {
           edicao_id?: string
           id?: string
           origem_referencia?: string | null
+          quantidade?: number | null
+          unidade_medida?: string | null
+          data_recebimento?: string | null
+          situacao_doacao?: string | null
           tipo?: string
           valor?: number | null
         }

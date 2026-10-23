@@ -64,13 +64,9 @@ export async function solicitarCancelamentoPublico(client: SupabaseClient, numer
   if (error) await comMensagemDoServidor(error);
 }
 
-export interface DestinoPublico {
-  id: string;
-  tipo: "curso" | "simposio";
-  codigo?: "teologico" | "capacitacao_obreiros";
-  nome: string;
-  valor: number | null;
-}
+export type DestinoPublico =
+  | { id: string; tipo: "curso"; codigo: "teologico" | "capacitacao_obreiros"; nome: string; taxa_matricula: number; mensalidade_referencia: number }
+  | { id: string; tipo: "simposio"; nome: string; valor: number | null };
 
 export interface NucleoPublico {
   slug: string;
@@ -88,14 +84,15 @@ export async function listarNucleosPublicos(client: SupabaseClient): Promise<Nuc
 /** Catálogo mínimo e seguro para o Site: só devolve cursos e edições publicados. */
 export async function listarDestinosPublicos(client: SupabaseClient): Promise<DestinoPublico[]> {
   const [cursos, edicoes] = await Promise.all([
-    client.from("cursos").select("id,codigo,nome,valor").eq("ativo", true).eq("publico", true),
+    client.from("cursos").select("id,codigo,nome,taxa_matricula,mensalidade_referencia").eq("ativo", true).eq("publico", true),
     client.from("edicoes_simposio").select("id,nome,valor").eq("ativo", true).eq("publico", true),
   ]);
   if (cursos.error) throw cursos.error;
   if (edicoes.error) throw edicoes.error;
   return [
-    ...(cursos.data ?? []).map((curso) => ({
-      id: curso.id, tipo: "curso" as const, codigo: curso.codigo as DestinoPublico["codigo"], nome: curso.nome, valor: curso.valor,
+    ...(cursos.data ?? []).filter((curso) => curso.taxa_matricula != null && curso.mensalidade_referencia != null).map((curso) => ({
+      id: curso.id, tipo: "curso" as const, codigo: curso.codigo as "teologico" | "capacitacao_obreiros",
+      nome: curso.nome, taxa_matricula: Number(curso.taxa_matricula), mensalidade_referencia: Number(curso.mensalidade_referencia),
     })),
     ...(edicoes.data ?? []).map((edicao) => ({ id: edicao.id, tipo: "simposio" as const, nome: edicao.nome, valor: edicao.valor })),
   ];

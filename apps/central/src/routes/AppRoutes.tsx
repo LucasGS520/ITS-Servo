@@ -13,6 +13,7 @@ const InscricoesPage = lazy(() => import("@/modules/matriculas/gestao").then((mo
 const FinanceiroPage = lazy(() => import("@/modules/financeiro/gestao").then((modulo) => ({ default: modulo.FinanceiroPage })));
 const DashboardPage = lazy(() => import("@/modules/dashboard/gestao").then((modulo) => ({ default: modulo.DashboardPage })));
 const InstitutoPage = lazy(() => import("@/modules/instituto/gestao").then((modulo) => ({ default: modulo.InstitutoPage })));
+const OperacaoSimposioPage = lazy(() => import("@/modules/atividades/gestao/pages/OperacaoSimposioPage"));
 const RelatoriosPage = lazy(() => import("@/modules/relatorios/gestao").then((modulo) => ({ default: modulo.RelatoriosPage })));
 
 const CarregandoRota = () => <div className="flex min-h-[40vh] items-center justify-center"><Loader2 className="h-7 w-7 animate-spin text-primary" /><span className="sr-only">Carregando</span></div>;
@@ -31,6 +32,7 @@ const AppRoutes = () => <Suspense fallback={<CarregandoRota />}><Routes>
     <Route path="atendimento" element={<Navigate to="/painel/inscricoes" replace />} />
     <Route path="financeiro" element={<FinanceiroPage />} />
     <Route path="instituto" element={<InstitutoPage />} />
+    <Route path="simposios/:edicaoId/operacao" element={<OperacaoSimposioPage />} />
     <Route path="relatorios" element={<RelatoriosPage />} />
   </Route>
 
