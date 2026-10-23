@@ -8,6 +8,8 @@ import { useCursos } from "@/modules/atividades/api";
 import { UNIDADE_LABELS, UNIDADES_FINANCEIRO } from "@/modules/financeiro/model/unidades";
 import { totais } from "@/modules/relatorios/model/financeiro";
 import { useEnderecoRelatorios } from "@/modules/relatorios/api/useEnderecoRelatorios";
+import { useNucleos } from "@/modules/instituto/api";
+import { enderecoRelatorio } from "../lib/enderecoRelatorio";
 import ReportView from "./ReportView";
 import type { DocumentoRelatorio } from "../lib/imprimirRelatorio";
 
@@ -19,15 +21,15 @@ export default function CursosRelatorio() {
   const [cursoId, setCursoId] = useState("");
   const [ano, setAno] = useState(String(new Date().getFullYear()));
   const [nucleo, setNucleo] = useState("todos");
-  const cursosQ = useCursos(), alunosQ = useAlunos(), movQ = useLancamentos(), enderecoQ = useEnderecoRelatorios();
-  const consultas = [cursosQ, alunosQ, movQ, enderecoQ];
+  const cursosQ = useCursos(), alunosQ = useAlunos(), movQ = useLancamentos(), enderecoQ = useEnderecoRelatorios(), nucleosQ = useNucleos();
+  const consultas = [cursosQ, alunosQ, movQ, enderecoQ, nucleosQ];
   const alunoDoLink = (alunosQ.data ?? []).find(a => a.id === params.get("aluno"));
   const curso = (cursosQ.data ?? []).find(c => c.id === (cursoId || params.get("curso") || alunoDoLink?.curso_id)) ?? cursosQ.data?.[0];
   const lista = (alunosQ.data ?? []).filter(a => a.curso_id === curso?.id && (nucleo === "todos" || a.unidade === nucleo));
   const movimentos = (movQ.data ?? []).filter(l => l.curso_id === curso?.id && l.mes_caixa.slice(0, 4) === ano && (nucleo === "todos" || l.unidade === nucleo));
   const t = totais(movimentos);
   const agregado = movimentos.filter(l => l.tipo === "entrada" && !l.aluno_id && !l.inscricao_id).reduce((s, l) => s + Number(l.valor), 0);
-  const doc: DocumentoRelatorio | null = curso ? { titulo: `Relatório do curso · ${curso.nome}`, periodo: `${ano}${nucleo === "todos" ? "" : ` · ${UNIDADE_LABELS[nucleo] ?? nucleo}`}`, endereco: enderecoQ.data ?? "",
+  const doc: DocumentoRelatorio | null = curso ? { titulo: `Relatório do curso · ${curso.nome}${nucleo === "todos" ? "" : ` · ${UNIDADE_LABELS[nucleo] ?? nucleo}`}`, periodo: ano, endereco: enderecoRelatorio(nucleo === "todos" ? null : nucleo, enderecoQ.data ?? "", nucleosQ.data ?? []), enderecoEm: nucleo !== "todos" && nucleo !== "correspondencia" && nucleo !== "sede_jd_santa_monica" ? "nucleo" : "sede",
     colunas: ["Aluno identificado", "Núcleo atual", "Situação atual", "Recebido no ano", "Devolvido no ano"],
     linhas: lista.map(a => { const m = movimentos.filter(l => l.aluno_id === a.id || Boolean(a.inscricao_id && l.inscricao_id === a.inscricao_id)); return [a.nome, UNIDADE_LABELS[a.unidade] ?? a.unidade, SITUACAO[a.situacao] ?? a.situacao, moeda(m.filter(l => l.tipo === "entrada").reduce((s, l) => s + Number(l.valor), 0)), moeda(m.filter(l => l.tipo === "saida" && !!l.estorno_de_id).reduce((s, l) => s + Number(l.valor), 0))]; }),
     resumo: [{ rotulo: "Alunos no cadastro", valor: String(lista.length) }, { rotulo: "Entradas vinculadas", valor: moeda(t.entradas) }, { rotulo: "Saídas vinculadas", valor: moeda(t.saidas) }, { rotulo: "Resultado", valor: moeda(t.resultado) }, { rotulo: "Entradas sem aluno ou inscrição identificada", valor: moeda(agregado) }],

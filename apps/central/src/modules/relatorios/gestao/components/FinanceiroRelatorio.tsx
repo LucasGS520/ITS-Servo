@@ -5,26 +5,28 @@ import { useLancamentos, usePendenciasConciliacao, useSaldosIniciais } from "@/m
 import { UNIDADE_LABELS, UNIDADES_FINANCEIRO } from "@/modules/financeiro/model/unidades";
 import { useCursos, useEdicoesSimposio } from "@/modules/atividades/api";
 import { useEnderecoRelatorios } from "@/modules/relatorios/api/useEnderecoRelatorios";
+import { useNucleos } from "@/modules/instituto/api";
+import { enderecoRelatorio } from "../lib/enderecoRelatorio";
 import { mesLocal, relatorioAnual, relatorioGeralMensal, relatorioNucleoMensal } from "@/modules/relatorios/model/financeiro";
 import type { DocumentoRelatorio } from "../lib/imprimirRelatorio";
 import ReportView from "./ReportView";
 
 const moeda = (v: number) => formatBRL(v);
-const historico = "O período inclui dados provisórios ou com dia desconhecido. Confira a origem dos movimentos na área Financeiro.";
+const historico = "Há movimentos importados neste período com dia desconhecido ou conciliação pendente. Consulte a origem em Financeiro → Movimentações.";
 
 export default function FinanceiroRelatorio() {
   const [tipo, setTipo] = useState<"geral" | "nucleo" | "anual">("geral");
   const [mes, setMes] = useState(mesLocal());
   const [ano, setAno] = useState(String(new Date().getFullYear()));
   const [unidade, setUnidade] = useState(UNIDADES_FINANCEIRO[0]?.value ?? "");
-  const movQ = useLancamentos(), saldosQ = useSaldosIniciais(), cursosQ = useCursos(), edicoesQ = useEdicoesSimposio(), pendenciasQ = usePendenciasConciliacao(), enderecoQ = useEnderecoRelatorios();
-  const consultas = [movQ, saldosQ, cursosQ, edicoesQ, pendenciasQ, enderecoQ];
+  const movQ = useLancamentos(), saldosQ = useSaldosIniciais(), cursosQ = useCursos(), edicoesQ = useEdicoesSimposio(), pendenciasQ = usePendenciasConciliacao(), enderecoQ = useEnderecoRelatorios(), nucleosQ = useNucleos();
+  const consultas = [movQ, saldosQ, cursosQ, edicoesQ, pendenciasQ, enderecoQ, nucleosQ];
   const movimentos = movQ.data ?? [], saldos = saldosQ.data ?? [], endereco = enderecoQ.data ?? "";
   let documento: DocumentoRelatorio;
 
   if (tipo === "nucleo") {
     const r = relatorioNucleoMensal(movimentos, mes, unidade);
-    documento = { titulo: `Relatório financeiro por núcleo · ${UNIDADE_LABELS[unidade] ?? unidade}`, periodo: mes, endereco, financeiro: true,
+    documento = { titulo: `Relatório financeiro por núcleo · ${UNIDADE_LABELS[unidade] ?? unidade}`, periodo: mes, endereco: enderecoRelatorio(unidade, endereco, nucleosQ.data ?? []), enderecoEm: unidade === "correspondencia" || unidade === "sede_jd_santa_monica" ? "sede" : "nucleo", financeiro: true,
       colunas: ["Data", "Aluno / histórico", "Entrada", "Saída", "Saldo do mês"],
       linhas: r.linhas.map(l => [l.data, l.nome, l.entrada ? moeda(l.entrada) : "—", l.saida ? moeda(l.saida) : "—", moeda(l.saldo)]),
       resumo: [{ rotulo: "Entrada do mês", valor: moeda(r.entradas) }, { rotulo: "Saída do mês", valor: moeda(r.saidas) }, { rotulo: "Resultado do núcleo no mês", valor: moeda(r.resultado) }],
@@ -35,14 +37,14 @@ export default function FinanceiroRelatorio() {
       colunas: ["Mês", "Entrada", "Saída", "Resultado", "Saldo anterior", "Saldo final"],
       linhas: r.meses.map(m => [m.mes, moeda(m.entradas), moeda(m.saidas), moeda(m.resultado), moeda(m.anterior), moeda(m.saldo)]),
       resumo: [{ rotulo: "Entradas no ano", valor: moeda(r.entradas) }, { rotulo: "Saídas no ano", valor: moeda(r.saidas) }, { rotulo: "Saldo anterior ao ano", valor: moeda(r.anterior) }, { rotulo: "Saldo final", valor: moeda(r.saldoFinal) }],
-      observacoes: [...(r.movimentos.some(l => l.conciliacao_status !== "conciliado" || l.precisao_data === "mes") ? [historico] : []), ...(pendenciasQ.data ?? []).some(p => p.status === "aberta" && p.chave.includes(ano)) ? ["Há pendências de conciliação abertas para este ano."] : []] };
+      observacoes: [...(r.movimentos.some(l => l.conciliacao_status !== "conciliado" || l.precisao_data === "mes") ? [historico] : []), ...(pendenciasQ.data ?? []).some(p => p.status === "aberta" && p.chave.includes(ano)) ? ["Há diferenças históricas ainda em conciliação neste ano. Elas permanecem registradas e não geram lançamentos de ajuste automáticos."] : []] };
   } else {
     const r = relatorioGeralMensal(movimentos, mes, saldos, cursosQ.data ?? [], edicoesQ.data ?? []);
     documento = { titulo: "Relatório financeiro geral", periodo: mes, endereco, financeiro: true,
       colunas: ["Histórico", "Entrada", "Saída", "Resultado da linha"],
       linhas: r.grupos.map(g => [g.nome, g.entradas ? moeda(g.entradas) : "—", g.saidas ? moeda(g.saidas) : "—", moeda(g.resultado)]),
       resumo: [{ rotulo: "Entrada do mês", valor: moeda(r.entradas) }, { rotulo: "Saída do mês", valor: moeda(r.saidas) }, { rotulo: "Resultado do mês", valor: moeda(r.resultado) }, { rotulo: "Saldo anterior", valor: moeda(r.anterior) }, { rotulo: "Saldo final", valor: moeda(r.saldoFinal) }],
-      observacoes: [...(r.movimentos.some(l => l.conciliacao_status !== "conciliado" || l.precisao_data === "mes") ? [historico] : []), ...(pendenciasQ.data ?? []).some(p => p.status === "aberta" && p.chave.includes(mes.slice(0, 4))) ? ["Há pendências de conciliação abertas para este ano."] : []] };
+      observacoes: r.movimentos.some(l => l.conciliacao_status !== "conciliado" || l.precisao_data === "mes") ? [historico] : [] };
   }
 
   return <div className="space-y-5"><div className="flex flex-wrap gap-3">

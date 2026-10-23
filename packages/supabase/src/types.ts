@@ -712,6 +712,7 @@ export type Database = {
           ativo: boolean
           cidade: string
           created_at: string
+          endereco: string | null
           id: string
           nome: string
           slug: string
@@ -722,6 +723,7 @@ export type Database = {
           ativo?: boolean
           cidade: string
           created_at?: string
+          endereco?: string | null
           id?: string
           nome: string
           slug: string
@@ -732,6 +734,7 @@ export type Database = {
           ativo?: boolean
           cidade?: string
           created_at?: string
+          endereco?: string | null
           id?: string
           nome?: string
           slug?: string

@@ -10,6 +10,7 @@ import { totais } from "@/modules/relatorios/model/financeiro";
 import { useIsencoesRelatorios } from "@/modules/relatorios/api/useIsencoesRelatorios";
 import ReportView from "./ReportView";
 import type { DocumentoRelatorio } from "../lib/imprimirRelatorio";
+import { formatarReferencia } from "../lib/imprimirRelatorio";
 
 const STATUS: Record<string, string> = { em_analise: "Em análise", comprovante_enviado: "Comprovante enviado", pagamento_nao_identificado: "Pagamento não identificado", confirmada: "Confirmada", cancelado: "Cancelada" };
 const moeda = (v: number) => formatBRL(v);
@@ -25,7 +26,9 @@ export default function SimposiosRelatorio() {
   const t = totais(movimentos);
   const isentos = (isencoesQ.data ?? []).filter(i => i.ativo && i.finalidade === "inscricao_evento" && inscricoes.some(ins => ins.id === i.inscricao_id)).length;
   const pendencia = !!edicao?.origem_referencia && (pendenciasQ.data ?? []).some(p => p.status === "aberta" && p.chave.startsWith("simposio2026"));
-  const doc: DocumentoRelatorio | null = edicao ? { titulo: `Relatório do Simpósio · ${edicao.nome}`, periodo: edicao.inicio && edicao.fim ? `${edicao.inicio} a ${edicao.fim}` : "Edição completa", endereco: enderecoQ.data ?? "",
+  const inicioMes = edicao?.inicio?.slice(0, 7), fimMes = edicao?.fim?.slice(0, 7);
+  const periodo = inicioMes ? (fimMes && fimMes !== inicioMes ? `${formatarReferencia(inicioMes)} a ${formatarReferencia(fimMes)}` : inicioMes) : "Edição completa";
+  const doc: DocumentoRelatorio | null = edicao ? { titulo: `Relatório do Simpósio · ${edicao.nome}`, periodo, endereco: enderecoQ.data ?? "", enderecoEm: "sede",
     colunas: ["Participante identificado", "Inscrição", "Situação", "Recebido", "Devolvido"],
     linhas: inscricoes.map(i => { const m = movimentos.filter(l => l.inscricao_id === i.id); return [i.nome_completo, i.numero_inscricao ?? "—", STATUS[i.status] ?? i.status, moeda(m.filter(l => l.tipo === "entrada").reduce((s, l) => s + Number(l.valor), 0)), moeda(m.filter(l => l.tipo === "saida" && !!l.estorno_de_id).reduce((s, l) => s + Number(l.valor), 0))]; }),
     resumo: [{ rotulo: "Inscritos históricos agregados", valor: String(edicao.inscritos_historicos ?? "—") }, { rotulo: "Pagantes históricos agregados", valor: String(edicao.pagantes_historicos ?? "—") }, { rotulo: "Isentos históricos agregados", valor: String(edicao.isentos_historicos ?? "—") }, { rotulo: "Inscrições identificadas", valor: String(inscricoes.filter(i => i.status !== "cancelado").length) }, { rotulo: "Confirmados identificados", valor: String(inscricoes.filter(i => i.status === "confirmada").length) }, { rotulo: "Isenções identificadas", valor: String(isentos) }, { rotulo: "Entradas vinculadas", valor: moeda(t.entradas) }, { rotulo: "Saídas vinculadas", valor: moeda(t.saidas) }, { rotulo: "Resultado do caixa", valor: moeda(t.resultado) }],
