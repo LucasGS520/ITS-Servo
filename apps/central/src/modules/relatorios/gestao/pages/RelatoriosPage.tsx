@@ -15,7 +15,9 @@ const Impressao = () => <Button className="print:hidden" variant="outline" size=
 
 const InscricoesRelatorio = () => {
   const { data = [] } = useMatriculas();
-  return <Card><CardContent className="overflow-x-auto p-0"><Table><TableHeader><TableRow><TableHead>Inscrição</TableHead><TableHead>Nome</TableHead><TableHead>Atividade</TableHead><TableHead>Situação</TableHead><TableHead>Origem</TableHead></TableRow></TableHeader><TableBody>{data.map((i) => <TableRow key={i.id}><TableCell>{i.numero_inscricao}</TableCell><TableCell>{i.nome_completo}</TableCell><TableCell>{i.destino === "simposio" ? "Simpósio" : "Curso"}</TableCell><TableCell>{i.status}</TableCell><TableCell>{i.origem_cadastro}</TableCell></TableRow>)}</TableBody></Table></CardContent></Card>;
+  const { data: cursos = [] } = useCursos();
+  const { data: edicoes = [] } = useEdicoesSimposio();
+  return <Card><CardContent className="overflow-x-auto p-0"><Table><TableHeader><TableRow><TableHead>Inscrição</TableHead><TableHead>Nome</TableHead><TableHead>Atividade</TableHead><TableHead>Situação</TableHead><TableHead>Origem</TableHead></TableRow></TableHeader><TableBody>{data.map((i) => <TableRow key={i.id}><TableCell>{i.numero_inscricao}</TableCell><TableCell>{i.nome_completo}</TableCell><TableCell>{i.curso_id ? cursos.find((curso) => curso.id === i.curso_id)?.nome ?? "Curso" : edicoes.find((edicao) => edicao.id === i.edicao_simposio_id)?.nome ?? "Simpósio"}</TableCell><TableCell>{i.status}</TableCell><TableCell>{i.origem_cadastro}</TableCell></TableRow>)}</TableBody></Table></CardContent></Card>;
 };
 
 const AlunosRelatorio = () => {

@@ -203,10 +203,10 @@ import PageHero from '../components/PageHero.astro';
     btn.textContent = 'Enviando…';
     try {
       const supabase = createBrowserClient(url, key);
-      const { numero_inscricao, token } = await solicitarInscricao(supabase, dto);
+      const { numero_inscricao } = await solicitarInscricao(supabase, dto);
       // Token no fragment (#): não vaza em Referer nem em logs de servidor.
       // A Central apresenta o estado e recebe comprovante opcional.
-      window.location.href = `${centralUrl}/inscricao/pagamento/${numero_inscricao}#token=${encodeURIComponent(token)}`;
+      window.location.href = `${centralUrl}/consulta#numero=${encodeURIComponent(numero_inscricao)}`;
     } catch (err: any) {
       msg.textContent = 'Não foi possível concluir: ' + (err?.message ?? 'tente novamente.');
     } finally {

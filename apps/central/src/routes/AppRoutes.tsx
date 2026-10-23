@@ -9,7 +9,7 @@ import { RequireGestaoAccess } from "@/modules/acesso/gestao";
 const LoginPage = lazy(() => import("@/modules/acesso/gestao").then((modulo) => ({ default: modulo.LoginPage })));
 const ConsultaInscricaoPage = lazy(() => import("@/modules/matriculas/autosservico").then((modulo) => ({ default: modulo.ConsultaInscricaoPage })));
 const PagamentoPage = lazy(() => import("@/modules/matriculas/autosservico").then((modulo) => ({ default: modulo.PagamentoPage })));
-const AtendimentoPage = lazy(() => import("@/modules/matriculas/gestao").then((modulo) => ({ default: modulo.MatriculasPage })));
+const InscricoesPage = lazy(() => import("@/modules/matriculas/gestao").then((modulo) => ({ default: modulo.MatriculasPage })));
 const FinanceiroPage = lazy(() => import("@/modules/financeiro/gestao").then((modulo) => ({ default: modulo.FinanceiroPage })));
 const DashboardPage = lazy(() => import("@/modules/dashboard/gestao").then((modulo) => ({ default: modulo.DashboardPage })));
 const InstitutoPage = lazy(() => import("@/modules/instituto/gestao").then((modulo) => ({ default: modulo.InstitutoPage })));
@@ -27,7 +27,8 @@ const AppRoutes = () => <Suspense fallback={<CarregandoRota />}><Routes>
   <Route path="/painel/login" element={<LoginPage />} />
   <Route path="/painel" element={<RequireGestaoAccess><GestaoLayout /></RequireGestaoAccess>}>
     <Route index element={<DashboardPage />} />
-    <Route path="atendimento" element={<AtendimentoPage />} />
+    <Route path="inscricoes" element={<InscricoesPage />} />
+    <Route path="atendimento" element={<Navigate to="/painel/inscricoes" replace />} />
     <Route path="financeiro" element={<FinanceiroPage />} />
     <Route path="instituto" element={<InstitutoPage />} />
     <Route path="relatorios" element={<RelatoriosPage />} />

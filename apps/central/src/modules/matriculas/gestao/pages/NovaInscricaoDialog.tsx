@@ -10,7 +10,7 @@ import { useCursos, useEdicoesSimposio } from "@/modules/atividades/api";
 import { useNucleos } from "@/modules/instituto/api";
 import { criarInscricaoInterna, MATRICULAS_KEY } from "@/modules/matriculas/api";
 
-export const NovaInscricaoDialog = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
+export const NovaInscricaoDialog = ({ open, onClose, onCreated }: { open: boolean; onClose: () => void; onCreated?: (id: string) => void }) => {
   const { toast } = useToast();
   const client = useQueryClient();
   const { data: cursos = [] } = useCursos();
@@ -27,7 +27,7 @@ export const NovaInscricaoDialog = ({ open, onClose }: { open: boolean; onClose:
     if (!id) { toast({ title: "Selecione a atividade", variant: "destructive" }); return; }
     setSalvando(true);
     try {
-      await criarInscricaoInterna({
+      const inscricaoId = await criarInscricaoInterna({
         nome: String(form.get("nome") ?? "").trim(), cpf: String(form.get("cpf") ?? ""),
         telefone: String(form.get("telefone") ?? ""), email: String(form.get("email") ?? ""),
         nascimento: String(form.get("nascimento") ?? ""), escolaridade: String(form.get("escolaridade") ?? ""),
@@ -35,7 +35,9 @@ export const NovaInscricaoDialog = ({ open, onClose }: { open: boolean; onClose:
         cursoId: tipo === "curso" ? id : null, edicaoId: tipo === "simposio" ? id : null,
       });
       await client.invalidateQueries({ queryKey: MATRICULAS_KEY });
-      toast({ title: "Inscrição registrada para análise" }); onClose();
+      toast({ title: "Inscrição registrada para análise" });
+      setAtividade(""); setModalidade("presencial");
+      if (onCreated) onCreated(inscricaoId); else onClose();
     } catch (error) { toast({ title: "Não foi possível criar", description: getErrorMessage(error), variant: "destructive" }); }
     finally { setSalvando(false); }
   };

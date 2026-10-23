@@ -3,7 +3,7 @@
  *
  * - `createBrowserClient(url, anonKey)` — fábrica do client (cada app passa seu env).
  * - Contrato público de inscrição Site → Central:
- *     solicitarInscricao, buscarInscricao, cancelarInscricao, enviarComprovante.
+ *     solicitarInscricao, consultarInscricoesPublicas, solicitarCancelamentoPublico, enviarComprovante.
  *
  * Regra de ouro: nenhum acesso público fala com a tabela diretamente. Consultas
  * administrativas autenticadas são protegidas por RLS.
@@ -17,12 +17,14 @@ export {
   solicitarInscricao,
   criarInscricao,
   buscarInscricao,
-  cancelarInscricao,
   enviarComprovante,
+  consultarInscricoesPublicas,
+  solicitarCancelamentoPublico,
   listarDestinosPublicos,
   listarNucleosPublicos,
   type InscricaoDTO,
   type InscricaoResumo,
+  type InscricaoPublica,
   type DestinoPublico,
   type NucleoPublico,
 } from "./contract.ts";

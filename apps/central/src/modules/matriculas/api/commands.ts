@@ -1,7 +1,9 @@
 ﻿import {
   buscarInscricao,
-  cancelarInscricao,
   enviarComprovante,
+  consultarInscricoesPublicas,
+  solicitarCancelamentoPublico,
+  type InscricaoPublica,
   type InscricaoResumo,
 } from "@its-servo/supabase";
 import { supabase } from "@/services/supabase/client";
@@ -15,8 +17,8 @@ const normalizarToken = (token: string) => token.trim();
 export const consultarInscricao = (numero: string, token: string) =>
   buscarInscricao(supabase, normalizarNumero(numero), normalizarToken(token));
 
-export const cancelarInscricaoAutosservico = (numero: string, token: string) =>
-  cancelarInscricao(supabase, normalizarNumero(numero), normalizarToken(token));
+export const consultarPublicamente = (identificador: string) => consultarInscricoesPublicas(supabase, identificador);
+export const solicitarCancelamento = (numero: string) => solicitarCancelamentoPublico(supabase, normalizarNumero(numero));
 
 export const enviarComprovanteInscricao = (
   numero: string,
@@ -46,12 +48,13 @@ export const atualizarDadosAtendimento = async ({
   const { error } = await rpc("atualizar_atendimento", {
     p_inscricao_id: inscricaoId, p_nome_completo: nomeCompleto, p_telefone: telefone,
     p_email: email, p_data_nascimento: dataNascimento, p_escolaridade: escolaridade,
-    p_motivo: "Correção via Atendimento",
+    p_motivo: "Correção via Inscrições",
   });
   if (error) throw error;
 };
 
 export type { InscricaoResumo };
+export type { InscricaoPublica };
 
 const itsRpc = supabase.rpc as unknown as (name: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: Error | null }>;
 
@@ -60,13 +63,14 @@ export async function criarInscricaoInterna(values: {
   escolaridade: string; modalidade: string; nucleo: string | null;
   cursoId: string | null; edicaoId: string | null;
 }) {
-  const { error } = await itsRpc("criar_inscricao_interna", {
+  const { data, error } = await itsRpc("criar_inscricao_interna", {
     p_nome: values.nome, p_cpf: values.cpf, p_telefone: values.telefone,
     p_email: values.email, p_nascimento: values.nascimento,
     p_escolaridade: values.escolaridade, p_modalidade: values.modalidade,
     p_nucleo: values.nucleo, p_curso_id: values.cursoId, p_edicao_id: values.edicaoId,
   });
   if (error) throw error;
+  return data as string;
 }
 
 export async function confirmarInscricaoIts(id: string, primeiraCompetencia: string | null, isento: boolean, motivo: string | null) {
@@ -79,5 +83,21 @@ export async function confirmarInscricaoIts(id: string, primeiraCompetencia: str
 
 export async function cancelarInscricaoInterna(id: string, motivo: string) {
   const { error } = await itsRpc("cancelar_inscricao_interna", { p_inscricao_id: id, p_motivo: motivo });
+  if (error) throw error;
+}
+
+export async function salvarIsencaoInscricao(id: string, finalidade: "matricula" | "mensalidade" | "inscricao_evento", mesReferencia: string | null, motivo: string, ativo: boolean) {
+  const { error } = await itsRpc("salvar_isencao_inscricao", { p_inscricao_id: id, p_finalidade: finalidade,
+    p_mes_referencia: mesReferencia ? `${mesReferencia}-01` : null, p_motivo: motivo, p_ativo: ativo });
+  if (error) throw error;
+}
+
+export async function marcarPagamentoNaoIdentificado(id: string, motivo: string) {
+  const { error } = await itsRpc("marcar_pagamento_nao_identificado_its", { p_inscricao_id: id, p_motivo: motivo });
+  if (error) throw error;
+}
+
+export async function resolverCancelamento(id: string, aprovar: boolean, motivo: string) {
+  const { error } = await itsRpc("resolver_cancelamento_inscricao", { p_solicitacao_id: id, p_aprovar: aprovar, p_motivo: motivo });
   if (error) throw error;
 }

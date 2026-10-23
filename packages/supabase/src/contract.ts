@@ -42,6 +42,28 @@ export interface InscricaoResumo {
   saldo_devedor: number | null;
 }
 
+export interface InscricaoPublica {
+  numero_inscricao: string;
+  atividade: string;
+  status: string;
+  cancelamento_pendente: boolean;
+}
+
+export async function consultarInscricoesPublicas(client: SupabaseClient, identificador: string): Promise<InscricaoPublica[]> {
+  const { data, error } = await client.functions.invoke("inscricoes-publicas", {
+    body: { acao: "buscar", identificador: identificador.trim() },
+  });
+  if (error) await comMensagemDoServidor(error);
+  return (data as { inscricoes: InscricaoPublica[] }).inscricoes;
+}
+
+export async function solicitarCancelamentoPublico(client: SupabaseClient, numero: string): Promise<void> {
+  const { error } = await client.functions.invoke("inscricoes-publicas", {
+    body: { acao: "solicitar_cancelamento", numero },
+  });
+  if (error) await comMensagemDoServidor(error);
+}
+
 export interface DestinoPublico {
   id: string;
   tipo: "curso" | "simposio";
@@ -124,21 +146,10 @@ export async function buscarInscricao(
   return rows.length ? rows[0] : null;
 }
 
-/** Autosserviço → cancela a própria inscrição pendente mediante token (RPC). */
-export async function cancelarInscricao(
-  client: SupabaseClient,
-  numero: string,
-  token: string,
-): Promise<boolean> {
-  const { data, error } = await client.rpc("cancelar_inscricao", { p_numero: numero, p_token: token });
-  if (error) throw error;
-  return data === true;
-}
-
 /** Autosserviço → envia comprovante (upload em bucket privado via edge). */
 export async function enviarComprovante(
   client: SupabaseClient,
-  params: { numero: string; token: string; file: File },
+  params: { numero: string; token?: string; file: File },
 ): Promise<void> {
   const file_base64 = await fileToBase64(params.file);
   const { error } = await client.functions.invoke("enviar-comprovante", {

@@ -1,18 +1,20 @@
 /**
  * Edge function — enviar-comprovante  (CONTRATO: autosserviço, pós-inscrição)
  *
- * Recebe o comprovante (base64) + token de posse, valida, sobe para o bucket
+ * Recebe o comprovante (base64) e número, com token opcional para links antigos,
+ * valida, sobe para o bucket
  * privado e delega a atualização da inscrição a uma RPC
  * transacional. Se a RPC falhar, remove o objeto recém-enviado.
  *
- * POST { numero, token, file_base64, filename, content_type }
- * → 200 { success: true, status: "comprovante_enviado" }
+ * POST { numero, token?, file_base64, content_type }
+ * → 200 { success: true }
  *
  */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { json } from "../_shared/cors.ts";
 import { adminClient } from "../_shared/admin.ts";
 import { sha256Hex } from "../_shared/token.ts";
+import { limitarInteracaoInscricao } from "../_shared/inscricao-rate.ts";
 
 const MAX_BYTES = 5 * 1024 * 1024;
 // A extensão do objeto vem SEMPRE daqui (content_type validado), nunca do
@@ -58,8 +60,11 @@ serve(async (req) => {
 
   try {
     const { numero, token, file_base64, content_type } = await req.json();
-    if (!numero || !token || typeof file_base64 !== "string" || !file_base64) {
+    if (!numero || typeof file_base64 !== "string" || !file_base64) {
       return json({ error: "Dados incompletos." }, 400, origin);
+    }
+    if (!/^ITS\d{4}-\d{4,}$/.test(String(numero).trim().toUpperCase())) {
+      return json({ error: "Número inválido." }, 400, origin);
     }
     if (!(content_type in ALLOWED)) return json({ error: "Formato inválido. Use JPG, PNG, WebP ou PDF." }, 400, origin);
 
@@ -77,20 +82,25 @@ serve(async (req) => {
     }
 
     const admin = adminClient();
+    if (!token && !await limitarInteracaoInscricao(admin, req, "comprovante", 5)) {
+      return json({ error: "Limite de envios atingido." }, 429, origin);
+    }
 
     // A RPC compara este hash com o persistido e registra apenas a evidência.
-    const hash = await sha256Hex(token);
-    const path = `${numero}/${Date.now()}.${ALLOWED[content_type]}`;
+    const hash = token ? await sha256Hex(token) : null;
+    const path = `${String(numero).trim().toUpperCase()}/${crypto.randomUUID()}.${ALLOWED[content_type]}`;
     const { error: upErr } = await admin.storage
       .from("comprovantes")
       .upload(path, bytes, { contentType: content_type, upsert: false });
     if (upErr) throw upErr;
 
-    const { error: registroErr } = await admin.rpc("registrar_comprovante_operacional", {
-      p_numero: numero,
-      p_token_hash: hash,
-      p_comprovante_path: path,
-    });
+    const { error: registroErr } = hash
+      ? await admin.rpc("registrar_comprovante_operacional", {
+        p_numero: numero, p_token_hash: hash, p_comprovante_path: path,
+      })
+      : await admin.rpc("registrar_comprovante_publico_its", {
+        p_numero: String(numero).trim().toUpperCase(), p_comprovante_path: path,
+      });
     if (registroErr) {
       const { error: cleanupErr } = await admin.storage.from("comprovantes").remove([path]);
       if (cleanupErr) console.error("enviar-comprovante: falha ao remover upload órfão:", cleanupErr);
@@ -99,7 +109,7 @@ serve(async (req) => {
       return json({ error: registroErr.message }, negado ? 403 : conflito ? 409 : 500, origin);
     }
 
-    return json({ success: true, status: "comprovante_enviado" }, 200, origin);
+    return json({ success: true }, 200, origin);
   } catch (e) {
     console.error("enviar-comprovante:", e);
     return json({ error: (e as Error).message ?? "Erro interno" }, 500, origin);

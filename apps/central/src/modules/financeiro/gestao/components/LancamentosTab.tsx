@@ -1,10 +1,9 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent } from "@/common/ui/card";
 import { Button } from "@/common/ui/button";
 import { Input } from "@/common/ui/input";
 import { Label } from "@/common/ui/label";
 import { Badge } from "@/common/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/common/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/common/ui/table";
 import { Loader2, Pencil, Plus, RotateCcw } from "lucide-react";
 import { useToast } from "@/common/hooks/use-toast";
@@ -13,13 +12,12 @@ import { formatBRL } from "@/common/constants/pricing";
 import { obterUrlComprovante } from "@/modules/matriculas";
 import { useCursos, useEdicoesSimposio } from "@/modules/atividades/api";
 import { useCategorias, useLancamentos, useSaldosIniciais, type Lancamento } from "@/modules/financeiro/api";
-import { useDevolverMovimentacao } from "@/modules/financeiro/api/movimentacoes";
 import { formatData, mesParaCompetencia, saldoAcumulado, totaisDoMes } from "@/modules/financeiro/model/agregados";
 import { UNIDADE_LABELS, UNIDADES_FINANCEIRO } from "@/modules/financeiro/model/unidades";
 import LancamentoDialog from "./LancamentoDialog";
+import { DevolucaoDialog } from "./DevolucaoDialog";
 
 const hoje = () => new Date().toLocaleDateString("en-CA");
-const valorNumerico = (texto: string) => Number(texto.trim().includes(",") ? texto.replace(/\./g, "").replace(",", ".") : texto);
 const finalidadeLabel: Record<string, string> = { matricula: "Matrícula", mensalidade: "Mensalidade", inscricao_evento: "Inscrição em evento", outro: "Outro" };
 
 const LancamentosTab = () => {
@@ -29,7 +27,6 @@ const LancamentosTab = () => {
   const { data: cursos = [] } = useCursos();
   const { data: edicoes = [] } = useEdicoesSimposio();
   const { data: saldos = [] } = useSaldosIniciais();
-  const devolver = useDevolverMovimentacao();
   const [mes, setMes] = useState(hoje().slice(0, 7));
   const [unidade, setUnidade] = useState("todas");
   const [tipo, setTipo] = useState("todos");
@@ -40,10 +37,6 @@ const LancamentosTab = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editando, setEditando] = useState<Lancamento | null>(null);
   const [devolvendo, setDevolvendo] = useState<Lancamento | null>(null);
-  const [valorDevolucao, setValorDevolucao] = useState("");
-  const [dataDevolucao, setDataDevolucao] = useState(hoje);
-  const [categoriaDevolucao, setCategoriaDevolucao] = useState("");
-  const [observacaoDevolucao, setObservacaoDevolucao] = useState("");
   const competencia = mesParaCompetencia(mes);
 
   const totalDevolvido = (id: string) => lancamentos.filter((item) => item.estorno_de_id === id && item.tipo === "saida").reduce((s, item) => s + Number(item.valor), 0);
@@ -70,22 +63,6 @@ const LancamentosTab = () => {
   const abrirEdicao = (item: Lancamento | null) => { setEditando(item); setDialogOpen(true); };
   const abrirDevolucao = (item: Lancamento) => {
     setDevolvendo(item);
-    setValorDevolucao(String(Math.max(0, Number(item.valor) - totalDevolvido(item.id))));
-    setDataDevolucao(hoje());
-    setCategoriaDevolucao(categorias.find((cat) => cat.nome === "Devolução Matrícula/Livros" && cat.tipo === "saida" && cat.ativo)?.id ?? "");
-    setObservacaoDevolucao("");
-  };
-  const registrarDevolucao = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!devolvendo) return;
-    const valor = valorNumerico(valorDevolucao);
-    if (!Number.isFinite(valor) || valor <= 0 || valor > Number(devolvendo.valor) - totalDevolvido(devolvendo.id)) {
-      toast({ title: "Valor de devolução inválido", variant: "destructive" }); return;
-    }
-    try {
-      await devolver.mutateAsync({ id: devolvendo.id, valor, data: dataDevolucao, categoriaId: categoriaDevolucao, descricao: observacaoDevolucao.trim() || null });
-      toast({ title: "Devolução registrada no caixa" }); setDevolvendo(null);
-    } catch (error) { toast({ title: "Não foi possível devolver", description: getErrorMessage(error), variant: "destructive" }); }
   };
   const abrirComprovante = async (path: string) => {
     try { window.open(await obterUrlComprovante(path), "_blank", "noopener,noreferrer"); }
@@ -126,7 +103,7 @@ const LancamentosTab = () => {
       </TableRow>; })}
     </TableBody></Table></CardContent></Card>
     <LancamentoDialog open={dialogOpen} onOpenChange={setDialogOpen} lancamento={editando} />
-    <Dialog open={Boolean(devolvendo)} onOpenChange={(open) => !open && setDevolvendo(null)}><DialogContent><DialogHeader><DialogTitle>Registrar devolução real</DialogTitle></DialogHeader><form className="space-y-3" onSubmit={registrarDevolucao}><p className="text-sm text-muted-foreground">A entrada original permanece no caixa. Será criada uma saída na data informada.</p><div><Label htmlFor="dev-valor">Valor (R$)</Label><Input id="dev-valor" value={valorDevolucao} onChange={(e) => setValorDevolucao(e.target.value)} inputMode="decimal" required />{devolvendo && <p className="text-xs text-muted-foreground">Disponível: {formatBRL(Number(devolvendo.valor) - totalDevolvido(devolvendo.id))}</p>}</div><div><Label htmlFor="dev-data">Data da devolução</Label><Input id="dev-data" type="date" value={dataDevolucao} onChange={(e) => setDataDevolucao(e.target.value)} required /></div><div><Label htmlFor="dev-categoria">Categoria de saída</Label><select id="dev-categoria" className="h-10 w-full rounded-md border bg-background px-3" value={categoriaDevolucao} onChange={(e) => setCategoriaDevolucao(e.target.value)} required><option value="">Selecione</option>{categorias.filter((item) => item.tipo === "saida" && item.ativo).map((item) => <option key={item.id} value={item.id}>{item.nome}</option>)}</select></div><div><Label htmlFor="dev-observacao">Observação</Label><Input id="dev-observacao" value={observacaoDevolucao} onChange={(e) => setObservacaoDevolucao(e.target.value)} /></div><div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setDevolvendo(null)}>Cancelar</Button><Button disabled={devolver.isPending}>{devolver.isPending ? "Registrando..." : "Registrar saída"}</Button></div></form></DialogContent></Dialog>
+    <DevolucaoDialog entrada={devolvendo} disponivel={devolvendo ? Number(devolvendo.valor) - totalDevolvido(devolvendo.id) : 0} onClose={() => setDevolvendo(null)} />
   </div>;
 };
 

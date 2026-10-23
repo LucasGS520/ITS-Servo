@@ -25,9 +25,10 @@ const ParticipantesPage = () => {
     if (!data) return [];
     const porId = new Map(data.cursos.map((curso) => [curso.id, curso.codigo]));
     return data.pessoas.map((pessoa) => {
-      const historico = data.inscricoes.filter((inscricao) => inscricao.pessoa_id === pessoa.id && inscricao.status !== "cancelado");
+      const historico = data.inscricoes.filter((inscricao) => inscricao.pessoa_id === pessoa.id && inscricao.status === "confirmada");
+      const emAnalise = data.inscricoes.some((inscricao) => inscricao.pessoa_id === pessoa.id && !["confirmada", "cancelado"].includes(inscricao.status));
       const cursos = historico.map((item) => item.curso_id ? porId.get(item.curso_id) : null).filter(Boolean);
-      return { pessoa, teologico: cursos.includes("teologico"), capacitacao: cursos.includes("capacitacao_obreiros"), simposio: historico.some((item) => item.edicao_simposio_id) };
+      return { pessoa, teologico: cursos.includes("teologico"), capacitacao: cursos.includes("capacitacao_obreiros"), simposio: historico.some((item) => item.edicao_simposio_id), emAnalise };
     }).filter(({ pessoa, teologico, capacitacao, simposio }) => {
       const termo = busca.trim().toLowerCase();
       const buscaOk = !termo || `${pessoa.nome_completo} ${pessoa.cpf} ${pessoa.email ?? ""}`.toLowerCase().includes(termo);
@@ -67,7 +68,7 @@ const ParticipantesPage = () => {
       </select>
     </div>
     <Card><CardHeader className="pb-3"><CardTitle className="flex items-center gap-2 text-base"><Users className="h-4 w-4" />{linhas.length} participante(s)</CardTitle></CardHeader><CardContent className="space-y-3">
-      {linhas.map(({ pessoa, teologico, capacitacao, simposio }) => <div key={pessoa.id} className="flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-medium">{pessoa.nome_completo}</p><p className="text-sm text-muted-foreground">{pessoa.email ?? "Sem e-mail"} · {pessoa.cpf}</p></div><div className="flex flex-wrap items-center gap-2">{teologico && <Badge>Curso Teológico</Badge>}{capacitacao && <Badge variant="secondary">Capacitação</Badge>}{simposio && <Badge variant="outline">Simpósio</Badge>}{!teologico && !capacitacao && !simposio && <Badge variant="outline">Sem participação</Badge>}<Button size="sm" variant="ghost" onClick={() => setEdicao(pessoa)}><Pencil className="mr-1 h-3.5 w-3.5" /> Editar</Button></div></div>)}
+      {linhas.map(({ pessoa, teologico, capacitacao, simposio, emAnalise }) => <div key={pessoa.id} className="flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-medium">{pessoa.nome_completo}</p><p className="text-sm text-muted-foreground">{pessoa.email ?? "Sem e-mail"} · {pessoa.cpf}</p></div><div className="flex flex-wrap items-center gap-2">{teologico && <Badge>Curso Teológico</Badge>}{capacitacao && <Badge variant="secondary">Capacitação</Badge>}{simposio && <Badge variant="outline">Simpósio</Badge>}{emAnalise && <Badge variant="outline">Inscrição em análise</Badge>}{!teologico && !capacitacao && !simposio && !emAnalise && <Badge variant="outline">Sem participação</Badge>}<Button size="sm" variant="ghost" onClick={() => setEdicao(pessoa)}><Pencil className="mr-1 h-3.5 w-3.5" /> Editar</Button></div></div>)}
       {linhas.length === 0 && <p className="py-8 text-center text-sm text-muted-foreground">Nenhum participante encontrado.</p>}
     </CardContent></Card>
     <Dialog open={Boolean(edicao)} onOpenChange={(aberto) => !aberto && setEdicao(null)}><DialogContent><DialogHeader><DialogTitle>Editar participante</DialogTitle></DialogHeader>{edicao && <form className="space-y-4" onSubmit={salvar}>

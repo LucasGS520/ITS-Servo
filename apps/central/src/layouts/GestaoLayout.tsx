@@ -5,7 +5,7 @@ import { sairDaGestao } from "@/modules/acesso";
 
 const navItems = [
   { to: "/painel", label: "Dashboard", icon: LayoutDashboard, end: true },
-  { to: "/painel/atendimento", label: "Atendimento", icon: Headphones, end: false },
+  { to: "/painel/inscricoes", label: "Inscrições", icon: Headphones, end: false },
   { to: "/painel/financeiro", label: "Financeiro", icon: DollarSign, end: false },
   { to: "/painel/instituto", label: "Instituto", icon: Landmark, end: false },
   { to: "/painel/relatorios", label: "Relatórios", icon: BarChart3, end: false },

@@ -1,65 +1,78 @@
-import { useMemo, useState, type FormEvent } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
 import { Eye, Plus, Search } from "lucide-react";
 import { Button } from "@/common/ui/button";
 import { Card, CardContent } from "@/common/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/common/ui/dialog";
 import { Input } from "@/common/ui/input";
 import { Label } from "@/common/ui/label";
 import { Badge } from "@/common/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/common/ui/table";
-import { useToast } from "@/common/hooks/use-toast";
-import { getErrorMessage } from "@/common/lib/errors";
-import { atualizarDadosAtendimento, cancelarInscricaoInterna, confirmarInscricaoIts, MATRICULAS_KEY, useMatriculas, type Inscricao } from "@/modules/matriculas/api";
+import { useCursos, useEdicoesSimposio } from "@/modules/atividades/api";
+import { useLancamentos } from "@/modules/financeiro/api";
+import { useIsencoesInscricao, useMatriculas, usePedidosCancelamento } from "@/modules/matriculas/api";
+import { nomeAtividade, situacaoFinanceira } from "@/modules/matriculas/model/financeiro";
 import { STATUS_INSCRICAO_INFO, statusInscricaoOuPadrao } from "@/modules/matriculas/model";
 import { NovaInscricaoDialog } from "./NovaInscricaoDialog";
+import { FichaInscricaoDialog } from "./FichaInscricaoDialog";
 
-const AtendimentoPage = () => {
-  const { toast } = useToast();
-  const client = useQueryClient();
-  const { data: inscricoes = [] } = useMatriculas();
+const InscricoesPage = () => {
+  const { data: inscricoes = [], isLoading, error } = useMatriculas();
+  const { data: cursos = [] } = useCursos();
+  const { data: edicoes = [] } = useEdicoesSimposio();
+  const { data: lancamentos = [] } = useLancamentos();
+  const { data: isencoes = [] } = useIsencoesInscricao();
+  const { data: pedidos = [] } = usePedidosCancelamento();
   const [busca, setBusca] = useState("");
-  const [selecionada, setSelecionada] = useState<Inscricao | null>(null);
+  const [atividade, setAtividade] = useState("todas");
+  const [nucleo, setNucleo] = useState("todos");
+  const [origem, setOrigem] = useState("todas");
+  const [periodo, setPeriodo] = useState("");
+  const [status, setStatus] = useState("todos");
+  const [financeiro, setFinanceiro] = useState("todos");
+  const [selecionadaId, setSelecionadaId] = useState<string | null>(null);
   const [nova, setNova] = useState(false);
-  const [editando, setEditando] = useState(false);
-  const [competencia, setCompetencia] = useState("");
-  const [isento, setIsento] = useState(false);
-  const [motivo, setMotivo] = useState("");
-  const [salvando, setSalvando] = useState(false);
-  const linhas = useMemo(() => inscricoes.filter((i) => [i.nome_completo, i.numero_inscricao, i.email, i.cpf].some((v) => v?.toLowerCase().includes(busca.toLowerCase()))), [inscricoes, busca]);
-
-  const abrir = (i: Inscricao) => { setSelecionada(i); setEditando(false); setCompetencia(""); setIsento(false); setMotivo(""); };
-  const atualizar = async (acao: () => Promise<void>, titulo: string) => {
-    setSalvando(true);
-    try { await acao(); await client.invalidateQueries({ queryKey: MATRICULAS_KEY }); toast({ title: titulo }); setSelecionada(null); }
-    catch (error) { toast({ title: "Não foi possível atualizar", description: getErrorMessage(error), variant: "destructive" }); }
-    finally { setSalvando(false); }
-  };
-
-  const corrigir = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); if (!selecionada) return;
-    const f = new FormData(event.currentTarget);
-    void atualizar(() => atualizarDadosAtendimento({ inscricaoId: selecionada.id, nomeCompleto: String(f.get("nome") ?? ""), telefone: String(f.get("telefone") ?? ""), email: String(f.get("email") ?? ""), dataNascimento: selecionada.data_nascimento, escolaridade: selecionada.escolaridade }), "Dados atualizados");
-  };
+  const selecionada = inscricoes.find((item) => item.id === selecionadaId) ?? null;
+  const pendentes = new Set(pedidos.filter((item) => item.status === "pendente").map((item) => item.inscricao_id));
+  const nucleos = Array.from(new Set(inscricoes.map((item) => item.nucleo).filter((item): item is string => Boolean(item)))).sort();
+  const linhas = useMemo(() => inscricoes.map((item) => {
+    const movimentos = lancamentos.filter((movimento) => movimento.inscricao_id === item.id ||
+      Boolean(movimento.estorno_de_id && lancamentos.some((entrada) => entrada.id === movimento.estorno_de_id && entrada.inscricao_id === item.id)));
+    const valor = item.curso_id ? cursos.find((curso) => curso.id === item.curso_id)?.taxa_matricula ?? null
+      : edicoes.find((edicao) => edicao.id === item.edicao_simposio_id)?.valor ?? null;
+    return { item, nome: nomeAtividade(item, cursos, edicoes), situacao: situacaoFinanceira(item, movimentos, valor,
+      isencoes.filter((isencao) => isencao.inscricao_id === item.id)) };
+  }).filter(({ item, nome, situacao }) => {
+    const termo = busca.trim().toLowerCase();
+    if (termo && ![item.nome_completo, item.cpf, item.numero_inscricao].some((value) => value?.toLowerCase().includes(termo))) return false;
+    if (atividade !== "todas" && !(atividade.startsWith("curso:") ? item.curso_id === atividade.slice(6) : item.edicao_simposio_id === atividade.slice(9))) return false;
+    if (nucleo !== "todos" && (nucleo === "correspondencia" ? item.modalidade !== "correspondencia" : item.nucleo !== nucleo)) return false;
+    if (origem !== "todas" && item.origem_cadastro !== origem) return false;
+    if (periodo && item.created_at.slice(0, 7) !== periodo) return false;
+    if (status !== "todos" && (status === "pedido_cancelamento" ? !pendentes.has(item.id) : item.status !== status)) return false;
+    if (financeiro !== "todos" && situacao !== financeiro) return false;
+    return Boolean(nome);
+  }), [inscricoes, lancamentos, cursos, edicoes, isencoes, busca, atividade, nucleo, origem, periodo, status, financeiro, pedidos]);
 
   return <div className="container space-y-6 py-8">
-    <div className="flex flex-wrap items-end justify-between gap-3"><div><h1 className="text-2xl font-bold">Atendimento</h1><p className="text-sm text-muted-foreground">Inscrições, confirmação pela equipe e acompanhamento de participantes.</p></div><Button onClick={() => setNova(true)}><Plus className="mr-2 h-4 w-4" />Nova inscrição</Button></div>
-    <div className="relative"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input className="pl-9" placeholder="Buscar nome, CPF, inscrição ou e-mail" value={busca} onChange={(e) => setBusca(e.target.value)} /></div>
-    <Card><CardContent className="p-0"><div className="overflow-x-auto"><Table><TableHeader><TableRow><TableHead>Inscrição</TableHead><TableHead>Nome</TableHead><TableHead>Atividade</TableHead><TableHead>Status</TableHead><TableHead>Núcleo</TableHead><TableHead /></TableRow></TableHeader><TableBody>{linhas.map((i) => <TableRow key={i.id}><TableCell>{i.numero_inscricao}</TableCell><TableCell>{i.nome_completo}</TableCell><TableCell>{i.destino === "simposio" ? "Simpósio" : "Curso"}</TableCell><TableCell><Badge variant="outline">{STATUS_INSCRICAO_INFO[statusInscricaoOuPadrao(i.status)].labelGestao}</Badge></TableCell><TableCell>{i.nucleo ?? "Correspondência"}</TableCell><TableCell><Button variant="ghost" size="icon" aria-label="Abrir inscrição" onClick={() => abrir(i)}><Eye className="h-4 w-4" /></Button></TableCell></TableRow>)}</TableBody></Table></div></CardContent></Card>
-    <NovaInscricaoDialog open={nova} onClose={() => setNova(false)} />
-    <Dialog open={Boolean(selecionada)} onOpenChange={(aberto) => !aberto && setSelecionada(null)}><DialogContent className="max-h-[90vh] overflow-y-auto"><DialogHeader><DialogTitle>{selecionada?.numero_inscricao}</DialogTitle></DialogHeader>{selecionada && (editando ?
-      <form className="space-y-3" onSubmit={corrigir}><div><Label>Nome</Label><Input name="nome" defaultValue={selecionada.nome_completo} required /></div><div><Label>Telefone</Label><Input name="telefone" defaultValue={selecionada.telefone} required /></div><div><Label>E-mail</Label><Input name="email" type="email" defaultValue={selecionada.email} required /></div><Button disabled={salvando}>Salvar correção</Button></form>
-      : <div className="space-y-4 text-sm"><p><strong>{selecionada.nome_completo}</strong><br />{selecionada.email} · {selecionada.telefone}</p><p>Modalidade: {selecionada.modalidade} · Núcleo: {selecionada.nucleo ?? "Correspondência"}</p><p>Comprovante: {selecionada.comprovante_url ? "enviado para conferência" : "não enviado"}</p>
-        {selecionada.status !== "confirmada" && selecionada.status !== "cancelado" && <>
-          <Button variant="outline" onClick={() => setEditando(true)}>Corrigir dados</Button>
-          {selecionada.destino === "curso" && <div><Label htmlFor="primeira-competencia">Primeiro mês esperado</Label><Input id="primeira-competencia" type="month" value={competencia} onChange={(e) => setCompetencia(e.target.value)} /></div>}
-          <label className="flex items-center gap-2"><input type="checkbox" checked={isento} onChange={(e) => setIsento(e.target.checked)} /> Isento</label>
-          {isento && <div><Label htmlFor="motivo-isencao">Motivo da isenção</Label><Input id="motivo-isencao" value={motivo} onChange={(e) => setMotivo(e.target.value)} /></div>}
-          <Button disabled={salvando || (selecionada.destino === "curso" && !competencia) || (isento && !motivo.trim())} onClick={() => void atualizar(() => confirmarInscricaoIts(selecionada.id, selecionada.destino === "curso" ? `${competencia}-01` : null, isento, motivo || null), "Inscrição confirmada pela equipe")}>Confirmar inscrição</Button>
-          <Button variant="destructive" disabled={salvando} onClick={() => { const razao = window.prompt("Motivo do cancelamento:"); if (razao?.trim()) void atualizar(() => cancelarInscricaoInterna(selecionada.id, razao), "Inscrição cancelada"); }}>Cancelar inscrição</Button>
-        </>}
-      </div>)}</DialogContent></Dialog>
+    <div className="flex flex-wrap items-end justify-between gap-3"><div><h1 className="text-2xl font-bold">Inscrições</h1><p className="text-sm text-muted-foreground">Solicitações do site e da Central, decisões e financeiro vinculado.</p></div><Button onClick={() => setNova(true)}><Plus className="mr-2 h-4 w-4" />Nova inscrição</Button></div>
+    <Card><CardContent className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="lg:col-span-2"><Label htmlFor="insc-busca">Buscar</Label><div className="relative"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input id="insc-busca" className="pl-9" placeholder="Nome, CPF ou número" value={busca} onChange={(e) => setBusca(e.target.value)} /></div></div>
+      <div><Label htmlFor="insc-atividade">Atividade</Label><select id="insc-atividade" className="h-10 w-full rounded-md border bg-background px-2" value={atividade} onChange={(e) => setAtividade(e.target.value)}><option value="todas">Todas</option>{cursos.map((item) => <option key={item.id} value={`curso:${item.id}`}>{item.nome}</option>)}{edicoes.map((item) => <option key={item.id} value={`simposio:${item.id}`}>{item.nome}</option>)}</select></div>
+      <div><Label htmlFor="insc-nucleo">Núcleo</Label><select id="insc-nucleo" className="h-10 w-full rounded-md border bg-background px-2" value={nucleo} onChange={(e) => setNucleo(e.target.value)}><option value="todos">Todos</option><option value="correspondencia">Correspondência</option>{nucleos.map((item) => <option key={item} value={item}>{item}</option>)}</select></div>
+      <div><Label htmlFor="insc-origem">Origem</Label><select id="insc-origem" className="h-10 w-full rounded-md border bg-background px-2" value={origem} onChange={(e) => setOrigem(e.target.value)}><option value="todas">Todas</option><option value="site">Site</option><option value="central">Central</option><option value="historico">Histórico</option></select></div>
+      <div><Label htmlFor="insc-periodo">Mês da inscrição</Label><Input id="insc-periodo" type="month" value={periodo} onChange={(e) => setPeriodo(e.target.value)} /></div>
+      <div><Label htmlFor="insc-status">Situação</Label><select id="insc-status" className="h-10 w-full rounded-md border bg-background px-2" value={status} onChange={(e) => setStatus(e.target.value)}><option value="todos">Todas</option><option value="pedido_cancelamento">Pedido de cancelamento</option>{Object.entries(STATUS_INSCRICAO_INFO).map(([key, info]) => <option key={key} value={key}>{info.labelGestao}</option>)}</select></div>
+      <div><Label htmlFor="insc-financeiro">Financeiro</Label><select id="insc-financeiro" className="h-10 w-full rounded-md border bg-background px-2" value={financeiro} onChange={(e) => setFinanceiro(e.target.value)}><option value="todos">Todas</option>{["Sem recebimento", "Comprovante a conferir · sem recebimento", "Recebido parcialmente", "Valor recebido", "Valor não configurado", "Recebimento com valor não configurado", "Isenta", "Isenção antiga · revisar alcance"].map((item) => <option key={item} value={item}>{item}</option>)}</select></div>
+    </CardContent></Card>
+    <p className="text-sm text-muted-foreground">{linhas.length} inscrição(ões) com os filtros atuais. Situação financeira refere-se à matrícula do curso ou à inscrição no evento; mensalidades aparecem na ficha por mês pago.</p>
+    {error && <p className="text-destructive">Não foi possível carregar as inscrições.</p>}
+    <Card><CardContent className="overflow-x-auto p-0"><Table><TableHeader><TableRow><TableHead>Número / data</TableHead><TableHead>Pessoa</TableHead><TableHead>Atividade</TableHead><TableHead>Origem / núcleo</TableHead><TableHead>Inscrição</TableHead><TableHead>Financeiro</TableHead><TableHead /></TableRow></TableHeader><TableBody>
+      {isLoading && <TableRow><TableCell colSpan={7}>Carregando...</TableCell></TableRow>}
+      {!isLoading && linhas.length === 0 && <TableRow><TableCell colSpan={7} className="py-8 text-center">Nenhuma inscrição encontrada.</TableCell></TableRow>}
+      {linhas.map(({ item, nome, situacao }) => <TableRow key={item.id}><TableCell className="whitespace-nowrap">{item.numero_inscricao}<p className="text-xs text-muted-foreground">{new Date(item.created_at).toLocaleDateString("pt-BR")}</p></TableCell><TableCell>{item.nome_completo}</TableCell><TableCell>{nome}</TableCell><TableCell>{item.origem_cadastro}<p className="text-xs text-muted-foreground">{item.modalidade === "correspondencia" ? "Correspondência" : item.nucleo ?? "Sem núcleo"}</p></TableCell><TableCell><Badge variant="outline">{STATUS_INSCRICAO_INFO[statusInscricaoOuPadrao(item.status)].labelGestao}</Badge>{pendentes.has(item.id) && <p className="text-xs text-amber-700">Cancelamento solicitado</p>}</TableCell><TableCell className="text-xs">{situacao}</TableCell><TableCell><Button variant="ghost" size="icon" aria-label={`Abrir inscrição ${item.numero_inscricao}`} onClick={() => setSelecionadaId(item.id)}><Eye className="h-4 w-4" /></Button></TableCell></TableRow>)}
+    </TableBody></Table></CardContent></Card>
+    <NovaInscricaoDialog open={nova} onClose={() => setNova(false)} onCreated={(id) => { setNova(false); setSelecionadaId(id); }} />
+    <FichaInscricaoDialog inscricao={selecionada} onClose={() => setSelecionadaId(null)} />
   </div>;
 };
 
-export default AtendimentoPage;
+export default InscricoesPage;

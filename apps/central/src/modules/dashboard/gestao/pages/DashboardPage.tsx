@@ -34,7 +34,7 @@ const DashboardPage = () => {
     const novasMes = inscricoes.filter(
       (i) => new Date(i.created_at) >= inicioDeMes && i.status !== "cancelado"
     );
-    const pendentesAnalise = inscricoes.filter((i) => i.status === "em_analise" || i.status === "comprovante_enviado");
+    const pendentesAnalise = inscricoes.filter((i) => ["em_analise", "comprovante_enviado", "pagamento_nao_identificado"].includes(i.status));
     const receitaRealizada = registros.reduce(
       (total, registro) => total + (registro.tipo === "entrada" ? Number(registro.valor) : -Number(registro.valor)),
       0,

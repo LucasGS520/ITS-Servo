@@ -16,9 +16,9 @@ const hoje = () => new Date().toLocaleDateString("en-CA");
 const valorNumerico = (texto: string) => Number(texto.trim().includes(",") ? texto.replace(/\./g, "").replace(",", ".") : texto);
 type Pagador = "nenhum" | "inscricao" | "historico";
 
-interface Props { open: boolean; onOpenChange: (open: boolean) => void; lancamento?: Lancamento | null }
+interface Props { open: boolean; onOpenChange: (open: boolean) => void; lancamento?: Lancamento | null; inscricaoInicialId?: string | null }
 
-const LancamentoDialog = ({ open, onOpenChange, lancamento }: Props) => {
+const LancamentoDialog = ({ open, onOpenChange, lancamento, inscricaoInicialId }: Props) => {
   const { toast } = useToast();
   const salvar = useSalvarMovimentacao();
   const { data: categorias = [] } = useCategorias();
@@ -26,6 +26,7 @@ const LancamentoDialog = ({ open, onOpenChange, lancamento }: Props) => {
   const { data: alunos = [] } = useAlunos();
   const { data: cursos = [] } = useCursos();
   const { data: edicoes = [] } = useEdicoesSimposio();
+  const inscricaoInicial = inscricoes.find((item) => item.id === inscricaoInicialId);
   const [tipo, setTipo] = useState<"entrada" | "saida">("entrada");
   const [categoriaId, setCategoriaId] = useState("");
   const [valor, setValor] = useState("");
@@ -50,17 +51,17 @@ const LancamentoDialog = ({ open, onOpenChange, lancamento }: Props) => {
     setValor(lancamento ? String(lancamento.valor) : "");
     setData(lancamento ? lancamento.data ?? "" : hoje());
     setMesCaixa(lancamento?.mes_caixa.slice(0, 7) ?? hoje().slice(0, 7));
-    setUnidade(lancamento?.unidade ?? "geral");
-    setAtividade(lancamento?.curso_id ? `curso:${lancamento.curso_id}` : lancamento?.edicao_simposio_id ? `simposio:${lancamento.edicao_simposio_id}` : "geral");
-    setPagador(lancamento?.inscricao_id ? "inscricao" : lancamento?.aluno_id && lancamento.finalidade ? "historico" : "nenhum");
-    setInscricaoId(lancamento?.inscricao_id ?? "");
+    setUnidade(lancamento?.unidade ?? (inscricaoInicial ? inscricaoInicial.modalidade === "correspondencia" ? "correspondencia" : inscricaoInicial.nucleo ?? "geral" : "geral"));
+    setAtividade(lancamento?.curso_id ? `curso:${lancamento.curso_id}` : lancamento?.edicao_simposio_id ? `simposio:${lancamento.edicao_simposio_id}` : inscricaoInicial?.curso_id ? `curso:${inscricaoInicial.curso_id}` : inscricaoInicial?.edicao_simposio_id ? `simposio:${inscricaoInicial.edicao_simposio_id}` : "geral");
+    setPagador(lancamento?.inscricao_id || inscricaoInicialId ? "inscricao" : lancamento?.aluno_id && lancamento.finalidade ? "historico" : "nenhum");
+    setInscricaoId(lancamento?.inscricao_id ?? inscricaoInicialId ?? "");
     setAlunoId(lancamento?.aluno_id ?? "");
-    setFinalidade(lancamento?.finalidade ?? "mensalidade");
+    setFinalidade(lancamento?.finalidade ?? (inscricaoInicial?.destino === "simposio" ? "inscricao_evento" : "matricula"));
     setMesReferencia(lancamento?.mes_referencia?.slice(0, 7) ?? "");
     setComprovante(lancamento?.comprovante_url ?? "");
     setArquivo(null);
     setDescricao(lancamento?.descricao ?? "");
-  }, [open, lancamento]);
+  }, [open, lancamento, inscricaoInicialId, inscricaoInicial]);
 
   const inscricao = inscricoes.find((item) => item.id === inscricaoId);
   const aluno = alunos.find((item) => item.id === alunoId);
@@ -141,12 +142,12 @@ const LancamentoDialog = ({ open, onOpenChange, lancamento }: Props) => {
     <form className="space-y-4" onSubmit={enviar}>
       {lancamento?.origem_referencia && <p className="rounded-md border border-amber-200 bg-amber-50 p-2 text-xs text-amber-900">Registro importado: {lancamento.origem_referencia}. A edição mantém a origem e registra a alteração.</p>}
       {devolucao && <p className="text-sm text-muted-foreground">Esta saída permanece vinculada à entrada original. Valor, data, categoria e observação podem ser corrigidos.</p>}
-      <div className="grid gap-3 sm:grid-cols-2"><div><Label htmlFor="mov-tipo">Tipo</Label><select id="mov-tipo" className="h-10 w-full rounded-md border bg-background px-3" value={tipo} disabled={devolucao} onChange={(e) => { setTipo(e.target.value as "entrada" | "saida"); setCategoriaId(""); if (e.target.value === "saida") setPagador("nenhum"); }}><option value="entrada">Entrada</option><option value="saida">Saída</option></select></div><div><Label htmlFor="mov-categoria">Categoria</Label><select id="mov-categoria" className="h-10 w-full rounded-md border bg-background px-3" value={categoriaId} required onChange={(e) => setCategoriaId(e.target.value)}><option value="">Selecione</option>{categoriasDisponiveis.map((item) => <option key={item.id} value={item.id}>{item.nome}</option>)}</select></div></div>
+      <div className="grid gap-3 sm:grid-cols-2"><div><Label htmlFor="mov-tipo">Tipo</Label><select id="mov-tipo" className="h-10 w-full rounded-md border bg-background px-3" value={tipo} disabled={devolucao || Boolean(inscricaoInicialId)} onChange={(e) => { setTipo(e.target.value as "entrada" | "saida"); setCategoriaId(""); if (e.target.value === "saida") setPagador("nenhum"); }}><option value="entrada">Entrada</option><option value="saida">Saída</option></select></div><div><Label htmlFor="mov-categoria">Categoria</Label><select id="mov-categoria" className="h-10 w-full rounded-md border bg-background px-3" value={categoriaId} required onChange={(e) => setCategoriaId(e.target.value)}><option value="">Selecione</option>{categoriasDisponiveis.map((item) => <option key={item.id} value={item.id}>{item.nome}</option>)}</select></div></div>
       <div className="grid gap-3 sm:grid-cols-2"><div><Label htmlFor="mov-valor">Valor (R$)</Label><Input id="mov-valor" value={valor} onChange={(e) => setValor(e.target.value)} inputMode="decimal" required /></div><div><Label htmlFor="mov-data">Data real</Label><Input id="mov-data" type="date" value={data} onChange={(e) => { setData(e.target.value); if (e.target.value) setMesCaixa(e.target.value.slice(0, 7)); }} />{!data && lancamento?.precisao_data === "mes" && <p className="text-xs text-muted-foreground">Dia desconhecido na fonte histórica</p>}</div></div>
       {!data && <div><Label htmlFor="mov-mes-caixa">Mês conhecido do caixa</Label><Input id="mov-mes-caixa" type="month" value={mesCaixa} onChange={(e) => setMesCaixa(e.target.value)} /></div>}
       {!devolucao && <><div><Label htmlFor="mov-atividade">Atividade</Label><select id="mov-atividade" className="h-10 w-full rounded-md border bg-background px-3" value={atividade} disabled={tipo === "entrada" && pagador !== "nenhum"} onChange={(e) => setAtividade(e.target.value)}><option value="geral">Geral do ITS</option>{cursos.map((item) => <option key={item.id} value={`curso:${item.id}`}>{item.nome}</option>)}{edicoes.map((item) => <option key={item.id} value={`simposio:${item.id}`}>{item.nome}</option>)}</select></div><div><Label htmlFor="mov-unidade">Unidade</Label><select id="mov-unidade" className="h-10 w-full rounded-md border bg-background px-3" value={unidade} disabled={tipo === "entrada" && pagador !== "nenhum"} onChange={(e) => setUnidade(e.target.value)}><option value="geral">Geral institucional</option>{UNIDADES_FINANCEIRO.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></div></>}
-      {tipo === "entrada" && !devolucao && <><div><Label htmlFor="mov-pagador">Vínculo do pagamento</Label><select id="mov-pagador" className="h-10 w-full rounded-md border bg-background px-3" value={pagador} onChange={(e) => { setPagador(e.target.value as Pagador); setInscricaoId(""); setAlunoId(""); }}><option value="nenhum">Entrada sem inscrição (oferta, patrocínio etc.)</option><option value="inscricao">Inscrição de curso ou Simpósio</option><option value="historico">Aluno histórico validado, sem inscrição</option></select></div>
-        {pagador === "inscricao" && <div><Label htmlFor="mov-inscricao">Inscrição</Label><select id="mov-inscricao" className="h-10 w-full rounded-md border bg-background px-3" value={inscricaoId} onChange={(e) => selecionarInscricao(e.target.value)} required><option value="">Selecione</option>{inscritos.map((item) => <option key={item.id} value={item.id}>{item.nome_completo} · {item.numero_inscricao}</option>)}</select>{inscricao && <p className="text-xs text-muted-foreground">{inscricao.status} · {inscricao.destino === "simposio" ? "Simpósio" : "Curso"}</p>}</div>}
+      {tipo === "entrada" && !devolucao && <><div><Label htmlFor="mov-pagador">Vínculo do pagamento</Label><select id="mov-pagador" className="h-10 w-full rounded-md border bg-background px-3" value={pagador} disabled={Boolean(inscricaoInicialId)} onChange={(e) => { setPagador(e.target.value as Pagador); setInscricaoId(""); setAlunoId(""); }}><option value="nenhum">Entrada sem inscrição (oferta, patrocínio etc.)</option><option value="inscricao">Inscrição de curso ou Simpósio</option><option value="historico">Aluno histórico validado, sem inscrição</option></select></div>
+        {pagador === "inscricao" && <div><Label htmlFor="mov-inscricao">Inscrição</Label><select id="mov-inscricao" className="h-10 w-full rounded-md border bg-background px-3" value={inscricaoId} disabled={Boolean(inscricaoInicialId)} onChange={(e) => selecionarInscricao(e.target.value)} required><option value="">Selecione</option>{inscritos.map((item) => <option key={item.id} value={item.id}>{item.nome_completo} · {item.numero_inscricao}</option>)}</select>{inscricao && <p className="text-xs text-muted-foreground">{inscricao.status} · {inscricao.destino === "simposio" ? "Simpósio" : "Curso"}</p>}</div>}
         {pagador === "historico" && <div><Label htmlFor="mov-aluno">Aluno histórico</Label><select id="mov-aluno" className="h-10 w-full rounded-md border bg-background px-3" value={alunoId} onChange={(e) => selecionarAluno(e.target.value)} required><option value="">Selecione</option>{historicos.map((item) => <option key={item.id} value={item.id}>{item.nome} · {item.unidade}</option>)}</select>{aluno?.situacao === "pendente_validacao" && <p className="text-xs text-amber-700">Esta linha histórica pode ser editada; novos pagamentos exigem validação do aluno.</p>}</div>}
         {pagador !== "nenhum" && <div className="grid gap-3 sm:grid-cols-2"><div><Label htmlFor="mov-finalidade">Referente a</Label><select id="mov-finalidade" className="h-10 w-full rounded-md border bg-background px-3" value={finalidade} onChange={(e) => { const nova = e.target.value as typeof finalidade; setFinalidade(nova); if (nova === "mensalidade") escolherCategoria("Mensalidade"); else if (nova === "matricula") escolherCategoria("Matrícula"); else if (nova === "inscricao_evento") escolherCategoria("Simpósio"); }}><option value="matricula">Matrícula</option><option value="mensalidade">Mensalidade</option><option value="inscricao_evento">Inscrição em evento</option><option value="outro">Outro</option></select></div>{finalidade === "mensalidade" && <div><Label htmlFor="mov-mes-ref">Mês pago</Label><Input id="mov-mes-ref" type="month" value={mesReferencia} onChange={(e) => setMesReferencia(e.target.value)} required={!lancamento?.origem_referencia} />{lancamento?.origem_referencia && !mesReferencia && <p className="text-xs text-muted-foreground">Desconhecido no histórico</p>}</div>}</div>}
       </>}

@@ -40,8 +40,9 @@ export const ehStatusInscricao = (status: string): status is StatusInscricao =>
 export const statusInscricaoOuPadrao = (status: string): StatusInscricao =>
   ehStatusInscricao(status) ? status : "em_analise";
 
-/** Mantém a política atual da gestão: qualquer mudança para outro status é permitida. */
+/** Transições administrativas; pedidos públicos de cancelamento são analisados separadamente. */
 export const podeAlterarStatusInscricao = (atual: string, destino: StatusInscricao) =>
-  (atual === "em_analise" && destino === "cancelado")
-  || (atual === "comprovante_enviado" && ["pagamento_nao_identificado", "cancelado"].includes(destino))
-  || (atual === "pagamento_nao_identificado" && ["em_analise", "cancelado"].includes(destino));
+  (atual === "em_analise" && ["comprovante_enviado", "confirmada", "cancelado"].includes(destino))
+  || (atual === "comprovante_enviado" && ["pagamento_nao_identificado", "confirmada", "cancelado"].includes(destino))
+  || (atual === "pagamento_nao_identificado" && ["comprovante_enviado", "confirmada", "cancelado"].includes(destino))
+  || (atual === "confirmada" && destino === "cancelado");
