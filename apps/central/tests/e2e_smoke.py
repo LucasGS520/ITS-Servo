@@ -23,8 +23,8 @@ with sync_playwright() as playwright:
     assert_heading(page, "Dashboard")
 
     for route, heading in {
-        "/painel/atendimento": "Atendimento",
-        "/painel/financeiro?tab=cobrancas": "Financeiro",
+        "/painel/atendimento": "Inscrições",
+        "/painel/financeiro?tab=lancamentos": "Financeiro",
         "/painel/instituto": "Instituto",
         "/painel/relatorios": "Relatórios",
     }.items():
@@ -40,7 +40,7 @@ with sync_playwright() as playwright:
     page.goto(f"{BASE_URL}/painel/atendimento")
     page.wait_for_load_state("networkidle")
     assert page.evaluate("document.body.scrollWidth") <= 390
-    screenshot = Path(gettempdir()) / "central-atendimento-mobile.png"
+    screenshot = Path(gettempdir()) / "central-inscricoes-mobile.png"
     page.screenshot(path=str(screenshot), full_page=True)
     print(f"mobile={screenshot}")
     browser.close()

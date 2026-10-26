@@ -13,7 +13,9 @@
 
 Os testes que gravam dados usam exclusivamente o Supabase local. O build local de validação não é enviado ao Cloudflare: a publicação é feita pelo build da branch `refactor-central`, com as variáveis de produção do projeto.
 
-## Preservação da base oficial
+## Publicação e preservação da base oficial
+
+Migração aplicada em 26/10/2026 (`20261026123127_estabilizacao_central` no banco). Código publicado pela branch `refactor-central`, commit `8e1a4bf`. O Cloudflare passou a servir `/assets/index-Jqez-hCJ.js`; foram conferidos o intervalo automático, o comando financeiro compartilhado, a referência de preço e a URL do banco de produção. Login obrigatório conferido no navegador; formulário público do Site abriu sem submissão.
 
 Referência anterior à migração:
 
@@ -25,6 +27,8 @@ Referência anterior à migração:
 | Itens do Simpósio | 26 | f7e9e2a755f34c4f71d059dacd6cc9f4 |
 
 Entradas menos saídas dos movimentos: R$ 11.562,01 (sem adicionar saldo inicial). Recebimentos históricos: R$ 9.170,00. Nenhuma inscrição existente no momento da migração.
+
+As quatro contagens e os quatro hashes acima permaneceram idênticos após a migração. As tabelas de caixa e recebimentos têm somente política administrativa de leitura; gravações diretas são bloqueadas por RLS. Comprovantes permanecem em bucket privado e o novo comando financeiro não pode ser executado anonimamente.
 
 ## Limites e entrada oficial
 
