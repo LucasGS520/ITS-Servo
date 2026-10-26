@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { verificarAcessoGestao } from "@/modules/acesso/api";
+import { observarSessao } from "@/modules/acesso/api/session";
 
 /**
  * Guard reutilizável da Central Operacional (admin).
@@ -14,6 +15,7 @@ const RequireGestaoAccess = ({ children }: { children: React.ReactNode }) => {
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
+    let usuario: string | null | undefined;
     const check = async () => {
       try {
         if (!(await verificarAcessoGestao())) {
@@ -27,6 +29,18 @@ const RequireGestaoAccess = ({ children }: { children: React.ReactNode }) => {
       }
     };
     check();
+    const { data } = observarSessao((event, session) => {
+      if (event === "SIGNED_OUT" || !session) {
+        setChecking(true);
+        navigate("/painel/login", { replace: true });
+      } else if (usuario !== undefined && usuario !== session.user.id) {
+        setChecking(true);
+        // Auth callbacks must finish before another auth request starts.
+        setTimeout(() => void check(), 0);
+      }
+      usuario = session?.user.id ?? null;
+    });
+    return () => data.subscription.unsubscribe();
   }, [navigate]);
 
   if (checking) {

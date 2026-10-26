@@ -21,7 +21,8 @@ export const situacaoFinanceira = (inscricao: Inscricao, movimentos: Lancamento[
   if (isencoes.some((item) => item.ativo && item.finalidade === finalidade)) return "Isenta";
   if (inscricao.isento) return "Isenção antiga · revisar alcance";
   const recebido = recebidoLiquido(movimentos, finalidade);
-  if (valor == null || valor <= 0) return recebido > 0 ? "Recebimento com valor não configurado" : "Valor não configurado";
+  if (valor == null) return recebido > 0 ? "Recebimento com valor não configurado" : "Valor não configurado";
+  if (valor === 0) return "Gratuita";
   if (recebido <= 0) return inscricao.comprovante_url ? "Comprovante a conferir · sem recebimento" : "Sem recebimento";
   if (recebido < valor) return "Recebido parcialmente";
   return "Valor recebido";

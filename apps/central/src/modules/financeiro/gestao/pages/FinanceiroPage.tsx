@@ -14,7 +14,7 @@ const FinanceiroPage = () => {
   useEffect(() => {
     if (raw && !TABS.includes(raw)) setSearchParams({ tab: "lancamentos" }, { replace: true });
   }, [raw, setSearchParams]);
-  return <div className="container space-y-6 py-8"><div><h1 className="text-2xl font-bold text-foreground">Financeiro</h1><p className="mt-1 text-sm text-muted-foreground">Entradas, saídas, pagamentos e devoluções em um só lugar.</p></div><Tabs value={tab} onValueChange={(value) => setSearchParams({ tab: value }, { replace: true })}><TabsList><TabsTrigger value="lancamentos">Movimentações</TabsTrigger><TabsTrigger value="categorias">Categorias</TabsTrigger></TabsList><TabsContent value="lancamentos" className="mt-6"><LancamentosTab /></TabsContent><TabsContent value="categorias" className="mt-6"><CategoriasTab /></TabsContent></Tabs></div>;
+  return <div className="container space-y-6 py-8"><div><h1 className="text-2xl font-bold text-foreground">Financeiro</h1><p className="mt-1 text-sm text-muted-foreground">Entradas, saídas, pagamentos e devoluções em um só lugar.</p></div><Tabs value={tab} onValueChange={(value) => setSearchParams(previous => { const next = new URLSearchParams(previous); next.set("tab", value); return next; }, { replace: true })}><TabsList><TabsTrigger value="lancamentos">Movimentações</TabsTrigger><TabsTrigger value="categorias">Categorias</TabsTrigger></TabsList><TabsContent value="lancamentos" className="mt-6"><LancamentosTab /></TabsContent><TabsContent value="categorias" className="mt-6"><CategoriasTab /></TabsContent></Tabs></div>;
 };
 
 export default FinanceiroPage;

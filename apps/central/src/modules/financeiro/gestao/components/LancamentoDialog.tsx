@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useOperationalStatus } from "@/common/hooks/useOperationalStatus";
+import { useEffect, useRef, useMemo, useState, type FormEvent } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/common/ui/dialog";
 import { Button } from "@/common/ui/button";
 import { Input } from "@/common/ui/input";
@@ -6,9 +7,9 @@ import { Label } from "@/common/ui/label";
 import { Textarea } from "@/common/ui/textarea";
 import { useToast } from "@/common/hooks/use-toast";
 import { getErrorMessage } from "@/common/lib/errors";
-import { UNIDADES_FINANCEIRO } from "@/modules/financeiro/model/unidades";
+import { useUnidades } from "@/modules/instituto/api/useUnidades";
 import { useAlunos, useCategorias, type Lancamento } from "@/modules/financeiro/api";
-import { enviarComprovanteFinanceiro, removerComprovanteFinanceiro, useSalvarMovimentacao, type MovimentacaoInput } from "@/modules/financeiro/api/movimentacoes";
+import { enviarComprovanteFinanceiro, useSalvarMovimentacao, type MovimentacaoInput } from "@/modules/financeiro/api/movimentacoes";
 import { useMatriculas, obterUrlComprovante } from "@/modules/matriculas";
 import { useCursos, useEdicoesSimposio } from "@/modules/atividades/api";
 
@@ -19,6 +20,11 @@ type Pagador = "nenhum" | "inscricao" | "historico";
 interface Props { open: boolean; onOpenChange: (open: boolean) => void; lancamento?: Lancamento | null; inscricaoInicialId?: string | null }
 
 const LancamentoDialog = ({ open, onOpenChange, lancamento, inscricaoInicialId }: Props) => {
+  const { unidades: UNIDADES_FINANCEIRO } = useUnidades();
+  const inicializado = useRef<string | null>(null);
+  const enviando = useRef(false);
+  const [processando, setProcessando] = useState(false);
+  const operacaoId = useRef(crypto.randomUUID());
   const { toast } = useToast();
   const salvar = useSalvarMovimentacao();
   const { data: categorias = [] } = useCategorias();
@@ -26,6 +32,7 @@ const LancamentoDialog = ({ open, onOpenChange, lancamento, inscricaoInicialId }
   const { data: alunos = [] } = useAlunos();
   const { data: cursos = [] } = useCursos();
   const { data: edicoes = [] } = useEdicoesSimposio();
+  const saude = useOperationalStatus(["inscricoes", "alunos", "categorias_financeiras", "cursos", "edicoes_simposio", "nucleos"]);
   const inscricaoInicial = inscricoes.find((item) => item.id === inscricaoInicialId);
   const [tipo, setTipo] = useState<"entrada" | "saida">("entrada");
   const [categoriaId, setCategoriaId] = useState("");
@@ -45,7 +52,10 @@ const LancamentoDialog = ({ open, onOpenChange, lancamento, inscricaoInicialId }
   const devolucao = Boolean(lancamento?.estorno_de_id);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) { inicializado.current = null; return; }
+    const chave = lancamento?.id ?? inscricaoInicialId ?? "novo";
+    if (inicializado.current === chave || (inscricaoInicialId && !inscricaoInicial)) return;
+    inicializado.current = chave; operacaoId.current = crypto.randomUUID();
     setTipo((lancamento?.tipo as "entrada" | "saida") ?? "entrada");
     setCategoriaId(lancamento?.categoria_id ?? "");
     setValor(lancamento ? String(lancamento.valor) : "");
@@ -101,6 +111,7 @@ const LancamentoDialog = ({ open, onOpenChange, lancamento, inscricaoInicialId }
 
   const enviar = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (enviando.current || saude.bloqueado) return;
     const numero = valorNumerico(valor);
     if (!Number.isFinite(numero) || numero <= 0 || !categoriaId || !mesCaixa || (data && data.slice(0, 7) !== mesCaixa)) {
       toast({ title: "Confira valor, categoria e data", variant: "destructive" }); return;
@@ -114,12 +125,13 @@ const LancamentoDialog = ({ open, onOpenChange, lancamento, inscricaoInicialId }
     if (!data && (!lancamento || lancamento.precisao_data !== "mes")) {
       toast({ title: "Informe a data do movimento", variant: "destructive" }); return;
     }
+    enviando.current = true; setProcessando(true);
     let pathNovo: string | null = null;
     try {
       if (arquivo) pathNovo = await enviarComprovanteFinanceiro(arquivo);
       const vinculado = tipo === "entrada" && pagador !== "nenhum" && !devolucao;
       await salvar.mutateAsync({
-        id: lancamento?.id ?? null, tipo, valor: numero, data: data || null, mesCaixa,
+        operacaoId: operacaoId.current, id: lancamento?.id ?? null, tipo, valor: numero, data: data || null, mesCaixa,
         categoriaId, unidade: unidade === "geral" ? null : unidade,
         cursoId: atividade.startsWith("curso:") ? atividade.slice(6) : null,
         edicaoId: atividade.startsWith("simposio:") ? atividade.slice(9) : null,
@@ -133,19 +145,20 @@ const LancamentoDialog = ({ open, onOpenChange, lancamento, inscricaoInicialId }
       toast({ title: lancamento ? "Movimentação atualizada" : "Movimentação registrada" });
       onOpenChange(false);
     } catch (error) {
-      if (pathNovo) await removerComprovanteFinanceiro(pathNovo);
+      if (pathNovo) { setComprovante(pathNovo); setArquivo(null); }
       toast({ title: "Não foi possível salvar", description: getErrorMessage(error), variant: "destructive" });
-    }
+    } finally { enviando.current = false; setProcessando(false); }
   };
 
-  return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl"><DialogHeader><DialogTitle>{lancamento ? "Editar movimentação" : "Nova movimentação"}</DialogTitle></DialogHeader>
+  return <Dialog open={open} onOpenChange={value => { if (!enviando.current) onOpenChange(value); }}><DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl"><DialogHeader><DialogTitle>{lancamento ? "Editar movimentação" : "Nova movimentação"}</DialogTitle></DialogHeader>
     <form className="space-y-4" onSubmit={enviar}>
+      {saude.bloqueado && <p role="status">{saude.erro ? "Falha ao atualizar os dados. Aguarde a recuperação antes de salvar." : "Carregando dados necessários..."}</p>}
       {lancamento?.origem_referencia && <p className="rounded-md border border-amber-200 bg-amber-50 p-2 text-xs text-amber-900">Registro importado: {lancamento.origem_referencia}. A edição mantém a origem e registra a alteração.</p>}
       {devolucao && <p className="text-sm text-muted-foreground">Esta saída permanece vinculada à entrada original. Valor, data, categoria e observação podem ser corrigidos.</p>}
       <div className="grid gap-3 sm:grid-cols-2"><div><Label htmlFor="mov-tipo">Tipo</Label><select id="mov-tipo" className="h-10 w-full rounded-md border bg-background px-3" value={tipo} disabled={devolucao || Boolean(inscricaoInicialId)} onChange={(e) => { setTipo(e.target.value as "entrada" | "saida"); setCategoriaId(""); if (e.target.value === "saida") setPagador("nenhum"); }}><option value="entrada">Entrada</option><option value="saida">Saída</option></select></div><div><Label htmlFor="mov-categoria">Categoria</Label><select id="mov-categoria" className="h-10 w-full rounded-md border bg-background px-3" value={categoriaId} required onChange={(e) => setCategoriaId(e.target.value)}><option value="">Selecione</option>{categoriasDisponiveis.map((item) => <option key={item.id} value={item.id}>{item.nome}</option>)}</select></div></div>
       <div className="grid gap-3 sm:grid-cols-2"><div><Label htmlFor="mov-valor">Valor (R$)</Label><Input id="mov-valor" value={valor} onChange={(e) => setValor(e.target.value)} inputMode="decimal" required /></div><div><Label htmlFor="mov-data">Data real</Label><Input id="mov-data" type="date" value={data} onChange={(e) => { setData(e.target.value); if (e.target.value) setMesCaixa(e.target.value.slice(0, 7)); }} />{!data && lancamento?.precisao_data === "mes" && <p className="text-xs text-muted-foreground">Dia desconhecido na fonte histórica</p>}</div></div>
       {!data && <div><Label htmlFor="mov-mes-caixa">Mês conhecido do caixa</Label><Input id="mov-mes-caixa" type="month" value={mesCaixa} onChange={(e) => setMesCaixa(e.target.value)} /></div>}
-      {!devolucao && <><div><Label htmlFor="mov-atividade">Atividade</Label><select id="mov-atividade" className="h-10 w-full rounded-md border bg-background px-3" value={atividade} disabled={tipo === "entrada" && pagador !== "nenhum"} onChange={(e) => setAtividade(e.target.value)}><option value="geral">Geral do ITS</option>{cursos.map((item) => <option key={item.id} value={`curso:${item.id}`}>{item.nome}</option>)}{edicoes.map((item) => <option key={item.id} value={`simposio:${item.id}`}>{item.nome}</option>)}</select></div><div><Label htmlFor="mov-unidade">Unidade</Label><select id="mov-unidade" className="h-10 w-full rounded-md border bg-background px-3" value={unidade} disabled={tipo === "entrada" && pagador !== "nenhum"} onChange={(e) => setUnidade(e.target.value)}><option value="geral">Geral institucional</option>{UNIDADES_FINANCEIRO.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></div></>}
+      {!devolucao && <><div><Label htmlFor="mov-atividade">Atividade</Label><select id="mov-atividade" className="h-10 w-full rounded-md border bg-background px-3" value={atividade} disabled={tipo === "entrada" && pagador !== "nenhum"} onChange={(e) => setAtividade(e.target.value)}><option value="geral">Geral do ITS</option>{cursos.map((item) => <option key={item.id} value={`curso:${item.id}`}>{item.nome}</option>)}{edicoes.map((item) => <option key={item.id} value={`simposio:${item.id}`}>{item.nome}</option>)}</select></div><div><Label htmlFor="mov-unidade">Unidade</Label><select id="mov-unidade" className="h-10 w-full rounded-md border bg-background px-3" value={unidade} disabled={tipo === "entrada" && pagador !== "nenhum"} onChange={(e) => setUnidade(e.target.value)}><option value="geral">Geral institucional</option>{UNIDADES_FINANCEIRO.filter(item => item.ativo || item.value === unidade).map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></div></>}
       {tipo === "entrada" && !devolucao && <><div><Label htmlFor="mov-pagador">Vínculo do pagamento</Label><select id="mov-pagador" className="h-10 w-full rounded-md border bg-background px-3" value={pagador} disabled={Boolean(inscricaoInicialId)} onChange={(e) => { setPagador(e.target.value as Pagador); setInscricaoId(""); setAlunoId(""); }}><option value="nenhum">Entrada sem inscrição (oferta, patrocínio etc.)</option><option value="inscricao">Inscrição de curso ou Simpósio</option><option value="historico">Aluno histórico validado, sem inscrição</option></select></div>
         {pagador === "inscricao" && <div><Label htmlFor="mov-inscricao">Inscrição</Label><select id="mov-inscricao" className="h-10 w-full rounded-md border bg-background px-3" value={inscricaoId} disabled={Boolean(inscricaoInicialId)} onChange={(e) => selecionarInscricao(e.target.value)} required><option value="">Selecione</option>{inscritos.map((item) => <option key={item.id} value={item.id}>{item.nome_completo} · {item.numero_inscricao}</option>)}</select>{inscricao && <p className="text-xs text-muted-foreground">{inscricao.status} · {inscricao.destino === "simposio" ? "Simpósio" : "Curso"}</p>}</div>}
         {pagador === "historico" && <div><Label htmlFor="mov-aluno">Aluno histórico</Label><select id="mov-aluno" className="h-10 w-full rounded-md border bg-background px-3" value={alunoId} onChange={(e) => selecionarAluno(e.target.value)} required><option value="">Selecione</option>{historicos.map((item) => <option key={item.id} value={item.id}>{item.nome} · {item.unidade}</option>)}</select>{aluno?.situacao === "pendente_validacao" && <p className="text-xs text-amber-700">Esta linha histórica pode ser editada; novos pagamentos exigem validação do aluno.</p>}</div>}
@@ -153,7 +166,7 @@ const LancamentoDialog = ({ open, onOpenChange, lancamento, inscricaoInicialId }
       </>}
       <div><Label htmlFor="mov-descricao">Descrição ou observação</Label><Textarea id="mov-descricao" value={descricao} onChange={(e) => setDescricao(e.target.value)} rows={2} /></div>
       {!devolucao && <div className="space-y-2"><Label htmlFor="mov-arquivo">Comprovante opcional (PDF ou imagem, até 10 MB)</Label><Input id="mov-arquivo" type="file" accept="application/pdf,image/jpeg,image/png,image/webp" onChange={(e) => setArquivo(e.target.files?.[0] ?? null)} />{inscricao?.comprovante_url && <Button type="button" variant="outline" size="sm" onClick={() => setComprovante(inscricao.comprovante_url!)}>Associar comprovante da inscrição</Button>}{comprovante && <div className="flex items-center gap-3 text-xs"><span>Comprovante associado</span><button type="button" className="underline" onClick={() => void abrirComprovante(comprovante)}>Abrir</button><button type="button" className="underline" onClick={() => setComprovante("")}>Remover vínculo</button></div>}</div>}
-      <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button><Button disabled={salvar.isPending}>{salvar.isPending ? "Salvando..." : lancamento ? "Salvar alterações" : "Registrar movimento"}</Button></div>
+      <div className="flex justify-end gap-2"><Button type="button" variant="outline" disabled={processando} onClick={() => { if (!enviando.current) onOpenChange(false); }}>Cancelar</Button><Button disabled={processando || salvar.isPending || saude.bloqueado}>{salvar.isPending ? "Salvando..." : lancamento ? "Salvar alterações" : "Registrar movimento"}</Button></div>
     </form>
   </DialogContent></Dialog>;
 };

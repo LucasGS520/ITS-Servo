@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useUrlFilter } from "@/common/hooks/useUrlFilter";
 import { Input } from "@/common/ui/input";
 import { formatBRL } from "@/common/constants/pricing";
 import { useLancamentos, usePendenciasConciliacao, useSaldosIniciais } from "@/modules/financeiro/api";
-import { UNIDADE_LABELS, UNIDADES_FINANCEIRO } from "@/modules/financeiro/model/unidades";
+import { useUnidades } from "@/modules/instituto/api/useUnidades";
 import { useCursos, useEdicoesSimposio } from "@/modules/atividades/api";
 import { useEnderecoRelatorios } from "@/modules/relatorios/api/useEnderecoRelatorios";
 import { useNucleos } from "@/modules/instituto/api";
@@ -15,10 +15,11 @@ const moeda = (v: number) => formatBRL(v);
 const historico = "Há movimentos importados neste período com dia desconhecido ou conciliação pendente. Consulte a origem em Financeiro → Movimentações.";
 
 export default function FinanceiroRelatorio() {
-  const [tipo, setTipo] = useState<"geral" | "nucleo" | "anual">("geral");
-  const [mes, setMes] = useState(mesLocal());
-  const [ano, setAno] = useState(String(new Date().getFullYear()));
-  const [unidade, setUnidade] = useState(UNIDADES_FINANCEIRO[0]?.value ?? "");
+  const { unidades: UNIDADES_FINANCEIRO, labels: UNIDADE_LABELS } = useUnidades();
+  const [tipo, setTipo] = useUrlFilter<"geral" | "nucleo" | "anual">("tipo", "geral");
+  const [mes, setMes] = useUrlFilter("mes", mesLocal());
+  const [ano, setAno] = useUrlFilter("ano", String(new Date().getFullYear()));
+  const [unidade, setUnidade] = useUrlFilter<string>("unidade", "sede_jd_santa_monica");
   const movQ = useLancamentos(), saldosQ = useSaldosIniciais(), cursosQ = useCursos(), edicoesQ = useEdicoesSimposio(), pendenciasQ = usePendenciasConciliacao(), enderecoQ = useEnderecoRelatorios(), nucleosQ = useNucleos();
   const consultas = [movQ, saldosQ, cursosQ, edicoesQ, pendenciasQ, enderecoQ, nucleosQ];
   const movimentos = movQ.data ?? [], saldos = saldosQ.data ?? [], endereco = enderecoQ.data ?? "";
@@ -39,7 +40,7 @@ export default function FinanceiroRelatorio() {
       resumo: [{ rotulo: "Entradas no ano", valor: moeda(r.entradas) }, { rotulo: "Saídas no ano", valor: moeda(r.saidas) }, { rotulo: "Saldo anterior ao ano", valor: moeda(r.anterior) }, { rotulo: "Saldo final", valor: moeda(r.saldoFinal) }],
       observacoes: [...(r.movimentos.some(l => l.conciliacao_status !== "conciliado" || l.precisao_data === "mes") ? [historico] : []), ...(pendenciasQ.data ?? []).some(p => p.status === "aberta" && p.chave.includes(ano)) ? ["Há diferenças históricas ainda em conciliação neste ano. Elas permanecem registradas e não geram lançamentos de ajuste automáticos."] : []] };
   } else {
-    const r = relatorioGeralMensal(movimentos, mes, saldos, cursosQ.data ?? [], edicoesQ.data ?? []);
+    const r = relatorioGeralMensal(movimentos, mes, saldos, cursosQ.data ?? [], edicoesQ.data ?? [], UNIDADE_LABELS);
     documento = { titulo: "Relatório financeiro geral", periodo: mes, endereco, financeiro: true,
       colunas: ["Histórico", "Entrada", "Saída", "Resultado da linha"],
       linhas: r.grupos.map(g => [g.nome, g.entradas ? moeda(g.entradas) : "—", g.saidas ? moeda(g.saidas) : "—", moeda(g.resultado)]),
@@ -54,6 +55,6 @@ export default function FinanceiroRelatorio() {
   </div>
   {consultas.some(q => q.isLoading) && <p>Carregando dados do relatório...</p>}
   {consultas.some(q => q.isError) && <p className="text-destructive">Falha ao carregar os dados. A impressão está indisponível.</p>}
-  {!consultas.some(q => q.isLoading || q.isError) && <ReportView documento={documento} pronto={!consultas.some(q => q.isFetching)} />}
+  {!consultas.some(q => q.data === undefined) && <ReportView documento={documento} pronto={!consultas.some(q => q.isFetching || q.isError)} />}
   </div>;
 }

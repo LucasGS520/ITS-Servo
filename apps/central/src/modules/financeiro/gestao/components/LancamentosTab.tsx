@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useOperationalStatus } from "@/common/hooks/useOperationalStatus";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "@/common/ui/card";
 import { Button } from "@/common/ui/button";
@@ -14,7 +15,7 @@ import { obterUrlComprovante } from "@/modules/matriculas";
 import { useCursos, useEdicoesSimposio } from "@/modules/atividades/api";
 import { useCategorias, useLancamentos, useSaldosIniciais, type Lancamento } from "@/modules/financeiro/api";
 import { formatData, mesParaCompetencia, saldoAcumulado, totaisDoMes } from "@/modules/financeiro/model/agregados";
-import { UNIDADE_LABELS, UNIDADES_FINANCEIRO } from "@/modules/financeiro/model/unidades";
+import { useUnidades } from "@/modules/instituto/api/useUnidades";
 import LancamentoDialog from "./LancamentoDialog";
 import { DevolucaoDialog } from "./DevolucaoDialog";
 
@@ -22,7 +23,9 @@ const hoje = () => new Date().toLocaleDateString("en-CA");
 const finalidadeLabel: Record<string, string> = { matricula: "Matrícula", mensalidade: "Mensalidade", inscricao_evento: "Inscrição em evento", outro: "Outro" };
 
 const LancamentosTab = () => {
-  const [params] = useSearchParams();
+  const { unidades: UNIDADES_FINANCEIRO, labels: UNIDADE_LABELS } = useUnidades();
+  const [params, setParams] = useSearchParams();
+  const filtro = (chave: string, padrao: string): [string, (valor: string) => void] => [params.get(chave) ?? padrao, valor => setParams(previous => { const next = new URLSearchParams(previous); if (valor === padrao) next.delete(chave); else next.set(chave, valor); return next; }, { replace: true })];
   const atividadeInicial = params.get("atividade") ?? "todas";
   const alunoInicial = params.get("aluno");
   const inscricaoInicial = params.get("inscricao");
@@ -32,27 +35,32 @@ const LancamentosTab = () => {
   const { data: cursos = [] } = useCursos();
   const { data: edicoes = [] } = useEdicoesSimposio();
   const { data: saldos = [] } = useSaldosIniciais();
-  const [mes, setMes] = useState(params.get("mes") ?? hoje().slice(0, 7));
-  const [unidade, setUnidade] = useState("todas");
-  const [tipo, setTipo] = useState("todos");
-  const [categoria, setCategoria] = useState("todas");
-  const [atividade, setAtividade] = useState(atividadeInicial);
-  const [origem, setOrigem] = useState("todas");
+  const [mes, setMes] = filtro("mes", hoje().slice(0, 7));
+  const [unidade, setUnidade] = filtro("unidade", "todas");
+  const [tipo, setTipo] = filtro("tipo", "todos");
+  const [categoria, setCategoria] = filtro("categoria", "todas");
+  const [atividade, setAtividade] = filtro("atividade", "todas");
+  const [origem, setOrigem] = filtro("origem", "todas");
   const [busca, setBusca] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editando, setEditando] = useState<Lancamento | null>(null);
   const [devolvendo, setDevolvendo] = useState<Lancamento | null>(null);
   const competencia = mesParaCompetencia(mes);
+  const contextoAplicado = useRef<string | null>(null);
   useEffect(() => {
+    if (isLoading) return;
+    const contexto = `${atividadeInicial}|${alunoInicial}|${inscricaoInicial}|${params.get("mes")}`;
+    if (contextoAplicado.current === contexto) return;
+    contextoAplicado.current = contexto;
     if (!params.get("mes") && (atividadeInicial !== "todas" || alunoInicial || inscricaoInicial)) {
       const relacionados = lancamentos.filter(item => alunoInicial || inscricaoInicial
         ? item.aluno_id === alunoInicial || item.inscricao_id === inscricaoInicial
         : atividadeInicial.startsWith("simposio:") ? item.edicao_simposio_id === atividadeInicial.slice(9)
         : atividadeInicial.startsWith("curso:") ? item.curso_id === atividadeInicial.slice(6) : false);
       const ultimo = relacionados.map(item => item.mes_caixa.slice(0, 7)).sort().at(-1);
-      if (ultimo) setMes(ultimo);
+      if (ultimo) setParams(previous => { const next = new URLSearchParams(previous); next.set("mes", ultimo); return next; }, { replace: true });
     }
-  }, [lancamentos, atividadeInicial, alunoInicial, inscricaoInicial, params]);
+  }, [lancamentos, atividadeInicial, alunoInicial, inscricaoInicial, params, isLoading, setParams]);
 
   const totalDevolvido = (id: string) => lancamentos.filter((item) => item.estorno_de_id === id && item.tipo === "saida").reduce((s, item) => s + Number(item.valor), 0);
   const { linhas, totais, acumulado, saldoReal } = useMemo(() => {
@@ -76,9 +84,9 @@ const LancamentosTab = () => {
     };
   }, [lancamentos, competencia, unidade, tipo, categoria, atividade, origem, busca, saldos, alunoInicial, inscricaoInicial]);
 
-  const abrirEdicao = (item: Lancamento | null) => { setEditando(item); setDialogOpen(true); };
+  const abrirEdicao = (item: Lancamento | null) => { if (saude.bloqueado) return; setEditando(item); setDialogOpen(true); };
   const abrirDevolucao = (item: Lancamento) => {
-    setDevolvendo(item);
+    if (!saude.bloqueado) setDevolvendo(item);
   };
   const abrirComprovante = async (path: string) => {
     try { window.open(await obterUrlComprovante(path), "_blank", "noopener,noreferrer"); }
@@ -88,8 +96,11 @@ const LancamentosTab = () => {
     ? cursos.find((curso) => curso.id === item.curso_id)?.nome ?? "Curso"
     : item.edicao_simposio_id ? edicoes.find((edicao) => edicao.id === item.edicao_simposio_id)?.nome ?? "Simpósio" : "Geral do ITS";
 
+  const saude = useOperationalStatus(["lancamentos_financeiros", "categorias_financeiras", "cursos", "edicoes_simposio", "saldos_iniciais_its", "nucleos"]);
+  if (saude.semDados) return <p role="status" className="p-6">{saude.erro ? "Não foi possível atualizar os dados. Os valores não serão apresentados até recuperar a conexão." : "Carregando dados..."}</p>;
   if (isLoading) return <div className="flex min-h-[40vh] items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
   return <div className="space-y-6">
+    {saude.erro && <p role="alert" className="text-destructive">Falha ao atualizar. Exibindo os últimos dados carregados; ações indisponíveis até recuperar a conexão.</p>}
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {[{ label: "Entradas do mês", valor: totais.entrada }, { label: "Saídas do mês", valor: totais.saida }, { label: "Resultado do mês", valor: totais.saldo }, { label: saldoReal ? "Saldo acumulado" : "Resultado acumulado filtrado", valor: acumulado }].map((item) => <Card key={item.label}><CardContent className="p-5"><p className="text-xs uppercase text-muted-foreground">{item.label}</p><p className="mt-2 text-2xl font-bold">{formatBRL(item.valor)}</p></CardContent></Card>)}
     </div>

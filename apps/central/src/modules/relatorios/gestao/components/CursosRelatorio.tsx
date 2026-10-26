@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useUrlFilter } from "@/common/hooks/useUrlFilter";
 import { Link, useSearchParams } from "react-router-dom";
 import { Input } from "@/common/ui/input";
 import { Button } from "@/common/ui/button";
 import { formatBRL } from "@/common/constants/pricing";
 import { useAlunos, useLancamentos } from "@/modules/financeiro/api";
 import { useCursos } from "@/modules/atividades/api";
-import { UNIDADE_LABELS, UNIDADES_FINANCEIRO } from "@/modules/financeiro/model/unidades";
+import { useUnidades } from "@/modules/instituto/api/useUnidades";
 import { totais } from "@/modules/relatorios/model/financeiro";
 import { useEnderecoRelatorios } from "@/modules/relatorios/api/useEnderecoRelatorios";
 import { useNucleos } from "@/modules/instituto/api";
@@ -17,10 +17,11 @@ const SITUACAO: Record<string, string> = { pendente_validacao: "Histórico pende
 const moeda = (n: number) => formatBRL(n);
 
 export default function CursosRelatorio() {
+  const { unidades: UNIDADES_FINANCEIRO, labels: UNIDADE_LABELS } = useUnidades();
   const [params] = useSearchParams();
-  const [cursoId, setCursoId] = useState("");
-  const [ano, setAno] = useState(String(new Date().getFullYear()));
-  const [nucleo, setNucleo] = useState("todos");
+  const [cursoId, setCursoId] = useUrlFilter<string>("curso", "");
+  const [ano, setAno] = useUrlFilter("ano", String(new Date().getFullYear()));
+  const [nucleo, setNucleo] = useUrlFilter<string>("nucleo", "todos");
   const cursosQ = useCursos(), alunosQ = useAlunos(), movQ = useLancamentos(), enderecoQ = useEnderecoRelatorios(), nucleosQ = useNucleos();
   const consultas = [cursosQ, alunosQ, movQ, enderecoQ, nucleosQ];
   const alunoDoLink = (alunosQ.data ?? []).find(a => a.id === params.get("aluno"));
@@ -39,7 +40,7 @@ export default function CursosRelatorio() {
     {curso && <Button variant="outline" asChild><Link to={`/painel/instituto?secao=alunos&curso=${curso.id}`}>Abrir alunos no Instituto</Link></Button>}
     {consultas.some(q => q.isLoading) && <p>Carregando dados do curso...</p>}
     {consultas.some(q => q.isError) && <p className="text-destructive">Falha ao carregar o relatório. A impressão está indisponível.</p>}
-    {!consultas.some(q => q.isLoading || q.isError) && doc && <ReportView documento={doc} pronto={!consultas.some(q => q.isFetching)} />}
-    {!consultas.some(q => q.isLoading || q.isError) && !doc && <p>Nenhum curso cadastrado.</p>}
+    {!consultas.some(q => q.data === undefined) && doc && <ReportView documento={doc} pronto={!consultas.some(q => q.isFetching || q.isError)} />}
+    {!consultas.some(q => q.data === undefined) && !doc && <p>Nenhum curso cadastrado.</p>}
   </div>;
 }

@@ -1,9 +1,11 @@
+import { rpc } from "@/services/supabase/rpc";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/services/supabase/client";
 import { LANCAMENTOS_KEY } from "./useFinanceiro";
 
 export interface MovimentacaoInput {
   id: string | null;
+  operacaoId: string;
   tipo: "entrada" | "saida";
   valor: number;
   data: string | null;
@@ -20,10 +22,9 @@ export interface MovimentacaoInput {
   descricao: string | null;
 }
 
-const rpc = supabase.rpc as unknown as (name: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: Error | null }>;
 
 export async function salvarMovimentacao(input: MovimentacaoInput) {
-  const { error } = await rpc("salvar_movimentacao_its", {
+  const { error } = await rpc("executar_movimento_its", { p_operacao_id: input.operacaoId, p_tipo: "salvar", p_dados: {
     p_id: input.id, p_tipo: input.tipo, p_valor: input.valor,
     p_data: input.data, p_mes_caixa: `${input.mesCaixa}-01`,
     p_categoria_id: input.categoriaId, p_unidade: input.unidade,
@@ -31,15 +32,15 @@ export async function salvarMovimentacao(input: MovimentacaoInput) {
     p_inscricao_id: input.inscricaoId, p_aluno_historico_id: input.alunoHistoricoId,
     p_finalidade: input.finalidade, p_mes_referencia: input.mesReferencia ? `${input.mesReferencia}-01` : null,
     p_comprovante_url: input.comprovanteUrl, p_descricao: input.descricao,
-  });
+  } });
   if (error) throw error;
 }
 
-export async function devolverMovimentacao(input: { id: string; valor: number; data: string; categoriaId: string; descricao: string | null }) {
-  const { error } = await rpc("devolver_movimentacao_its", {
+export async function devolverMovimentacao(input: { operacaoId: string; id: string; valor: number; data: string; categoriaId: string; descricao: string | null }) {
+  const { error } = await rpc("executar_movimento_its", { p_operacao_id: input.operacaoId, p_tipo: "devolver", p_dados: {
     p_entrada_id: input.id, p_valor: input.valor, p_data: input.data,
     p_categoria_id: input.categoriaId, p_descricao: input.descricao,
-  });
+  } });
   if (error) throw error;
 }
 

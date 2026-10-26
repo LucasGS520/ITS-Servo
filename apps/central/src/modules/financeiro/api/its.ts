@@ -1,3 +1,4 @@
+import { rpc } from "@/services/supabase/rpc";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/services/supabase/client";
 import { fetchAllPages } from "@/common/lib/fetchAllPages";
@@ -27,7 +28,6 @@ export interface AtribuicaoMensalidade {
 export const RECEBIMENTOS_ITS_KEY = ["recebimentos_its"] as const;
 export const ATRIBUICOES_KEY = ["atribuicoes_mensalidade"] as const;
 
-const rpc = supabase.rpc as unknown as (name: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: Error | null }>;
 
 export const useRecebimentosIts = () => useQuery({
   queryKey: RECEBIMENTOS_ITS_KEY,

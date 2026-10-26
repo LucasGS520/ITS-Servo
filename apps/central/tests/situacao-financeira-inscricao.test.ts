@@ -7,6 +7,10 @@ const inscricao = { id: "i", destino: "curso", isento: false, comprovante_url: n
 const entrada = { id: "e", inscricao_id: "i", tipo: "entrada", finalidade: "matricula", valor: 40, estorno_de_id: null } as Lancamento;
 
 describe("situação financeira da inscrição", () => {
+  it("distingue gratuidade de preço desconhecido", () => {
+    expect(situacaoFinanceira(inscricao, [], 0)).toBe("Gratuita");
+    expect(situacaoFinanceira(inscricao, [], null)).toBe("Valor não configurado");
+  });
   it("não confunde comprovante com recebimento", () => {
     expect(situacaoFinanceira({ ...inscricao, comprovante_url: "privado.pdf" }, [], 40)).toContain("sem recebimento");
   });

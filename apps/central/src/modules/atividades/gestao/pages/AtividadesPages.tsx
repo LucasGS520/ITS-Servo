@@ -1,4 +1,5 @@
-import { useState, type FormEvent } from "react";
+import { useOperationalStatus } from "@/common/hooks/useOperationalStatus";
+import { useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/common/ui/badge";
 import { Button } from "@/common/ui/button";
@@ -21,11 +22,13 @@ const Toggle = ({ name, label, checked }: { name: string; label: string; checked
 export const CursosPage = () => {
   const { data: cursos = [], isLoading, error } = useCursos();
   const salvarCurso = useSalvarCurso();
+  const saude = useOperationalStatus(["cursos"]);
+  const trava = useRef(false);
   const { toast } = useToast();
   const [edicao, setEdicao] = useState<Tables<"cursos"> | null>(null);
   async function salvar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!edicao) return;
+    if (!edicao || trava.current || saude.bloqueado) return;
     const f = new FormData(event.currentTarget);
     const taxa = f.get("taxa") ? Number(f.get("taxa")) : null;
     const mensalidade = f.get("mensalidade") ? Number(f.get("mensalidade")) : null;
@@ -34,6 +37,7 @@ export const CursosPage = () => {
     if (publico && (!ativo || taxa == null || mensalidade == null)) {
       toast({ title: "Configure matrícula e mensalidade e ative o curso antes de publicar", variant: "destructive" }); return;
     }
+    trava.current = true;
     try {
       await salvarCurso.mutateAsync({ id: edicao.id, values: {
         nome: String(f.get("nome") ?? "").trim(), taxa_matricula: taxa,
@@ -41,8 +45,10 @@ export const CursosPage = () => {
       } });
       setEdicao(null); toast({ title: "Curso atualizado" });
     } catch (e) { toast({ title: "Não foi possível salvar", description: getErrorMessage(e), variant: "destructive" }); }
+    finally { trava.current = false; }
   }
-  return <section className="space-y-5">
+  if (saude.semDados) return <p role="status">{saude.erro ? "Falha ao carregar os cursos." : "Carregando cursos..."}</p>;
+  return <section className="space-y-5">{saude.erro && <p role="alert">Falha ao atualizar. Exibindo os últimos dados; gravações indisponíveis.</p>}
     <div><h2 className="text-xl font-semibold">Cursos</h2><p className="text-sm text-muted-foreground">Valores oficiais, publicação e alunos por curso.</p></div>
     {error && <p className="text-destructive">Falha ao carregar cursos.</p>}{isLoading && <p>Carregando...</p>}
     <div className="grid gap-4 md:grid-cols-2">{cursos.map(c => <Card key={c.id}><CardHeader><CardTitle className="flex justify-between gap-2 text-lg">{c.nome}<Badge variant={c.ativo ? "default" : "outline"}>{c.ativo ? "Ativo" : "Inativo"}</Badge></CardTitle></CardHeader><CardContent className="space-y-2 text-sm">
@@ -54,7 +60,7 @@ export const CursosPage = () => {
       <Label>Nome<Input name="nome" defaultValue={edicao.nome} required /></Label>
       <div className="grid grid-cols-2 gap-3"><Label>Matrícula<Input name="taxa" type="number" min="0" step="0.01" defaultValue={edicao.taxa_matricula ?? ""} /></Label><Label>Mensalidade<Input name="mensalidade" type="number" min="0" step="0.01" defaultValue={edicao.mensalidade_referencia ?? ""} /></Label></div>
       <Toggle name="ativo" label="Curso ativo" checked={edicao.ativo} /><Toggle name="publico" label="Publicado no Site" checked={edicao.publico} />
-      <Button disabled={salvarCurso.isPending}>Salvar</Button>
+      <Button disabled={salvarCurso.isPending || saude.bloqueado}>Salvar</Button>
     </form>}</DialogContent></Dialog>
   </section>;
 };
@@ -63,10 +69,13 @@ export const SimposioPage = () => {
   const { data: edicoes = [], isLoading, error } = useEdicoesSimposio();
   const { data: inscricoes = [] } = useMatriculas();
   const salvarEdicao = useSalvarEdicaoSimposio();
+  const saude = useOperationalStatus(["edicoes_simposio", "inscricoes"]);
+  const trava = useRef(false);
   const { toast } = useToast();
   const [edicao, setEdicao] = useState<Tables<"edicoes_simposio"> | "nova" | null>(null);
   async function salvar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (trava.current || saude.bloqueado) return;
     const f = new FormData(event.currentTarget);
     const inicio = String(f.get("inicio") ?? "") || null;
     const fim = String(f.get("fim") ?? "") || null;
@@ -74,15 +83,18 @@ export const SimposioPage = () => {
     const ativo = f.get("ativo") === "on", publico = f.get("publico") === "on";
     if (inicio && fim && fim < inicio) { toast({ title: "Fim anterior ao início", variant: "destructive" }); return; }
     if (publico && (!ativo || valor == null)) { toast({ title: "Ative a edição e informe o preço antes de publicar", variant: "destructive" }); return; }
+    trava.current = true;
     try {
       await salvarEdicao.mutateAsync({ id: edicao === "nova" ? undefined : edicao?.id, values: {
         nome: String(f.get("nome") ?? "").trim(), inicio, fim, valor, ativo, publico,
       } });
       setEdicao(null); toast({ title: "Edição salva" });
     } catch (e) { toast({ title: "Não foi possível salvar", description: getErrorMessage(e), variant: "destructive" }); }
+    finally { trava.current = false; }
   }
   const atual = edicao === "nova" ? null : edicao;
-  return <section className="space-y-5">
+  if (saude.semDados) return <p role="status">{saude.erro ? "Falha ao carregar edições e participações." : "Carregando edições..."}</p>;
+  return <section className="space-y-5">{saude.erro && <p role="alert">Falha ao atualizar. Exibindo os últimos dados; gravações indisponíveis.</p>}
     <div className="flex justify-between gap-3"><div><h2 className="text-xl font-semibold">Edições do Simpósio</h2><p className="text-sm text-muted-foreground">Configuração, participação e inventário por edição.</p></div><Button onClick={() => setEdicao("nova")}>Nova edição</Button></div>
     {error && <p className="text-destructive">Falha ao carregar edições.</p>}{isLoading && <p>Carregando...</p>}
     {edicoes.map(e => {
@@ -99,7 +111,7 @@ export const SimposioPage = () => {
       <Label>Nome<Input name="nome" defaultValue={atual?.nome ?? ""} required /></Label><div className="grid grid-cols-2 gap-3"><Label>Início<Input name="inicio" type="date" defaultValue={atual?.inicio ?? ""} /></Label><Label>Fim<Input name="fim" type="date" defaultValue={atual?.fim ?? ""} /></Label></div>
       <Label>Preço único<Input name="valor" type="number" min="0" step="0.01" defaultValue={atual?.valor ?? ""} /></Label>
       <Toggle name="ativo" label="Edição ativa" checked={atual?.ativo ?? true} /><Toggle name="publico" label="Publicado no Site" checked={atual?.publico ?? false} />
-      <Button disabled={salvarEdicao.isPending}>Salvar</Button>
+      <Button disabled={salvarEdicao.isPending || saude.bloqueado}>Salvar</Button>
     </form></DialogContent></Dialog>
   </section>;
 };

@@ -9,7 +9,13 @@ import { atualizarDadosAtendimento, cancelarInscricaoInterna, confirmarInscricao
 const id = "00000000-0000-0000-0000-000000000001";
 
 describe("comandos da ficha de inscrição", () => {
-  beforeEach(() => { rpc.mockReset(); rpc.mockResolvedValue({ error: null }); });
+  beforeEach(() => {
+    rpc.mockReset();
+    rpc.mockImplementation(function (this: { rpc: unknown }) {
+      if (this?.rpc !== rpc) throw new Error("RPC perdeu o contexto do cliente");
+      return Promise.resolve({ error: null });
+    });
+  });
 
   it("confirma independentemente do pagamento, sem criar movimento", async () => {
     await confirmarInscricaoIts(id, null, false, null);

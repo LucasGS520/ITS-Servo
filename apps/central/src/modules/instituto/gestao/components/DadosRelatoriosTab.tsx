@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Card, CardContent } from "@/common/ui/card";
 import { Button } from "@/common/ui/button";
 import { Input } from "@/common/ui/input";
@@ -12,7 +12,8 @@ const DadosRelatoriosTab = () => {
   const salvar = useSalvarEnderecoRelatorios();
   const { toast } = useToast();
   const [valor, setValor] = useState("");
-  useEffect(() => { if (endereco !== undefined) setValor(endereco); }, [endereco]);
+  const inicializado = useRef(false);
+  useEffect(() => { if (endereco !== undefined && !inicializado.current) { setValor(endereco); inicializado.current = true; } }, [endereco]);
 
   async function enviar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

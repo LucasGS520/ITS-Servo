@@ -1,3 +1,4 @@
+import { useCursos } from "@/modules/atividades/api";
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/common/ui/card";
 import { Loader2, Users, DollarSign, Clock, AlertTriangle, TrendingUp, MapPin, BookOpen } from "lucide-react";
@@ -8,7 +9,10 @@ import {
   type StatusInscricao,
 } from "@/modules/matriculas";
 import { useAlunos, useLancamentos } from "@/modules/financeiro";
-import { NUCLEO_LABELS } from "@its-servo/supabase";
+import { useUnidades } from "@/modules/instituto/api/useUnidades";
+import { useSaldosIniciais } from "@/modules/financeiro/api";
+import { mesLocal, relatorioGeralMensal } from "@/modules/relatorios/model/financeiro";
+import { useOperationalStatus } from "@/common/hooks/useOperationalStatus";
 
 const statusColors: Record<StatusInscricao, string> = {
   em_analise: "bg-yellow-50 border-yellow-200 text-yellow-800",
@@ -24,8 +28,14 @@ const fmt = (n: number) =>
 const DashboardPage = () => {
   const { data: inscricoes = [], isLoading } = useMatriculas();
   const { data: alunos = [] } = useAlunos();
+  const { data: cursos = [] } = useCursos();
   const { data: registros = [] } = useLancamentos();
 
+  const { labels: NUCLEO_LABELS } = useUnidades();
+  const { data: saldos = [] } = useSaldosIniciais();
+  const financeiro = relatorioGeralMensal(registros, mesLocal(), saldos, [], []);
+  const pessoasAtivas = new Set(alunos.filter(a => a.situacao === "ativo" && a.pessoa_id).map(a => a.pessoa_id)).size;
+  const saude = useOperationalStatus(["inscricoes", "alunos", "lancamentos_financeiros", "saldos_iniciais_its", "nucleos", "cursos"]);
   const stats = useMemo(() => {
     const agora = new Date();
     const inicioDeMes = new Date(agora.getFullYear(), agora.getMonth(), 1);
@@ -35,11 +45,6 @@ const DashboardPage = () => {
       (i) => new Date(i.created_at) >= inicioDeMes && i.status !== "cancelado"
     );
     const pendentesAnalise = inscricoes.filter((i) => ["em_analise", "comprovante_enviado", "pagamento_nao_identificado"].includes(i.status));
-    const receitaRealizada = registros.reduce(
-      (total, registro) => total + (registro.tipo === "entrada" ? Number(registro.valor) : -Number(registro.valor)),
-      0,
-    );
-
     const porStatus = STATUS_INSCRICAO.reduce<Record<string, number>>((acc, key) => {
       acc[key] = inscricoes.filter((i) => i.status === key).length;
       return acc;
@@ -63,14 +68,14 @@ const DashboardPage = () => {
       ativas: ativas.length,
       novasMes: novasMes.length,
       pendentesAnalise: pendentesAnalise.length,
-      receitaRealizada,
       porStatus,
       porModalidade,
       nucleosOrdenados,
     };
-  }, [inscricoes, alunos, registros]);
+  }, [inscricoes, alunos]);
 
-  if (isLoading) {
+  if (saude.erro && saude.semDados) return <p role="alert" className="p-6">Não foi possível atualizar os indicadores. Aguarde a recuperação da conexão.</p>;
+  if (isLoading || saude.carregando) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -80,6 +85,7 @@ const DashboardPage = () => {
 
   return (
     <div className="container py-8 space-y-8">
+      {saude.erro && <p role="alert" className="text-destructive">Falha ao atualizar. Indicadores mostram os últimos dados carregados.</p>}
       <div>
         <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
         <p className="text-sm text-muted-foreground mt-1">Visão geral do instituto</p>
@@ -93,8 +99,8 @@ const DashboardPage = () => {
               <Users className="h-5 w-5 text-green-700" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Alunos ativos</p>
-              <p className="text-3xl font-bold text-foreground">{stats.ativas}</p>
+              <p className="text-xs text-muted-foreground">Vínculos acadêmicos ativos</p>
+              <p className="text-3xl font-bold text-foreground">{stats.ativas}</p><p className="text-xs text-muted-foreground">{pessoasAtivas} pessoas identificadas distintas</p>{cursos.map(curso => <p key={curso.id} className="text-xs text-muted-foreground">{curso.nome}: {alunos.filter(a => a.situacao === "ativo" && a.curso_id === curso.id).length} vínculos</p>)}
             </div>
           </CardContent>
         </Card>
@@ -132,8 +138,8 @@ const DashboardPage = () => {
               <DollarSign className="h-5 w-5 text-green-700" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Resultado de caixa registrado</p>
-              <p className="text-2xl font-bold text-foreground">{fmt(stats.receitaRealizada)}</p>
+              <p className="text-xs text-muted-foreground">Saldo acumulado até o mês atual</p>
+              <p className="text-2xl font-bold text-foreground">{fmt(financeiro.saldoFinal)}</p>
             </div>
           </CardContent>
         </Card>

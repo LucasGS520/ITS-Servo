@@ -1,4 +1,6 @@
 import { supabase } from "@/services/supabase/client";
+import { queryClient } from "@/providers/queryClient";
+import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 
 const usuarioAtual = async () => {
   const { data, error } = await supabase.auth.getUser();
@@ -39,5 +41,9 @@ export const verificarAcessoGestao = async () => {
 };
 
 export const sairDaGestao = async () => {
-  await supabase.auth.signOut();
+  const { error } = await supabase.auth.signOut();
+  if (error) throw error;
+  queryClient.clear();
 };
+
+export const observarSessao = (callback: (event: AuthChangeEvent, session: Session | null) => void) => supabase.auth.onAuthStateChange(callback);

@@ -20,6 +20,7 @@ export function relatorioGeralMensal(
   saldos: { ano: number; valor: number }[],
   cursos: { id: string; nome: string; codigo: string }[],
   edicoes: { id: string; nome: string }[],
+  unidadeLabels: Record<string, string> = UNIDADE_LABELS,
 ) {
   const doMes = movimentos.filter(l => l.mes_caixa.slice(0, 7) === mes);
   const grupos = new Map<string, Grupo>();
@@ -35,12 +36,12 @@ export function relatorioGeralMensal(
     } else if (edicao) {
       chave = `edicao:${edicao.id}`; nome = edicao.nome;
     } else if (curso?.codigo === "teologico" && l.unidade) {
-      chave = `teologico:${l.unidade}`; nome = UNIDADE_LABELS[l.unidade] ?? l.unidade;
+      chave = `teologico:${l.unidade}`; nome = unidadeLabels[l.unidade] ?? l.unidade;
     } else if (curso) {
       chave = `curso:${curso.id}`; nome = curso.nome;
     } else {
       chave = `categoria:${l.categoria_id ?? "sem-categoria"}:${l.unidade ?? "geral"}`;
-      nome = l.unidade ? `${categoria} · ${UNIDADE_LABELS[l.unidade] ?? l.unidade}` : categoria;
+      nome = l.unidade ? `${categoria} · ${unidadeLabels[l.unidade] ?? l.unidade}` : categoria;
     }
     const grupo = grupos.get(chave) ?? { chave, nome, entradas: 0, saidas: 0, resultado: 0 };
     if (l.tipo === "entrada") grupo.entradas += Number(l.valor);
